@@ -270,7 +270,7 @@ test('comments and apostrophes in wrapped messages are not misread', () => {
   assert.equal(ps("# Commit the owner's changes\ngit commit -m 'TASK-1: x'").status, 0, 'PowerShell comment');
   assert.equal(guard(root, 'cmd /c git commit -m "TASK-1: the owner\'s fix"').status, 0, 'apostrophe through cmd /c');
   assert.equal(guard(root, 'cmd /c "git commit -m \'TASK-1: x\' -n"').status, 2, 'cmd treats single quotes as plain text');
-  assert.equal(guard(root, 'cmd /c "git commit -m TASK-1:it's"').status, 0, 'a lone apostrophe is plain text in cmd');
+  assert.equal(guard(root, "cmd /c \"git commit -m TASK-1:it's\"").status, 0, 'a lone apostrophe is plain text in cmd');
   assert.equal(guard(root, 'git commit -m "TASK-1: issue #12 fixed" -n').status, 2, 'a # inside a word is not a comment');
 });
 
