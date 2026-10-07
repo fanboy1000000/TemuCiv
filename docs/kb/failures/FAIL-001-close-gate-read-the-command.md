@@ -30,15 +30,21 @@ because everyone believes it holds.
 
 - **Enforce where the truth is.** The gates live in `tools/lib/close-gates.mjs` and run in the git
   `commit-msg` hook (`.githooks/`, `npm run setup`), on the real message, whatever the command looked like.
-  The Claude guard now only protects that hook: it blocks commits while the hooks aren't installed and blocks
-  `--no-verify`, `-n` and `core.hooksPath` overrides.
+- **Protect the outcome, not the spelling.** A close that passes the gates leaves a receipt for its exact
+  content; pre-push lets `main` advance only to a close with its receipt. Skipping the hooks therefore can't put
+  unreviewed work on GitHub, however the command is typed.
 - **Fail closed.** The GitHub gate requires a finished, successful run for the last pushed commit; any error
   blocks. A commit that marks a sprint complete is treated as a close, whatever its subject.
 - **Prove each guard can fail.** Every fix has a test, and one-line mutations in a throwaway worktree showed each
   test failing when its fix is removed.
 
+**Second lesson (2026-10-08).** The first fix kept the command-reading guard and made it read every shell
+spelling. Nine review cycles each found another spelling (458 lines of parser and 530 of tests). The loop ended
+when the protection moved to the push (the receipt) and the guard shrank to a 60-line text check. When a fix keeps
+finding new edge cases of the same kind, the fix is in the wrong place.
+
 ## Guidance for future agents
 
-Put an enforcement point where the fact it checks is visible (the commit, the file, the run), not where it is
-convenient to hook. Default every gate to "blocked unless proven good". Test the forms a normal user would type,
+Put an enforcement point where the fact it checks is visible (the commit, the file, the run, the push), not where
+it is convenient to hook. Default every gate to "blocked unless proven good". Test the forms a normal user would type,
 not only the ones the gate was written for.

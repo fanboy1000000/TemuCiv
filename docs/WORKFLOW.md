@@ -166,27 +166,21 @@ GitHub push protection is on for the repository, so a known secret format is ref
 
 **Git hooks** (`.githooks/`, installed by `npm run setup`): **pre-commit** runs the secret scan on the staged
 files, so a secret is refused before it is ever committed. **commit-msg** is the authoritative close check: it
-reads the real commit message, so it works whatever form the command takes (`-m`, `-F`, a heredoc, an editor);
-it refuses a subject that looks like a close but isn't exactly `S<N> close: <title>`, any other commit that marks
-a sprint complete, and any commit on `main`. **pre-push** refuses to push `main` unless its tip is a close
-commit, so a task commit can't be pushed to the shared branch by mistake (CONVENTIONS invariant 7). Known limits:
-git doesn't run commit-msg for cherry-pick, revert, rebase or `git am`, and both hooks run only on this computer; a GitHub
-branch rule for `main` is in the backlog.
+reads the real commit message, so it works whatever form the command takes; it refuses a subject that looks like
+a close but isn't exactly `S<N> close: <title>`, any other commit that marks a sprint complete, and any commit on
+`main`. When every gate passes for a close, it leaves a **receipt** for the exact content committed
+(`.claude/ci/close-receipts/`). **pre-push** lets `main` advance only to a close commit that has its receipt, so
+neither a task commit nor a close made with the hooks switched off can reach the shared branch, however the
+command was typed (CONVENTIONS invariant 7). Known limits: the hooks run only on this computer, and a hand-made
+receipt or a deliberately assembled skip flag is out of reach (the threat is mistakes, not a hostile author); a
+GitHub branch rule for `main` is in the backlog.
 
-**The sprint-close guard** (`.claude/hooks/sprint-close-guard.mjs`, run before every Bash/PowerShell command)
-protects the git hooks. For any command that mentions git commit, push, merge or pull, it requires the hooks to be
-installed, and it fails safe: it blocks the command when its text names `--no-verify` (or an abbreviation) or
-`core.hooksPath`, or when it can't be read to the end. Heredoc and here-string bodies count as message text and
-are skipped, unless the command they belong to, or a pipe after them, runs them as code. A commit message or
-search that names those words uses `-F` or a search tool instead. It also parses the command the way Bash or
-PowerShell would, including the commands nested in it: `$(...)`, `(...)` and backticks; `bash -c` and `<<<`;
-`pwsh -Command`; `cmd /c` or `/k` (also `//c`, attached, or after other options); `eval`; `iex` or
-`Invoke-Expression` (also `-Command` and its abbreviations, and a literal in brackets); text piped into any of
-those at any pipeline stage; and a heredoc or here-string fed to them, also inside a `$(...)` given to them. The
-program a command runs is found past `VAR=value` settings and `env`/`command`/`exec`/`nohup`/`time`/`sudo`. It
-catches escaped skip flags and `-n` on a commit, and runs the gates up front when it sees a close message. It covers the common forms against mistakes; a skip
-flag assembled at run time is out of its reach, and the server-side backstops are in the backlog. Both enforcement
-points share the gates in `tools/lib/close-gates.mjs`. A close is blocked
+**The sprint-close guard** (`.claude/hooks/sprint-close-guard.mjs`, run before every Bash/PowerShell command) is a
+cheap early warning, deliberately blunt (about 60 lines, no shell parsing). For a command that mentions git with
+commit, push, merge or pull, it blocks while the hooks aren't installed, and when the text names `--no-verify` (or
+an abbreviation), names `core.hooksPath`, or has a `-n` flag cluster after `commit`. A commit message that names
+those words goes through `-F <file>`. Gaps in the guard are not blockers: the receipt check at push is the real
+protection. The close gates live in `tools/lib/close-gates.mjs`. A close is blocked
 unless:
 
 | Gate | Requires | Waiver file (`.claude/reviews/`) |

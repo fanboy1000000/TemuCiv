@@ -22,7 +22,7 @@
 // real gate.
 
 import { execFileSync } from 'node:child_process';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { CI_RECORD, git, gitHead, reviewScopeHash, scopeHash } from './repo.mjs';
 
@@ -213,6 +213,24 @@ export function checkCloseGates(root, sprint, env = process.env) {
     for (const p of problems) failures.push(`[${gate}] ${p}`);
   }
   return { failures, waived };
+}
+
+/**
+ * Close receipts: when commit-msg finds every gate passing for a close, it leaves a receipt named after the tree
+ * (the exact content) being committed. pre-push only lets `main` advance to a close commit whose tree has one, so
+ * a close made with the git hooks switched off (`-n`) can't reach GitHub. Gitignored, like the review files.
+ */
+export const RECEIPTS = '.claude/ci/close-receipts';
+
+export function writeCloseReceipt(root, sprint, tree) {
+  const dir = join(root, RECEIPTS);
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(join(dir, `${tree}.json`), JSON.stringify({ sprint, tree, at: new Date().toISOString() }) + '\n');
+}
+
+export function readCloseReceipt(root, tree) {
+  const path = join(root, RECEIPTS, `${tree}.json`);
+  return existsSync(path) ? JSON.parse(readFileSync(path, 'utf8')) : null;
 }
 
 /** The message both enforcement points print when a close is blocked. */

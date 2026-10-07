@@ -25,6 +25,7 @@ Deferred work with an owner and a reason. Items leave the backlog when a sprint 
 
 | Item | Why deferred | Picked up by |
 |---|---|---|
+| Sprint 2 opening, from the Sprint 1 learnings (proposed 2026-10-08, pending the owner's approval): adopt ponytail's "build the minimum" ladder in CONVENTIONS, with review questions and marked shortcuts; tests in proportion to risk (rewording invariant 7); a GitHub branch rule for `main`; bring the harness review forward and apply the ladder to the whole rulebook; review prompts that treat edge cases of a mistake-guard as notes | Owner decisions first (CONVENTIONS changes) | S2 |
 | Architecture decision: game loop (order collection, simultaneous turn resolution, battles inside the turn, turn replay; ADR-008), rendering library, UI approach, desktop wrapper (Electron vs Tauri), data format and schema, module layout, test framework | Sprint 2: the owner asked for a sprint that analyzes the technical design choices (2026-10-07) | S2 |
 | ADR-005's supported envelopes: configurable map size, player count and game length limits with performance targets, so "built to scale" can be tested (Codex S1 cycle 1, warning) | Belongs to the architecture decision | S2 |
 | Design brainstorm, carried over: which economy pays for units and buildings (lean: one coin plus a few physical goods hauled by logistics); the big shape of logistics (routes designed once, then automatic: proposed) and of cities (stability, sanitation) | The owner moved to the technical sprint first | M0 |

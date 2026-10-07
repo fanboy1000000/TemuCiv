@@ -201,6 +201,7 @@ review of this sprint (`.claude/reviews/SPRINT-1-codex-c1.md`, 2026-09-30), befo
 | TASK-113 | Orchestrator | `.claude/hooks/**`, `docs/**` | Codex cycle-6 BLOCKER and the reviewer's cycle-5 warning fixed, with tests and mutation runs | no |
 | TASK-114 | Orchestrator | `.claude/hooks/**`, `docs/**` | Codex cycle-7 BLOCKERs and the reviewer's cycle-6 warnings fixed, with tests and named mutations | no |
 | TASK-115 | Orchestrator | `.claude/hooks/**`, `docs/**` | Codex cycle-8 BLOCKER (a regression) and the reviewer's cycle-7 warning fixed at the root, with tests and named mutations | no |
+| TASK-116 | Orchestrator | `.claude/hooks/**`, `tools/**`, `docs/**`, `ROADMAP.md` | A close made with the hooks off can't be pushed to `main`; the guard is a short text check; tests fail when each rule is removed | no |
 
 **Past the cycle cap (owner, 2026-10-07).** Codex's fifth cycle still found BLOCKERs; asked to keep iterating,
 accept the findings or move them to Sprint 2 (engineering's recommendation), the owner chose to keep iterating, after
@@ -290,77 +291,28 @@ Reviewer cycle 2's warnings W1 to W7 are all fixed (shell forms, commits on `mai
 ordering, TASK-108 wording, a test that couldn't fail, the handoff), and its notes too. Codex cycle 4: APPROVED; its one note (a blank line at the end of
 `docs/design/notes.md`) is declined, because that file is the owner's and is never edited by engineering.
 
-### TASK-111: a fail-safe guard (reviewer c3)
+### TASK-111 to TASK-115: the command parser rounds (superseded by TASK-116)
 
-Status complete · Agent: Orchestrator (bootstrap exception, as TASK-108) · Constraint validator: n/a: no game code; self-checked · Review: per-task review in the sprint-end review, cycle 5 (Codex) and 4 (reviewer).
+Status complete, then superseded · Agent: Orchestrator (bootstrap exception) · Review: Codex cycles 5 to 9, reviewer cycles 3 to 8.
 
-The reviewer's cycle 3 confirmed TASK-110 but found the guard still missed `--no-verify` after a PowerShell
-here-string with an apostrophe, and, as a regression of TASK-110, inside commands with computed values such as
-`git -C $(pwd) commit`. Each cycle had found one more shell form, so the guard now fails safe on text: a command
-that mentions git commit or push is blocked if it names `--no-verify` (or an abbreviation) or `core.hooksPath`,
-or can't be read to the end. The word splitter keeps `$(...)` and `(...)` values as one word, opens a subshell
-only at the start of a command, and reads PowerShell here-strings. The price is a rare false alarm (a `-m`
-message naming those words must use `-F`). Also: the "Previous close on GitHub" row stays reviewed (it is filled
-at sprint start), the pre-push wording states its known limits, and a GitHub branch rule for `main` is in the
-backlog. The reviewer's raw output for cycle 3 is kept in `.claude/reviews/`.
+Each cycle found another shell spelling that hid the skip flag from the guard (PowerShell here-strings, computed
+values, `bash -c`, backticks, `cmd /c` and `//c`, `eval`, `iex`, piped text, `env` prefixes, line continuations).
+Each round added parsing, tests and named mutations (RED evidence per round is in the commit history and
+`.claude/reviews/`). The guard reached 458 lines, its tests 530. The owner was asked after cycles 5 and 7 and
+chose to keep iterating; after cycle 9 engineering proposed protecting the push instead (TASK-116), which the owner
+approved on 2026-10-08 after asking why the review took so many rounds.
 
-RED evidence: eight mutations at `a0f330e` (52 tests), each failing a named test; a first-run survivor
-exposed a redundant branch, removed with a fix for unparsed inner commands.
+### TASK-116: protect the push, shrink the guard (owner-approved, 2026-10-08)
 
-### TASK-112: wrapped commands and the previous-close test (Codex c5, reviewer c4)
+Status complete · Agent: Orchestrator (bootstrap exception) · Constraint validator: n/a · Review: Codex cycle 10, reviewer cycle 9.
 
-Status complete · Agent: Orchestrator (bootstrap exception, as TASK-108) · Constraint validator: n/a: no game code; self-checked · Review: per-task review in the sprint-end review, cycle 6 (Codex) and 5 (reviewer).
-
-Codex cycle 5 (BLOCKED) and the reviewer's cycle 4 found `-n` passing when the commit was wrapped (`bash -c`,
-backticks, `"$(...)"`, a variable holding `git`). The guard now parses nested commands, treats any `commit`
-word as a commit, guards `git merge`; the previous-close row got its test; the docs state the guard's limits.
-
-RED evidence: six mutations at `21b78d0` (55 tests), each failing a named test; two first-run survivors led to
-removing a redundant branch and testing an escaped merge flag.
-
-### TASK-113: the remaining wrappers (Codex c6, reviewer c5)
-
-Status complete · Agent: Orchestrator (bootstrap exception) · Constraint validator: n/a · Review: cycle 7 (Codex), 6 (reviewer).
-
-Codex cycle 6 (BLOCKED) found `cmd /c "git commit -n ..."` still passed; the reviewer's cycle 5 (APPROVED-WITH-
-WARNINGS) named the rest of that family: `eval`, `Invoke-Expression`/`iex`, a heredoc fed to `bash`, `bash -ce`.
-The guard now parses all of them, guards `git pull` (it runs a merge), explains a blocked `commit -n` that may be a
-search, and the docs list exactly what is parsed. Declined: the blank line at the end of `docs/design/notes.md`
-(the owner's file).
-
-RED evidence at `7d02043` (57 tests), each failing the wrapper test or the merge/pull test: cmd /c, eval/iex,
-shell-fed heredoc, iex-fed here-string, pull, and `-ce` flag parsing switched off in turn. A first run showed the
-pull rule untested (the text check covered it), hence the escaped-pull test in `7d02043`.
-
-### TASK-114: cmd and iex spellings, piped text (Codex c7, reviewer c6)
-
-Status complete · Agent: Orchestrator (bootstrap exception) · Constraint validator: n/a · Review: cycle 8 (Codex), 7 (reviewer).
-
-Codex cycle 7 (BLOCKED): `cmd /c"..."` attached and `/d/c`, `Invoke-Expression -Command` and a here-string
-argument. Reviewer cycle 6 (APPROVED-WITH-WARNINGS): Git Bash's `cmd //c`, text piped to `iex` or a shell,
-`bash <<<`; unnamed mutations; notes on a false alarm (a shell earlier on a heredoc's line), an untested search
-hint, `pull` missing from messages, a here-string offset slip. All fixed: the guard reads every cmd spelling,
-`-Command`, here-string arguments, piped text and `<<<`; unquoted backticks are parsed again; a heredoc is code
-only when its own command or a pipe after it runs it; messages name `pull`; tests for each.
-
-RED evidence at `d067ea5` (61 tests), each failing a named test: M1 cmd only with a separate `/c`; M2 `-Command`
-ignored; M3 `<<<` not read; M4 piped text not read; M5 unquoted backticks not parsed; M6 an iex here-string
-argument read as a message; M7 any shell earlier on the line making a heredoc code (it first survived: the
-false-alarm test had two apostrophes, which balance; it now has one).
-
-### TASK-115: find the program that runs the code (Codex c8, reviewer c7)
-
-Status complete · Agent: Orchestrator (bootstrap exception) · Constraint validator: n/a · Review: cycle 9 (Codex), 8 (reviewer).
-
-Both lenses found that TASK-114's narrower heredoc rule lost forms: `FOO=bar bash <<EOF`, `env bash`, `| tee | bash`,
-`bash -c "$(cat <<EOF ...)"`. Fixed at the root: the guard finds the program a command actually runs (past
-settings and `env`-style wrappers), checks every pipeline stage, and checks the command around a `$(...)`. Also:
-`iex -C`/`-Com`/`-Command:` and `iex ("...")`; `#` comments; cmd's own quoting (single quotes are text).
-
-RED evidence at `29b24bc` (64 tests), each failing a named test: N1 settings not skipped, N2 env-style wrappers
-not skipped, N3 only the first pipeline stage checked, N4 the command around `$(...)` unchecked, N5 `-Command`
-abbreviations ignored, N6 bracketed literal not unwrapped, N7 comments unrecognised, N8 cmd reading `'` as a
-quote (it first survived; its new test, committed broken in `a68a33f`, was fixed in `29b24bc`).
+commit-msg now leaves a receipt for the exact content of a close that passes every gate, and pre-push lets `main`
+advance only to a close commit with its receipt. A close made with the hooks switched off, or a task commit,
+can't reach GitHub however the command is typed, which settles Codex cycle 9's two BLOCKERs at the root. The
+guard is a 60-line text check (skip flag, `core.hooksPath`, `-n` after `commit`, hooks installed); the parser
+and its 22 tests are deleted; the 21 close-gate tests now call the gates directly. Refinement:
+`.claude/refinements/REFINEMENT-guard-shrink.md`. Adopting ponytail's ladder and proportional testing in
+CONVENTIONS is Sprint 2 (owner decision pending).
 
 ## Design conformance
 

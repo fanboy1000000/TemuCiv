@@ -91,12 +91,18 @@ test('commit-msg refuses any commit on main', () => {
   assert.match(run.stderr, /no commits on main/);
 });
 
-test('pre-push refuses pushing main at a task commit, and allows it at a close commit', () => {
+/** A throwaway repository with a bare remote called origin. */
+function repoWithRemote() {
   const root = repo();
   const remote = mkdtempSync(join(tmpdir(), 'temuciv-remote-'));
   repos.push(remote);
   git(remote, 'init', '-q', '--bare');
   git(root, 'remote', 'add', 'origin', remote);
+  return root;
+}
+
+test('pre-push refuses pushing main at a task commit', () => {
+  const root = repoWithRemote();
   write(root, 'src/game.txt', 'task work\n');
   git(root, 'add', '-A');
   git(root, 'commit', '-q', '-m', 'TASK-1: unreviewed work');
@@ -104,12 +110,25 @@ test('pre-push refuses pushing main at a task commit, and allows it at a close c
   const refused = gitWithHooks(root, ['push', '-q', 'origin', 'main']);
   assert.notEqual(refused.status, 0);
   assert.match(refused.stderr, /refusing to push main at "TASK-1: unreviewed work"/);
+  assert.equal(gitWithHooks(root, ['push', '-q', 'origin', 'sprint/999']).status, 0, 'a sprint branch may be pushed');
+});
 
-  git(root, 'commit', '-q', '--allow-empty', '-m', 'S999 close: reviewed');
+test('pre-push lets main advance to a close made through the hooks, but not to one made with them switched off', () => {
+  // The same prepared close, committed twice: once with the hooks off (no receipt), once through them.
+  const root = repoWithRemote();
+  prepareClose(root, 999);
+  git(root, 'commit', '-q', '-m', 'S999 close: hooks switched off');
+  git(root, 'branch', '-f', 'main', 'HEAD');
+  const refused = gitWithHooks(root, ['push', '-q', 'origin', 'main']);
+  assert.notEqual(refused.status, 0);
+  assert.match(refused.stderr, /no record that this close passed the close gates/);
+
+  git(root, 'reset', '-q', '--soft', 'HEAD~1');
+  const made = commitWithHooks(root, ['-m', 'S999 close: through the hooks'], { env: OK_ENV });
+  assert.equal(made.status, 0, made.stderr);
   git(root, 'branch', '-f', 'main', 'HEAD');
   const allowed = gitWithHooks(root, ['push', '-q', 'origin', 'main']);
   assert.equal(allowed.status, 0, allowed.stderr);
-  assert.equal(gitWithHooks(root, ['push', '-q', 'origin', 'sprint/999']).status, 0);
 });
 
 // --- pre-commit: secret scan ------------------------------------------------------------------------------

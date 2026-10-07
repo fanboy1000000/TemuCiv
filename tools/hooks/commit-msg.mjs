@@ -5,12 +5,13 @@
 // form "S<N> close: <title>" must pass every close gate (tools/lib/close-gates.mjs). A subject that looks
 // like a close but isn't in exactly that form is refused, and so is any other commit that marks a sprint log
 // complete: neither can slip through as an ordinary commit. Any commit on `main` is refused: main only
-// receives reviewed closes, by a fast-forward from the sprint branch (CONVENTIONS invariant 7).
+// receives reviewed closes, by a fast-forward from the sprint branch (CONVENTIONS invariant 7). A close that
+// passes every gate leaves a receipt (tools/lib/close-gates.mjs), which pre-push requires.
 //
 // Usage (by git): node tools/hooks/commit-msg.mjs <path-to-message-file>
 
 import { readFileSync } from 'node:fs';
-import { blockedMessage, checkCloseGates, classifyMessage, sprintsMarkedComplete } from '../lib/close-gates.mjs';
+import { blockedMessage, checkCloseGates, classifyMessage, sprintsMarkedComplete, writeCloseReceipt } from '../lib/close-gates.mjs';
 import { git } from '../lib/repo.mjs';
 
 const messageFile = process.argv[2];
@@ -63,4 +64,6 @@ if (failures.length) {
   process.stderr.write(`commit-msg: ${blockedMessage(kind.sprint, failures)}`);
   process.exit(1);
 }
+// Every gate passed: leave the receipt pre-push asks for, keyed by the tree this commit will have.
+writeCloseReceipt(root, kind.sprint, git(root, ['write-tree']).trim());
 process.exit(0);
