@@ -305,6 +305,11 @@ Both lenses returned BLOCKED again, on narrower holes:
 | Reviewer: step 8 asked for a table that the review freezes; TASK-108's record overstated the reviews | Step 7 now requires the task log and design conformance before the stamp; record reworded | n/a (docs) |
 | Codex: the gate table didn't say the INDEX row must be complete | Gate table and module header updated | n/a (docs) |
 
+RED evidence (one-line mutations in a throwaway worktree against the 50 tests at `1257ea3`): close-time filter
+over the whole reviewed part, commits on main allowed, pre-push accepting any tip, PowerShell split with bash
+rules, the heredoc opening line dropped, parentheses not separators, push not guarded, `-u` read as a flag
+cluster: each made at least one named test fail (1 or 2 each).
+
 ## Design conformance
 
 Not applicable: no game design implemented this sprint.
