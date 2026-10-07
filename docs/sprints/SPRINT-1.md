@@ -314,6 +314,11 @@ and its 22 tests are deleted; the 21 close-gate tests now call the gates directl
 `.claude/refinements/REFINEMENT-guard-shrink.md`. Adopting ponytail's ladder and proportional testing in
 CONVENTIONS is Sprint 2 (owner decision pending).
 
+RED evidence at `b887401` (47 tests), each failing a named test on the first run: R1 pre-push skips the receipt
+check, R2 commit-msg writes no receipt, R3 pre-push accepts any tip of `main`, G1 hooks-installed check off, G2
+skip-flag text check off, G3 `core.hooksPath` check off, G4 `-n` after `commit` unchecked, G5 `-n` checked
+across the whole line instead of per command (a false alarm the allowed-forms test catches).
+
 ## Design conformance
 
 Not applicable: no game design implemented this sprint.
