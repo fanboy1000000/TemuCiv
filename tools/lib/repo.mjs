@@ -14,12 +14,12 @@ import { dirname, join } from 'node:path';
 /** Files the close paperwork may change after the sprint-end review without invalidating it. */
 export const REVIEW_EXCLUDE = [/^docs\/sprints\/INDEX\.md$/, /^ROADMAP\.md$/];
 
-const CLOSE_TIME_HEADER_ROWS = /^\|\s*\*\*(Status|Dates|CI verified|Previous close on GitHub)\*\*\s*\|/;
+const CLOSE_TIME_HEADER_ROWS = /^\|\s*\*\*(Status|Dates|CI verified)\*\*\s*\|/;
 
 /**
  * The part of a file the review covers. A sprint log is reviewed up to its "## Sprint-end review" heading,
  * minus the rows of its header table (before the first "## ") that are filled in at close (Status, Dates, CI
- * verified, Previous close on GitHub). Task tables keep their Status rows: the plan,
+ * verified). Task tables keep their Status rows: the plan,
  * the owner's rulings and the task evidence are frozen by the review, while the review summary, test summary,
  * retrospective and handoff are written afterwards. Every other file is reviewed whole.
  */

@@ -37,6 +37,7 @@ Deferred work with an owner and a reason. Items leave the backlog when a sprint 
 | Read-only agents (reviewer, constraint-validator, trace) have unrestricted Bash; replace with an enforced read/test allowlist (Codex S1 cycle 1, warning) | No agent has run yet; needs a mechanism Claude Code supports | Before the first agent-built sprint |
 | Worktree sequence for parallel agents: compare via shared refs (HEAD vs main), and state who stages, commits and merges (Codex S1 cycle 1, warning) | Settled in the first sprint that runs parallel worktree agents | First parallel build sprint |
 | Rename "research" as a system (WORKFLOW, AGENTS, the simulation agent, the design README, ADR-002's `SetResearch` example): progress is the leader web in rings (Sprint 1 review note) | Renamed with the module layout | S2 |
+| A GitHub branch rule for `main` (only reviewed closes: no force-push, no merges on GitHub); the local hooks can't see cherry-pick, rebase or GitHub-side changes (Sprint 1 review note) | Changes the owner's GitHub settings; ask first | Before the first agent-built sprint |
 | A plain-language glossary (HEAD, worktree, hash, staging, CI run states) and a one-page close checklist for the owner (Codex S1 cycle 1, note) | Nice to have | Any docs sprint |
 
 ## Parking lot

@@ -196,6 +196,7 @@ review of this sprint (`.claude/reviews/SPRINT-1-codex-c1.md`, 2026-09-30), befo
 | TASK-108 | Orchestrator | `.githooks/**`, `tools/**`, `.claude/hooks/**`, `.github/**`, `package.json`, `docs/**`, `CLAUDE.md` | Each Codex cycle-1 BLOCKER fixed, with a test that fails when the fix is removed → governance tests + mutation runs | no |
 | TASK-109 | Orchestrator | same as TASK-108, plus `.claude/agents/platform.md`, `docs/kb/**` | Each cycle-2 BLOCKER (Codex and reviewer) fixed, with a test that fails when the fix is removed → governance tests + mutation runs | no |
 | TASK-110 | Orchestrator | same as TASK-109 | Each cycle-3 BLOCKER (Codex c3, reviewer c2) fixed, with a test that fails when the fix is removed → governance tests + mutation runs | no |
+| TASK-111 | Orchestrator | `.claude/hooks/**`, `tools/lib/repo.mjs`, `docs/**`, `ROADMAP.md` | The reviewer's cycle-3 BLOCKER fixed with a fail-safe text check, with tests and mutation runs | no |
 
 **Sprint branch (2026-10-07).** Codex cycle 2 found that committing tasks to local `main` before the review breaks
 CONVENTIONS invariant 7 ("reviewed before it is committed to `main`"). The workflow now keeps each sprint on
@@ -309,6 +310,32 @@ RED evidence (one-line mutations in a throwaway worktree against the 50 tests at
 over the whole reviewed part, commits on main allowed, pre-push accepting any tip, PowerShell split with bash
 rules, the heredoc opening line dropped, parentheses not separators, push not guarded, `-u` read as a flag
 cluster: each made at least one named test fail (1 or 2 each).
+
+Reviewer cycle 2's warnings, one by one: W1 (more shell forms) fixed by the word splitter and the docs now say
+"common forms"; W2 (commits on `main`) fixed; W3 (close-time rows) fixed and tested; W4 (step 8 ordering) fixed;
+W5 (TASK-108 record) reworded; W6 (a test that passed for the wrong reason) fixed; W7 (stale handoff) refreshed.
+Its notes: the `platform.md` exception removed; the false positives and the missed `-am` close fixed; the ROADMAP
+and INDEX updates are done at close. Codex cycle 4: APPROVED; its one note (a blank line at the end of
+`docs/design/notes.md`) is declined, because that file is the owner's and is never edited by engineering.
+
+### TASK-111: a fail-safe guard (reviewer c3)
+
+| Field | Value |
+|---|---|
+| **Status** | complete |
+| **Agent** | Orchestrator (bootstrap exception, as TASK-108) |
+| **Constraint validator** | n/a: no game code; self-checked |
+| **Review** | per-task review in the sprint-end review, cycle 5 (Codex) and 4 (reviewer) |
+
+The reviewer's cycle 3 confirmed TASK-110 but found the guard still missed `--no-verify` after a PowerShell
+here-string with an apostrophe, and, as a regression of TASK-110, inside commands with computed values such as
+`git -C $(pwd) commit`. Each cycle had found one more shell form, so the guard now fails safe on text: a command
+that mentions git commit or push is blocked if it names `--no-verify` (or an abbreviation) or `core.hooksPath`,
+or can't be read to the end. The word splitter keeps `$(...)` and `(...)` values as one word, opens a subshell
+only at the start of a command, and reads PowerShell here-strings. The price is a rare false alarm (a `-m`
+message naming those words must use `-F`). Also: the "Previous close on GitHub" row stays reviewed (it is filled
+at sprint start), the pre-push wording states its known limits, and a GitHub branch rule for `main` is in the
+backlog. The reviewer's raw output for cycle 3 is kept in `.claude/reviews/`.
 
 ## Design conformance
 

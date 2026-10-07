@@ -169,13 +169,17 @@ files, so a secret is refused before it is ever committed. **commit-msg** is the
 reads the real commit message, so it works whatever form the command takes (`-m`, `-F`, a heredoc, an editor);
 it refuses a subject that looks like a close but isn't exactly `S<N> close: <title>`, any other commit that marks
 a sprint complete, and any commit on `main`. **pre-push** refuses to push `main` unless its tip is a close
-commit, so unreviewed work never reaches the shared branch (CONVENTIONS invariant 7).
+commit, so a task commit can't be pushed to the shared branch by mistake (CONVENTIONS invariant 7). Known limits:
+git doesn't run commit-msg for cherry-pick, revert or rebase, and both hooks run only on this computer; a GitHub
+branch rule for `main` is in the backlog.
 
 **The sprint-close guard** (`.claude/hooks/sprint-close-guard.mjs`, run before every Bash/PowerShell command)
-protects the git hooks: it blocks any commit or push while they aren't installed, and any attempt to skip them
-(`--no-verify` or an abbreviation, `-n` on a commit, a `core.hooksPath` override), quoted or escaped for Bash or
-PowerShell, piped or in a subshell. It covers the common forms; the git hooks are the real check. When the command text shows a close message, it runs the
-gates up front. Both enforcement points share the gates in `tools/lib/close-gates.mjs`. A close is blocked
+protects the git hooks. For any command that mentions git commit or push, it requires the hooks to be installed,
+and it fails safe: it blocks the command when its text names `--no-verify` (or an abbreviation) or
+`core.hooksPath`, or when it can't be read to the end, however the command is wrapped. A commit message that
+names those words goes through `-F` instead. It also parses the command the way Bash or PowerShell would, to
+catch escaped skip flags and `-n` in a commit's flags, and to run the gates up front when it sees a close message. Both enforcement
+points share the gates in `tools/lib/close-gates.mjs`. A close is blocked
 unless:
 
 | Gate | Requires | Waiver file (`.claude/reviews/`) |
@@ -188,7 +192,7 @@ unless:
 
 The **review scope hash** covers every tracked or untracked non-ignored file except `docs/sprints/INDEX.md` and
 `ROADMAP.md`. A sprint log counts only up to its "## Sprint-end review" heading, minus the header rows filled in at
-close (Status, Dates, CI verified, Previous close on GitHub): the plan, the owner's rulings and the task evidence
+close (Status, Dates, CI verified): the plan, the owner's rulings and the task evidence
 are frozen by the review, while the review summary, test summary, retrospective and handoff are written after it.
 Any other change forces a new review. The CI hash covers every project file. A waiver is written only on the owner's say-so, states the reason, and is mentioned
 in the sprint log. The governance tests (`.claude/hooks/tests/`) run in CI; run them after any hook or tool change.

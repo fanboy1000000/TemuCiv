@@ -108,7 +108,9 @@ test('reads PowerShell escapes and continuations, and Bash line continuations, t
   assert.equal(ps("git commit `\n  --no-verify -m 'TASK-1: x'").status, 2, 'backtick continuation');
   assert.equal(ps("git commit \"--no`-verify\" -m 'TASK-1: x'").status, 2, 'backtick escape inside quotes');
   assert.equal(ps("git commit --no``-verify -m 'TASK-1: x'").status, 0, 'a literal backtick is not an escape');
-  assert.equal(ps("git commit -m 'TASK-1: it''s fine'").status, 0, 'doubled single quote');
+  assert.equal(ps("@'\nTASK-1: the owner's fix\n'@ | git commit -F -").status, 0, 'here-string with an apostrophe');
+  assert.equal(ps("@'\nTASK-1: the owner's fix\n'@ | git commit -F - -n").status, 2, '-n after a here-string');
+  assert.equal(ps("@'\nS999 close: x\n'@ | git commit -F -").status, 2, 'a close in a here-string is checked');
   assert.equal(guard(root, 'git commit --no-\\\nverify -m "TASK-1: x"').status, 2, 'bash backslash-newline joins words');
 });
 
@@ -120,12 +122,35 @@ test('blocks skipping the push hooks, and allows an ordinary push', () => {
   assert.equal(guard(root, 'git push origin sprint/999').status, 0);
 });
 
-test('does not mistake "-n" inside a message, or a value after -m, for the flag', () => {
+test('does not mistake "-n" inside a message, a value after -m, or -uno for the flag', () => {
   const root = repo();
-  assert.equal(guard(root, 'git commit -m "TASK-1: handle -n and --no-verify in docs"').status, 0);
+  assert.equal(guard(root, 'git commit -m "TASK-1: handle -n in docs"').status, 0);
   assert.equal(guard(root, 'git commit -m -n').status, 0);
-  assert.equal(guard(root, 'git commit -uno -m "TASK-1: -uno is --untracked-files=no"').status, 0);
-  assert.equal(guard(root, 'git commit -m "TASK-1: explain core.hooksPath in the docs"').status, 0);
+  assert.equal(guard(root, 'git commit -uno -m "TASK-1: -uno means untracked-files=no"').status, 0);
+});
+
+test('fails safe: a message that names the skip flag or core.hooksPath must go through -F', () => {
+  const root = repo();
+  assert.equal(guard(root, 'git commit -m "TASK-1: document --no-verify"').status, 2);
+  assert.equal(guard(root, 'git commit -m "TASK-1: explain core.hooksPath"').status, 2);
+  assert.equal(guard(root, "git commit -F - <<'EOF'\nTASK-1: document --no-verify and core.hooksPath\nEOF").status, 0);
+});
+
+test('blocks wrapped and computed forms: bash -c, env variables, $(...) and (...) values, unclosed quotes', () => {
+  const root = repo();
+  const ps = (command) => runHook(HOOK, { tool_name: 'PowerShell', tool_input: { command } }, { cwd: root, env: OK_ENV });
+  for (const command of [
+    'bash -c "git commit --no-verify -m x"',
+    'GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=core.hooksPath GIT_CONFIG_VALUE_0=/x git commit -m x',
+    'git -C $(pwd) commit -n -m "TASK-1: x"',
+    'git commit -F $(echo msg.txt) -n',
+    'git commit -m "unterminated',
+  ]) {
+    assert.equal(guard(root, command).status, 2, command);
+  }
+  assert.equal(ps('git -C (Get-Location) commit -n -m x').status, 2, 'PowerShell (...) value');
+  assert.equal(ps('git commit -F (Join-Path . msg.txt) -n').status, 2, 'PowerShell (...) value before -n');
+  assert.equal(guard(root, 'git -C $(pwd) commit -m "TASK-1: computed path"').status, 0, 'a computed value alone is fine');
   assert.equal(guard(root, "git commit -F - <<'EOF'\nTASK-1: docs\n\nExplain --no-verify and git commit -n.\nEOF").status, 0);
 });
 
