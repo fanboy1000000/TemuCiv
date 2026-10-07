@@ -343,6 +343,8 @@ The guard now parses all of them, guards `git pull` (it runs a merge), explains 
 search, and the docs list exactly what is parsed. Declined: the blank line at the end of `docs/design/notes.md`
 (the owner's file).
 
+RED evidence: six one-line mutations at `7d02043` (57 tests), each failing a named test.
+
 ## Design conformance
 
 Not applicable: no game design implemented this sprint.
