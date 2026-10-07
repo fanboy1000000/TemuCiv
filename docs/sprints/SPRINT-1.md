@@ -355,6 +355,11 @@ hint, `pull` missing from messages, a here-string offset slip. All fixed: the gu
 `-Command`, here-string arguments, piped text and `<<<`; unquoted backticks are parsed again; a heredoc is code
 only when its own command or a pipe after it runs it; messages name `pull`; tests for each.
 
+RED evidence at `d067ea5` (61 tests), each failing a named test: M1 cmd only with a separate `/c`; M2 `-Command`
+ignored; M3 `<<<` not read; M4 piped text not read; M5 unquoted backticks not parsed; M6 an iex here-string
+argument read as a message; M7 any shell earlier on the line making a heredoc code (it first survived: the
+false-alarm test had two apostrophes, which balance; it now has one).
+
 ## Design conformance
 
 Not applicable: no game design implemented this sprint.
