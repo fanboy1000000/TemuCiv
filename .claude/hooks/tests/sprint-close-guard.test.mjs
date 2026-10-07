@@ -172,7 +172,7 @@ test('looks inside wrapped commands for the short skip flag: shell -c, backticks
   assert.equal(ps('pwsh -Command "git commit -n -m x"').status, 2, 'pwsh -Command');
   assert.equal(ps("powershell -c 'git commit -n -m x'").status, 2, 'powershell -c');
   // Claude Code's usual commit form stays allowed.
-  assert.equal(guard(root, "git commit -m \"$(cat <<'EOF'\nTASK-1: usual form\n\nBody.\nEOF\n)\"").status, 0);
+  assert.equal(guard(root, "git commit -m \"$(cat <<'EOF'\nTASK-1: usual form\n\nThe owner's body.\nEOF\n)\"").status, 0);
   assert.equal(guard(root, 'bash -c "git commit -m x"').status, 0, 'a wrapped commit without the flag');
 });
 
@@ -185,6 +185,56 @@ test('guards git merge as well: its skip flag bypasses commit-msg too', () => {
   assert.equal(guard(root, 'git pull --no-verify origin main').status, 2, 'pull runs a merge');
   assert.equal(guard(root, 'git pull --ff-only origin main').status, 0);
   assert.equal(guard(root, 'git pull --no-\\verify origin main').status, 2, 'an escaped pull flag only the parse can see');
+});
+
+test('reads cmd spellings: /c attached or combined, and Git Bash //c', () => {
+  const root = repo();
+  const ps = (command) => runHook(HOOK, { tool_name: 'PowerShell', tool_input: { command } }, { cwd: root, env: OK_ENV });
+  for (const command of [
+    'cmd //c "git commit -n -m x"',
+    'cmd.exe //d //s //c "git commit -n -m x"',
+    'cmd /c"git commit -n -m x"',
+    'cmd /d/c"git commit -n -m x"',
+  ]) {
+    assert.equal(guard(root, command).status, 2, command);
+  }
+  assert.equal(ps('cmd /c"git commit -n -m x"').status, 2, 'attached /c from PowerShell');
+  assert.equal(ps('cmd.exe /d /s /c "git commit -n -m x"').status, 2, 'combined options from PowerShell');
+  assert.equal(guard(root, 'cmd //c "dir"').status, 0, 'cmd without a commit');
+});
+
+test('reads the common ways of feeding text to iex or a shell', () => {
+  const root = repo();
+  const ps = (command) => runHook(HOOK, { tool_name: 'PowerShell', tool_input: { command } }, { cwd: root, env: OK_ENV });
+  assert.equal(ps('Invoke-Expression -Command "git commit -n -m x"').status, 2, 'Invoke-Expression -Command');
+  assert.equal(ps("Invoke-Expression @'\ngit commit -n -m x\n'@").status, 2, 'a here-string as the argument');
+  assert.equal(ps("iex (@'\ngit commit -n -m x\n'@)").status, 2, 'a here-string in brackets');
+  assert.equal(ps("'git commit -n -m x' | iex").status, 2, 'text piped to iex');
+  assert.equal(ps('"git commit -n -m x" | Invoke-Expression').status, 2, 'text piped to Invoke-Expression');
+  for (const command of [
+    'bash <<< "git commit -n -m x"',
+    'bash <<<"git commit -n -m x"',
+    'echo "git commit -n -m x" | bash',
+    "printf 'git commit -n -m x' | sh",
+    'echo `git push --no-\\verify origin main`',
+  ]) {
+    assert.equal(guard(root, command).status, 2, command);
+  }
+  assert.equal(ps("@'\nTASK-1: the owner's fix\n'@ | git commit -F -").status, 0, 'a here-string message piped to git');
+  assert.equal(guard(root, 'echo "git commit -n" | grep commit').status, 0, 'text piped to something that is not a shell');
+});
+
+test('a message heredoc stays a message even when a shell ran earlier on the line', () => {
+  const root = repo();
+  const usual = "bash tools/x.sh && git commit -m \"$(cat <<'EOF'\nTASK-1: the owner's change\n\nIt's ready.\nEOF\n)\"";
+  assert.equal(guard(root, usual).status, 0);
+});
+
+test('a blocked "commit -n" that may be a search says how to search instead', () => {
+  const root = repo();
+  const run = guard(root, 'grep -rn commit -n docs');
+  assert.equal(run.status, 2);
+  assert.match(run.stderr, /if this is a search, not a commit, use a search tool/);
 });
 
 test('a computed value and a heredoc message that names the flag are fine', () => {

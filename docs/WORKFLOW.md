@@ -177,10 +177,12 @@ branch rule for `main` is in the backlog.
 protects the git hooks. For any command that mentions git commit, push, merge or pull, it requires the hooks to be
 installed, and it fails safe: it blocks the command when its text names `--no-verify` (or an abbreviation) or
 `core.hooksPath`, or when it can't be read to the end. Heredoc and here-string bodies count as message text and
-are skipped, unless they are fed to a shell or to `iex`. A commit message or search that names those words uses
-`-F` or a search tool instead. It also parses the command the way Bash or PowerShell would, including commands
-nested in `$(...)`, backticks, `bash -c`, `pwsh -Command`, `cmd /c`, `eval` and `iex`, to catch escaped skip flags
-and `-n` on a commit, and to run the gates up front when it sees a close message. It covers the common forms against mistakes; a skip
+are skipped, unless the command they belong to, or a pipe after them, runs them as code. A commit message or
+search that names those words uses `-F` or a search tool instead. It also parses the command the way Bash or
+PowerShell would, including the commands nested in it: `$(...)`, `(...)` and backticks; `bash -c` and `<<<`;
+`pwsh -Command`; `cmd /c` or `/k` (also `//c`, attached, or after other options); `eval`; `iex` or
+`Invoke-Expression` (also `-Command`); text piped into any of those; and a heredoc or here-string fed to them. It
+catches escaped skip flags and `-n` on a commit, and runs the gates up front when it sees a close message. It covers the common forms against mistakes; a skip
 flag assembled at run time is out of its reach, and the server-side backstops are in the backlog. Both enforcement
 points share the gates in `tools/lib/close-gates.mjs`. A close is blocked
 unless:

@@ -199,10 +199,11 @@ review of this sprint (`.claude/reviews/SPRINT-1-codex-c1.md`, 2026-09-30), befo
 | TASK-111 | Orchestrator | `.claude/hooks/**`, `tools/lib/repo.mjs`, `docs/**`, `ROADMAP.md` | The reviewer's cycle-3 BLOCKER fixed with a fail-safe text check, with tests and mutation runs | no |
 | TASK-112 | Orchestrator | `.claude/hooks/**`, `docs/**` | Codex cycle-5 BLOCKERs and the reviewer's cycle-4 warning fixed, with tests and mutation runs | no |
 | TASK-113 | Orchestrator | `.claude/hooks/**`, `docs/**` | Codex cycle-6 BLOCKER and the reviewer's cycle-5 warning fixed, with tests and mutation runs | no |
+| TASK-114 | Orchestrator | `.claude/hooks/**`, `docs/**` | Codex cycle-7 BLOCKERs and the reviewer's cycle-6 warnings fixed, with tests and named mutations | no |
 
-**Past the cycle cap (owner, 2026-10-07).** Codex's fifth cycle still found two BLOCKERs, so the workflow stopped
-and asked the owner: keep iterating, accept the findings, or move them to Sprint 2 (engineering recommended the
-last). The owner chose to keep iterating: TASK-112 and a sixth Codex cycle, fifth for the reviewer.
+**Past the cycle cap (owner, 2026-10-07).** Codex's fifth cycle still found BLOCKERs; asked to keep iterating,
+accept the findings or move them to Sprint 2 (engineering's recommendation), the owner chose to keep iterating, after
+cycle 5 and again after cycle 7: TASK-112 to 114.
 
 **Sprint branch (2026-10-07).** Codex cycle 2 found that committing tasks to local `main` before the review breaks
 CONVENTIONS invariant 7 ("reviewed before it is committed to `main`"). The workflow now keeps each sprint on
@@ -322,13 +323,9 @@ exposed a redundant branch, removed with a fix for unparsed inner commands.
 
 Status complete · Agent: Orchestrator (bootstrap exception, as TASK-108) · Constraint validator: n/a: no game code; self-checked · Review: per-task review in the sprint-end review, cycle 6 (Codex) and 5 (reviewer).
 
-Codex cycle 5 (BLOCKED) and the reviewer's cycle 4 (APPROVED-WITH-WARNINGS) agreed on the remaining hole: the
-short skip flag `-n` passed when the commit was wrapped (`bash -c`, backticks, `"$(...)"`, a variable holding
-`git`). The guard now parses nested commands (values in brackets, also inside double quotes; backticks inside
-double quotes; the command given to `bash -c`, `sh -c`, `pwsh -Command`) and treats any `commit` word as a commit.
-It also guards `git merge`, whose skip flag bypasses commit-msg too (reviewer note). Codex's second BLOCKER, an
-untested rule, now has its test: changing the previous-close row after review forces a re-review. The docs
-again state the guard's limits (reviewer warning: TASK-111 had dropped them).
+Codex cycle 5 (BLOCKED) and the reviewer's cycle 4 found `-n` passing when the commit was wrapped (`bash -c`,
+backticks, `"$(...)"`, a variable holding `git`). The guard now parses nested commands, treats any `commit`
+word as a commit, guards `git merge`; the previous-close row got its test; the docs state the guard's limits.
 
 RED evidence: six mutations at `21b78d0` (55 tests), each failing a named test; two first-run survivors led to
 removing a redundant branch and testing an escaped merge flag.
@@ -343,7 +340,20 @@ The guard now parses all of them, guards `git pull` (it runs a merge), explains 
 search, and the docs list exactly what is parsed. Declined: the blank line at the end of `docs/design/notes.md`
 (the owner's file).
 
-RED evidence: six one-line mutations at `7d02043` (57 tests), each failing a named test.
+RED evidence at `7d02043` (57 tests), each failing the wrapper test or the merge/pull test: cmd /c, eval/iex,
+shell-fed heredoc, iex-fed here-string, pull, and `-ce` flag parsing switched off in turn. A first run showed the
+pull rule untested (the text check covered it), hence the escaped-pull test in `7d02043`.
+
+### TASK-114: cmd and iex spellings, piped text (Codex c7, reviewer c6)
+
+Status complete · Agent: Orchestrator (bootstrap exception) · Constraint validator: n/a · Review: cycle 8 (Codex), 7 (reviewer).
+
+Codex cycle 7 (BLOCKED): `cmd /c"..."` attached and `/d/c`, `Invoke-Expression -Command` and a here-string
+argument. Reviewer cycle 6 (APPROVED-WITH-WARNINGS): Git Bash's `cmd //c`, text piped to `iex` or a shell,
+`bash <<<`; unnamed mutations; notes on a false alarm (a shell earlier on a heredoc's line), an untested search
+hint, `pull` missing from messages, a here-string offset slip. All fixed: the guard reads every cmd spelling,
+`-Command`, here-string arguments, piped text and `<<<`; unquoted backticks are parsed again; a heredoc is code
+only when its own command or a pipe after it runs it; messages name `pull`; tests for each.
 
 ## Design conformance
 
@@ -363,15 +373,18 @@ _Pending._
 
 ## Handoff
 
-- **State:** TASK-101 to 110 committed on `sprint/1` (no `main` yet; it is created at the close). Nothing pushed.
-- **In flight:** the sprint-end review, Codex cycle 4 and reviewer cycle 3, on TASK-110's fixes.
-- **Waiting on:** nothing from the owner. The owner asked on 2026-10-07 to close and push this sprint, and for
-  Sprint 2 to analyze the technical design choices (ROADMAP backlog, "Architecture decision").
-- **Next action:** if both lenses pass, finish this log (review summary, tests, retrospective), run `npm run ci`,
-  commit `S1 close: Governance foundation` on `sprint/1`, create `main` there, push, watch GitHub CI.
-- **Design brainstorm, where it stands:** rulings are under "Owner design rulings" (later rulings supersede
-  earlier ones, struck through). Mapped: turns and combat, AI, expansion, victory (per-category dominance), scope
-  (antiquity is the demo slice), progression (the web in rings), map and borders, web pricing (branch
-  experience). Open, carried to the backlog: what pays for units and buildings (lean: coin and goods), the big
-  shape of logistics and of cities. Out of the demo: diplomacy, civ switching. The hook is left to grow on its
-  own (owner). Stay at the big-picture level; details wait for each system's spec.
+- **State:** TASK-101 to 113 committed on `sprint/1` (HEAD 827f8c6; no `main` yet; nothing pushed). 57 governance
+  tests pass; `npm run ci` passes.
+- **Review:** the owner chose to continue past the 5-cycle cap (option A). Codex cycle 7 (`.claude/reviews/
+  SPRINT-1-codex-c7.md`): BLOCKED on two wrapper spellings in the guard: `cmd /c"..."` with `/c` attached
+  (also `/d/c`), and `Invoke-Expression -Command "..."` / `Invoke-Expression @'...'@`; notes: unquoted backtick
+  bodies, and messages that omit `pull`. Reviewer cycle 6: APPROVED-WITH-WARNINGS
+  (`.claude/reviews/SPRINT-1-reviewer-c6.md`): `cmd //c` (Git Bash spelling), iex forms the docs oversell,
+  unnamed mutations for TASK-113.
+- **Next action:** fix the two Codex c7 items (TASK-114) with tests and mutations, re-stamp, re-run both lenses;
+  if they pass, finish this log (review summary, tests, retrospective), run `npm run ci`, commit
+  `S1 close: Governance foundation` on `sprint/1`, `git branch main sprint/1`, switch, push, watch GitHub CI.
+- **Retrospective material:** 7 Codex cycles, almost all on the shell-command guard; the guard's text layer now
+  blocks commands whose text names the skip flag (pass messages with -F, Codex prompts from a file).
+- **Design brainstorm:** see "Owner design rulings"; open items are in the ROADMAP backlog. Sprint 2 = technical
+  design analysis (owner).
