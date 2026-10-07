@@ -1,0 +1,28 @@
+# Dependencies and build output
+node_modules/
+dist/
+build/
+out/
+coverage/
+*.tsbuildinfo
+
+# Local governance state (see docs/WORKFLOW.md): review artifacts, CI records, refinement drafts, telemetry
+.claude/reviews/
+.claude/ci/
+.claude/refinements/
+.claude/telemetry/
+.claude/settings.local.json
+.claude/worktrees/
+
+# Secrets never enter this public repository
+.env
+.env.*
+*.pem
+*.key
+
+# OS and editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log

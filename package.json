@@ -1,0 +1,16 @@
+{
+  "name": "temuciv",
+  "version": "0.0.0",
+  "private": true,
+  "description": "A turn-based 4X strategy game in the Civilization genre, built entirely by AI.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "ci": "node tools/ci.mjs",
+    "check-docs": "node tools/check-docs.mjs",
+    "test:hooks": "node --test \".claude/hooks/tests/*.test.mjs\"",
+    "review-stamp": "node tools/review-stamp.mjs"
+  }
+}

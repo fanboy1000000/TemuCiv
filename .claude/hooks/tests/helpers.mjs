@@ -1,0 +1,71 @@
+// Test helpers for the hook tests: throwaway git repositories and a way to run a hook like Claude Code does.
+
+import { execFileSync, spawnSync } from 'node:child_process';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { reviewStamp, writeCiRecord } from '../../../tools/lib/repo.mjs';
+
+const here = dirname(fileURLToPath(import.meta.url));
+export const HOOKS = resolve(here, '..');
+
+export function write(root, path, content) {
+  mkdirSync(dirname(join(root, path)), { recursive: true });
+  writeFileSync(join(root, path), content);
+}
+
+export function git(root, ...args) {
+  return execFileSync('git', args, { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+}
+
+/** A fresh repository with the gitignore rules the guard relies on. `commit: true` adds an initial commit. */
+export function makeRepo({ commit = true } = {}) {
+  const root = mkdtempSync(join(tmpdir(), 'temuciv-hook-'));
+  git(root, 'init', '-q', '-b', 'main');
+  git(root, 'config', 'user.email', 'test@example.invalid');
+  git(root, 'config', 'user.name', 'Hook Test');
+  git(root, 'config', 'core.autocrlf', 'false');
+  write(root, '.gitignore', '.claude/reviews/\n.claude/ci/\n');
+  write(root, 'src/game.txt', 'initial\n');
+  if (commit) {
+    git(root, 'add', '-A');
+    git(root, 'commit', '-q', '-m', 'initial');
+  }
+  return root;
+}
+
+export function cleanup(root) {
+  rmSync(root, { recursive: true, force: true });
+}
+
+/**
+ * Bring a repository to a fully closable state for sprint N: a complete sprint log listed in the index,
+ * both reviews stamped against the current files, a passing CI record, and everything staged.
+ */
+export function prepareClose(root, sprint, { reviewerModel = 'claude-fable-5-1', verdict = 'APPROVED' } = {}) {
+  write(root, `docs/sprints/SPRINT-${sprint}.md`, `# Sprint ${sprint}\n\n| Field | Value |\n|---|---|\n| **Status** | complete |\n`);
+  write(root, 'docs/sprints/INDEX.md', `| [Sprint ${sprint}](SPRINT-${sprint}.md) | complete |\n`);
+  git(root, 'add', '-A');
+  stampReviews(root, sprint, { reviewerModel, verdict });
+  writeCiRecord(root, { result: 'pass' });
+}
+
+export function stampReviews(root, sprint, { reviewerModel = 'claude-fable-5-1', verdict = 'APPROVED' } = {}) {
+  const s = reviewStamp(root);
+  const stamp = `reviewed-against-commit: ${s.commit}\nreviewed-scope-hash: ${s.scopeHash}\n`;
+  write(root, `.claude/reviews/SPRINT-${sprint}-codex.md`, `${stamp}\nNo findings.\nverdict: ${verdict}\n`);
+  write(root, `.claude/reviews/SPRINT-${sprint}-reviewer.md`, `reviewed-by-model: ${reviewerModel}\n${stamp}\nNo findings.\nverdict: ${verdict}\n`);
+}
+
+/** Run a hook with a tool-call payload on stdin, the way Claude Code does. */
+export function runHook(hook, payload, { cwd, env = {} } = {}) {
+  const cleanEnv = { ...process.env, ...env };
+  delete cleanEnv.CLAUDE_PROJECT_DIR;
+  for (const [k, v] of Object.entries(env)) if (v === undefined) delete cleanEnv[k];
+  const input = typeof payload === 'string' ? payload : JSON.stringify(payload);
+  const run = spawnSync(process.execPath, [join(HOOKS, hook)], { cwd, input, env: cleanEnv, encoding: 'utf8', timeout: 30000 });
+  return { status: run.status, stderr: run.stderr };
+}
+
+export const bash = (command) => ({ tool_name: 'Bash', tool_input: { command } });

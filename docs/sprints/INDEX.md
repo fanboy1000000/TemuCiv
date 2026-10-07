@@ -1,0 +1,8 @@
+# TemuCiv Sprint Log
+
+> Only the Orchestrator writes sprint logs. Every `SPRINT-N.md` must be listed here, numbered without gaps
+> (checked by `tools/check-docs.mjs`). New sprints copy [TEMPLATE.md](TEMPLATE.md).
+
+| Sprint | Title | Status | Dates | Tests | Reviews (Codex / reviewer) |
+|---|---|---|---|---|---|
+| [Sprint 1](SPRINT-1.md) | Governance foundation | in-progress | 2026-09-30 → | 26 hook tests | pending |
