@@ -12,8 +12,9 @@
 //   2. A parse of the command into words, the way its shell does (POSIX quoting and backslash escapes for
 //      Bash; PowerShell quoting, backtick escapes, continuations and here-strings for PowerShell). It finds
 //      each `git commit` / `git push` (git, git.exe, with -C, -c or --no-pager first) and blocks a skip flag
-//      written with escapes the text check can't see, and -n in a commit's flag cluster. A "(" at the start of a command opens a subshell; a "(...)" or "$(...)" inside
-//      a command is one word (a computed value).
+//      written with escapes the text check can't see, and -n in a commit's flag cluster. A "(" at the start
+//      of a command opens a subshell; a "(...)" or "$(...)" inside a command is one word (a computed value),
+//      and the command inside it is parsed as well.
 //
 // For a command that mentions git commit or push, the repository's hooks must be installed
 // (core.hooksPath = .githooks; `npm run setup`), or it is blocked. When the command shows a sprint-close
@@ -33,13 +34,15 @@ const GLOBAL_WITH_VALUE = new Set(['-C', '-c', '--git-dir', '--work-tree', '--na
 
 /**
  * Split a command into shell words; separators (; & | newline, a "(" that starts a command, and ")") become
- * null entries. Returns { words, unclosed }: `unclosed` is true when a quote or bracket never closed.
+ * null entries. Returns { words, unclosed, inner }: `unclosed` is true when a quote or bracket never closed;
+ * `inner` holds the text inside each (...) or $(...) value, which is a command of its own and is parsed too.
  */
 function shellWords(text, { powershell = false } = {}) {
   const ESC = powershell ? '`' : '\\';
   const words = [];
   let word = null;
   let unclosed = false;
+  const inner = [];
   const push = () => {
     if (word !== null) words.push(word);
     word = null;
@@ -50,7 +53,10 @@ function shellWords(text, { powershell = false } = {}) {
     let depth = 0;
     for (let k = i; k < text.length; k++) {
       if (text[k] === '(') depth++;
-      else if (text[k] === ')' && --depth === 0) return [text.slice(i, k + 1), k];
+      else if (text[k] === ')' && --depth === 0) {
+        inner.push(text.slice(i + 1, k));
+        return [text.slice(i, k + 1), k];
+      }
     }
     unclosed = true;
     return [text.slice(i), text.length];
@@ -61,12 +67,8 @@ function shellWords(text, { powershell = false } = {}) {
       word = word ?? ''; // $'...': ANSI-C quoting, backslash escapes inside
       for (i += 2; i < text.length && text[i] !== "'"; i++) word += text[i] === '\\' && i + 1 < text.length ? text[++i] : text[i];
       if (i >= text.length) unclosed = true;
-    } else if (c === '$' && text[i + 1] === '(') {
-      const [content, end] = group(i + 1); // $(...): a computed value inside the word
-      word = (word ?? '') + '$' + content;
-      i = end;
     } else if (c === '(' && !atCommandStart()) {
-      const [content, end] = group(i); // (...) inside a command: a computed value, one word
+      const [content, end] = group(i); // (...) or $(...) inside a command: a computed value, one word
       word = (word ?? '') + content;
       i = end;
     } else if (c === "'") {
@@ -112,7 +114,7 @@ function shellWords(text, { powershell = false } = {}) {
     }
   }
   push();
-  return { words, unclosed };
+  return { words, unclosed, inner };
 }
 
 /** Each git invocation in the command: { sub, args }. */
@@ -180,8 +182,18 @@ function main() {
   const command = String(payload?.tool_input?.command ?? '');
   const powershell = payload.tool_name === 'PowerShell';
   const code = command.replace(HEREDOC, '<<heredoc $3').replace(HERESTRING, powershell ? "'herestring'" : '$&');
-  const { words, unclosed } = shellWords(code, { powershell });
-  const guarded = findGitCalls(words).filter(({ sub }) => sub === 'commit' || sub === 'push');
+  const parse = (text, depth = 0) => {
+    const { words, unclosed, inner } = shellWords(text, { powershell });
+    const result = { calls: findGitCalls(words), unclosed };
+    for (const t of depth < 3 ? inner : []) {
+      const nested = parse(t, depth + 1); // a command inside a computed value runs too
+      result.calls.push(...nested.calls);
+      result.unclosed ||= nested.unclosed;
+    }
+    return result;
+  };
+  const { calls, unclosed } = parse(code);
+  const guarded = calls.filter(({ sub }) => sub === 'commit' || sub === 'push');
   const mentions = /\bgit(\.exe)?\b/i.test(code) && /\b(commit|push)\b/i.test(code);
   if (guarded.length === 0 && !mentions) return 0;
 

@@ -150,6 +150,8 @@ test('blocks wrapped and computed forms: bash -c, env variables, $(...) and (...
   }
   assert.equal(ps('git -C (Get-Location) commit -n -m x').status, 2, 'PowerShell (...) value');
   assert.equal(ps('git commit -F (Join-Path . msg.txt) -n').status, 2, 'PowerShell (...) value before -n');
+  assert.equal(guard(root, 'echo $(git commit -n -m "TASK-1: x")').status, 2, 'a commit inside $(...)');
+  assert.equal(ps('Write-Output (git commit -n -m x)').status, 2, 'a commit inside a PowerShell (...) value');
   assert.equal(guard(root, 'git -C $(pwd) commit -m "TASK-1: computed path"').status, 0, 'a computed value alone is fine');
   assert.equal(guard(root, "git commit -F - <<'EOF'\nTASK-1: docs\n\nExplain --no-verify and git commit -n.\nEOF").status, 0);
 });
