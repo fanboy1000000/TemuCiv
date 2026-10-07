@@ -200,6 +200,7 @@ review of this sprint (`.claude/reviews/SPRINT-1-codex-c1.md`, 2026-09-30), befo
 | TASK-112 | Orchestrator | `.claude/hooks/**`, `docs/**` | Codex cycle-5 BLOCKERs and the reviewer's cycle-4 warning fixed, with tests and mutation runs | no |
 | TASK-113 | Orchestrator | `.claude/hooks/**`, `docs/**` | Codex cycle-6 BLOCKER and the reviewer's cycle-5 warning fixed, with tests and mutation runs | no |
 | TASK-114 | Orchestrator | `.claude/hooks/**`, `docs/**` | Codex cycle-7 BLOCKERs and the reviewer's cycle-6 warnings fixed, with tests and named mutations | no |
+| TASK-115 | Orchestrator | `.claude/hooks/**`, `docs/**` | Codex cycle-8 BLOCKER (a regression) and the reviewer's cycle-7 warning fixed at the root, with tests and named mutations | no |
 
 **Past the cycle cap (owner, 2026-10-07).** Codex's fifth cycle still found BLOCKERs; asked to keep iterating,
 accept the findings or move them to Sprint 2 (engineering's recommendation), the owner chose to keep iterating, after
@@ -258,21 +259,14 @@ RED evidence: eight one-line mutations at `985ca88` (38 tests), each failing at 
 
 Status complete · Agent: Orchestrator (bootstrap exception, as TASK-108) · Constraint validator: n/a: no game code; self-checked · Review: per-task review in the sprint-end review, cycle 3.
 
-Cycle 2 (`.claude/reviews/SPRINT-1-codex-c2.raw.md`, BLOCKED; reviewer, BLOCKED) found real holes in TASK-108:
-
-| Cycle-2 finding | Fix | Test |
-|---|---|---|
-| Codex: a completed task's Status row made an unfinished sprint look complete; the INDEX row wasn't checked | Only the log's header table counts; the INDEX row must say complete | completed-task-in-log test |
-| Codex: a quoted `"--no-verify"` slipped past the guard; reviewer: `--no-veri` and `git config core.hooksPath ... && git commit` too | The guard splits the command into words like a shell; blocks any `--no-verify` abbreviation, `-n` in a flag cluster, any `core.hooksPath` in a committing command; heredoc bodies are message text | ten bypass forms; message-text false positives |
-| Codex: committing to local `main` before review breaks invariant 7 | Sprint branches (see Plan); TASK-108's per-task review recorded | n/a (workflow) |
-| Both: "one currency buys everything" still read as a standing ruling | Struck through with pointers; superseded single-score proposals marked | n/a (record) |
-| Reviewer: a commit could mark a sprint complete under any other subject | commit-msg refuses an ordinary commit that sets a sprint log's header to complete | marks-complete test |
-| Both: sprint logs and the template were outside the review hash | A sprint log is hashed up to "## Sprint-end review" minus close-time header rows; the template and everything else in `docs/sprints/` is hashed; only INDEX.md and ROADMAP.md stay out | reviewed-part and template tests |
-| Reviewer: no test showed check-docs or the CI runner failing | Planted-problem tests for each of check-docs' five checks and for a failing CI step | `docs-and-ci.test.mjs` |
-| Codex: the reviewer's model wasn't required at spawn | A reviewer spawn must name Fable; the self-reported model line is documented as a known limit | routing test |
-| Reviewer and Codex: governance tooling and `package.json` ownership inconsistent | Governance tooling listed as Orchestrator-only in AGENTS.md, CLAUDE.md and platform.md; `package.json` reserved by default everywhere | n/a (docs) |
-| Codex: worktree hand-off unspecified | Agents leave changes uncommitted; the Orchestrator verifies, commits in the worktree, merges into the sprint branch | n/a (docs) |
-| Reviewer notes | gitleaks sha256 pinned in the workflow; GitHub-gate wording; "fixed" model wording; close-time edits belong before the stamp; FAIL-001 recorded | n/a |
+Cycle 2 (both lenses BLOCKED) found real holes in TASK-108. Fixed, each with a test: an unfinished sprint looked
+complete when a task's Status row matched (only the header counts, and the INDEX row must say complete); a quoted
+or abbreviated skip flag and `git config core.hooksPath ... && git commit` passed the guard (shell-style word
+splitting); tasks were committed to `main` before review (sprint branches); the stale economy ruling (struck
+through); a commit could mark a sprint complete under another subject (refused); sprint logs and the template sat
+outside the review hash (a log is hashed up to its review heading); no test showed check-docs or CI failing
+(planted-problem tests); the reviewer's model wasn't required at spawn (it is). Docs: governance tooling and
+`package.json` ownership, the worktree hand-off, the gitleaks pin, FAIL-001.
 
 RED evidence: nine one-line mutations at `1bed53c` (44 tests), each failing at least one named test.
 
@@ -283,18 +277,12 @@ after the review); "Research" as a system name is renamed when `docs/architectur
 
 Status complete · Agent: Orchestrator (bootstrap exception, as TASK-108) · Constraint validator: n/a: no game code; self-checked · Review: per-task review in the sprint-end review, cycle 4 (Codex) and 3 (reviewer).
 
-Both lenses returned BLOCKED again, on narrower holes:
-
-| Finding | Fix | Test |
-|---|---|---|
-| Codex: the close-time row filter dropped every Status row above the review heading, so a task could go from blocked to complete after review | Only the header table (before the first `##`) loses its close-time rows | task-status and header-status tests |
-| Codex and reviewer: nothing stopped a task commit on `main` or a premature push of `main` | commit-msg refuses any commit on `main`; a new pre-push hook refuses pushing `main` unless its tip is a close; the guard also protects `git push` | main-commit and pre-push tests |
-| Codex: PowerShell backtick escapes and continuations slipped past | Words are split with PowerShell's rules for the PowerShell tool | PowerShell forms |
-| Reviewer: a heredoc piped into `git commit` and a subshell hid the command (regression) | Only the heredoc body is set aside; `(` and `)` separate commands; `$'...'` and backslash-newline read as bash does | four more bypass forms |
-| Reviewer: false positives (`-uno`, a message mentioning `core.hooksPath`) and a missed `-am` close | Optional attached values understood; only `git -c`/`git config` count; `-am` message read | allowed-forms tests |
-| Reviewer: a check-docs test passed for the wrong reason | The gap and the unlisted log are asserted separately | docs-and-ci tests |
-| Reviewer: step 8 asked for a table that the review freezes; TASK-108's record overstated the reviews | Step 7 now requires the task log and design conformance before the stamp; record reworded | n/a (docs) |
-| Codex: the gate table didn't say the INDEX row must be complete | Gate table and module header updated | n/a (docs) |
+Both lenses BLOCKED again, on narrower holes. Fixed, each with a test: the close-time filter dropped task Status
+rows too (header table only now); nothing stopped a commit on `main` or a premature push of `main` (commit-msg
+and a new pre-push hook); PowerShell escapes slipped past (PowerShell rules for the PowerShell tool); a piped
+heredoc and a subshell hid the command, a regression (only the body is set aside; brackets separate); false
+positives (`-uno`, message text) and a missed `-am` close; a check-docs test that couldn't fail; step 7/8 ordering;
+the gate table's INDEX wording.
 
 RED evidence: eight one-line mutations at `1257ea3` (50 tests), each failing at least one named test.
 
@@ -359,6 +347,15 @@ RED evidence at `d067ea5` (61 tests), each failing a named test: M1 cmd only wit
 ignored; M3 `<<<` not read; M4 piped text not read; M5 unquoted backticks not parsed; M6 an iex here-string
 argument read as a message; M7 any shell earlier on the line making a heredoc code (it first survived: the
 false-alarm test had two apostrophes, which balance; it now has one).
+
+### TASK-115: find the program that runs the code (Codex c8, reviewer c7)
+
+Status complete · Agent: Orchestrator (bootstrap exception) · Constraint validator: n/a · Review: cycle 9 (Codex), 8 (reviewer).
+
+Both lenses found that TASK-114's narrower heredoc rule lost forms: `FOO=bar bash <<EOF`, `env bash`, `| tee | bash`,
+`bash -c "$(cat <<EOF ...)"`. Fixed at the root: the guard finds the program a command actually runs (past
+settings and `env`-style wrappers), checks every pipeline stage, and checks the command around a `$(...)`. Also:
+`iex -C`/`-Com`/`-Command:` and `iex ("...")`; `#` comments; cmd's own quoting (single quotes are text).
 
 ## Design conformance
 

@@ -181,7 +181,9 @@ are skipped, unless the command they belong to, or a pipe after them, runs them 
 search that names those words uses `-F` or a search tool instead. It also parses the command the way Bash or
 PowerShell would, including the commands nested in it: `$(...)`, `(...)` and backticks; `bash -c` and `<<<`;
 `pwsh -Command`; `cmd /c` or `/k` (also `//c`, attached, or after other options); `eval`; `iex` or
-`Invoke-Expression` (also `-Command`); text piped into any of those; and a heredoc or here-string fed to them. It
+`Invoke-Expression` (also `-Command` and its abbreviations, and a literal in brackets); text piped into any of
+those at any pipeline stage; and a heredoc or here-string fed to them, also inside a `$(...)` given to them. The
+program a command runs is found past `VAR=value` settings and `env`/`command`/`exec`/`nohup`/`time`/`sudo`. It
 catches escaped skip flags and `-n` on a commit, and runs the gates up front when it sees a close message. It covers the common forms against mistakes; a skip
 flag assembled at run time is out of its reach, and the server-side backstops are in the backlog. Both enforcement
 points share the gates in `tools/lib/close-gates.mjs`. A close is blocked

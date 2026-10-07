@@ -237,6 +237,42 @@ test('a blocked "commit -n" that may be a search says how to search instead', ()
   assert.match(run.stderr, /if this is a search, not a commit, use a search tool/);
 });
 
+test('finds the program past settings and wrappers, at any pipeline stage, and around a $(...)', () => {
+  const root = repo();
+  for (const command of [
+    "FOO=bar bash <<'EOF'\ngit commit -n -m x\nEOF",
+    "env FOO=bar bash <<'EOF'\ngit commit -n -m x\nEOF",
+    "env -i bash <<'EOF'\ngit commit -n -m x\nEOF",
+    "cat <<'EOF' | env bash\ngit commit -n -m x\nEOF",
+    "cat <<'EOF' | tee /tmp/x | bash\ngit commit -n -m x\nEOF",
+    'echo "git commit -n -m x" | env bash',
+    "bash -c \"$(cat <<'EOF'\ngit commit -n -m x\nEOF\n)\"",
+    "eval \"$(cat <<'EOF'\ngit commit -n -m x\nEOF\n)\"",
+  ]) {
+    assert.equal(guard(root, command).status, 2, command);
+  }
+  assert.equal(guard(root, "FOO=bar git commit -m \"$(cat <<'EOF'\nTASK-1: the owner's change\nEOF\n)\"").status, 0, 'a setting before the usual form');
+});
+
+test('reads Invoke-Expression abbreviations and literals in brackets', () => {
+  const root = repo();
+  const ps = (command) => runHook(HOOK, { tool_name: 'PowerShell', tool_input: { command } }, { cwd: root, env: OK_ENV });
+  assert.equal(ps('Invoke-Expression -C "git commit -n -m x"').status, 2, '-C');
+  assert.equal(ps('iex -Com "git commit -n -m x"').status, 2, '-Com');
+  assert.equal(ps('iex -Command:"git commit -n -m x"').status, 2, '-Command:');
+  assert.equal(ps('iex ("git commit -n -m x")').status, 2, 'a literal in brackets');
+});
+
+test('comments and apostrophes in wrapped messages are not misread', () => {
+  const root = repo();
+  const ps = (command) => runHook(HOOK, { tool_name: 'PowerShell', tool_input: { command } }, { cwd: root, env: OK_ENV });
+  assert.equal(guard(root, "# Commit the owner's changes\ngit commit -m \"TASK-1: x\"").status, 0, 'bash comment');
+  assert.equal(ps("# Commit the owner's changes\ngit commit -m 'TASK-1: x'").status, 0, 'PowerShell comment');
+  assert.equal(guard(root, 'cmd /c git commit -m "TASK-1: the owner\'s fix"').status, 0, 'apostrophe through cmd /c');
+  assert.equal(guard(root, 'cmd /c "git commit -m \'TASK-1: x\' -n"').status, 2, 'cmd treats single quotes as plain text');
+  assert.equal(guard(root, 'git commit -m "TASK-1: issue #12 fixed" -n').status, 2, 'a # inside a word is not a comment');
+});
+
 test('a computed value and a heredoc message that names the flag are fine', () => {
   const root = repo();
   assert.equal(guard(root, 'git -C $(pwd) commit -m "TASK-1: computed path"').status, 0);

@@ -17,8 +17,11 @@
 //        - the command given to bash/sh/zsh/dash/ksh `-c` (any flag cluster with c) or `<<<`, to
 //          pwsh/powershell `-Command`, to `cmd /c` or `/k` (also `//c`, attached or combined, as in
 //          `/d/c"..."`), to `eval`, and to `Invoke-Expression`/`iex` (also `-Command`);
-//        - text piped into one of those (`echo "..." | bash`, `'...' | iex`);
-//        - a heredoc or here-string fed to one of those, whose body is code, not a message.
+//        - text piped into one of those (`echo "..." | bash`, `'...' | iex`), at any stage of a pipeline;
+//        - a heredoc or here-string fed to one of those, whose body is code, not a message, including one
+//          inside a "$(...)" whose enclosing command runs code (`bash -c "$(cat <<EOF ...)"`).
+//      The program a command runs is found past VAR=value settings and env/command/exec/nohup/time/sudo, and
+//      PowerShell's -Command is recognised in every abbreviation. A # at the start of a word starts a comment.
 //      Every `commit` subcommand found (after git, git.exe or anything else, such as a variable) is checked
 //      for -n in its flag clusters, and every commit, push, merge or pull for a skip flag written with escapes.
 //
@@ -43,6 +46,9 @@ const PS_SHELL = /(^|[\\/])(pwsh|powershell)(\.exe)?$/i;
 const CMD_SHELL = /(^|[\\/])cmd(\.exe)?$/i;
 const PS_EVALUATOR = /^(iex|invoke-expression)$/i;
 const CMD_RUN = /^((?:\/{1,2}[a-z](?::[a-z]+)?)*?)\/{1,2}([ck])([\s\S]*)$/i; // /c, //c, /d/c"...", /s /c
+const PS_COMMAND = /^-c(o(m(m(a(n(d)?)?)?)?)?)?(:.*)?$/i; // -Command and every abbreviation PowerShell accepts
+/** Words that run the next word as the program: `env`, `command`, `exec`, `nohup`, `time`, `sudo`. */
+const PREFIX_RUNNERS = /^(env|command|exec|nohup|time|sudo)$/i;
 const MAX_DEPTH = 4;
 const WHAT = 'git commit/push/merge/pull';
 
@@ -54,10 +60,47 @@ function runner(word) {
   return null;
 }
 
-/** The first word of the last command in a piece of text (what a heredoc or here-string is attached to). */
-function lastCommandWord(text) {
+/**
+ * The program a command's words actually run: leading VAR=value settings are skipped, and so are wrappers that
+ * run the next word (`env` with its options and settings, `command`, `exec`, `nohup`, `time`, `sudo`).
+ */
+function executable(words) {
+  let k = 0;
+  while (k < words.length) {
+    const w = words[k];
+    if (w === null || w === undefined) return null;
+    if (/^[A-Za-z_]\w*=/.test(w)) k++;
+    else if (PREFIX_RUNNERS.test(w)) {
+      k++;
+      while (k < words.length && words[k] !== null && words[k].startsWith('-')) k += /^-[uC]$/.test(words[k]) ? 2 : 1;
+    } else return w;
+  }
+  return null;
+}
+
+/** The program run by the last command in a piece of shell text (what a heredoc or here-string is attached to). */
+function lastCommandProgram(text) {
   const parts = text.replace(/[\s(]+$/, '').split(/\$\(|[;&|(]/);
-  return parts[parts.length - 1].trim().split(/\s+/)[0];
+  return executable(parts[parts.length - 1].trim().split(/\s+/).filter(Boolean));
+}
+
+/** Whether any stage of a pipeline in this text (after a "|") runs its input as code. */
+function pipesIntoRunner(text) {
+  return text
+    .split(/(?<!\|)\|(?!\|)/)
+    .slice(1)
+    .some((stage) => !!runner(executable(stage.trim().split(/\s+/).filter(Boolean))));
+}
+
+/**
+ * Whether a heredoc or here-string at this point runs as code: its own command runs code, a later pipeline
+ * stage does, or it sits inside a "$(...)" whose enclosing command runs code (`bash -c "$(cat <<EOF ...)"`).
+ */
+function runsAsCode(before, after) {
+  if (runner(lastCommandProgram(before)) || pipesIntoRunner(after)) return true;
+  const open = before.lastIndexOf('$(');
+  if (open === -1) return false;
+  return !!runner(lastCommandProgram(before.slice(0, open).replace(/["'\s]+$/, '')));
 }
 
 /**
@@ -66,8 +109,10 @@ function lastCommandWord(text) {
  * closed; `inner` holds the commands nested in the text ((...) and $(...) values, backticks); `pipes` holds
  * the index of each null that stands for a pipe (as opposed to ; && || or a newline).
  */
-function shellWords(text, { powershell = false } = {}) {
-  const ESC = powershell ? '`' : '\\';
+function shellWords(text, { powershell = false, cmd = false } = {}) {
+  // cmd: ^ escapes, and a single quote is an ordinary character
+  const ESC = powershell ? '`' : cmd ? '^' : '\\';
+  const bash = !powershell && !cmd;
   const words = [];
   const inner = [];
   const pipes = [];
@@ -106,11 +151,13 @@ function shellWords(text, { powershell = false } = {}) {
 
   for (let i = 0; i < text.length; i++) {
     const c = text[i];
-    if (c === '$' && text[i + 1] === "'" && !powershell) {
+    if (c === '#' && word === null) {
+      while (i + 1 < text.length && text[i + 1] !== '\n') i++; // a comment, to the end of the line
+    } else if (c === '$' && text[i + 1] === "'" && bash) {
       word = word ?? ''; // $'...': ANSI-C quoting, backslash escapes inside
       for (i += 2; i < text.length && text[i] !== "'"; i++) word += text[i] === '\\' && i + 1 < text.length ? text[++i] : text[i];
       if (i >= text.length) unclosed = true;
-    } else if (c === '`' && !powershell) {
+    } else if (c === '`' && bash) {
       const [content, end] = backticks(i);
       word = (word ?? '') + content;
       i = end;
@@ -118,7 +165,7 @@ function shellWords(text, { powershell = false } = {}) {
       const [content, end] = group(i); // (...) or $(...) inside a command: a computed value, one word
       word = (word ?? '') + content;
       i = end;
-    } else if (c === "'") {
+    } else if (c === "'" && !cmd) {
       word = word ?? '';
       let closed = false;
       for (i++; i < text.length; i++) {
@@ -137,7 +184,7 @@ function shellWords(text, { powershell = false } = {}) {
           const [content, end] = group(i + 1); // "$(...)": a command substitution inside the string
           word += '$' + content;
           i = end;
-        } else if (text[i] === '`' && !powershell) {
+        } else if (text[i] === '`' && bash) {
           const [content, end] = backticks(i);
           word += content;
           i = end;
@@ -145,7 +192,7 @@ function shellWords(text, { powershell = false } = {}) {
         else if (text[i] === '"') {
           closed = true;
           break;
-        } else if (text[i] === ESC && i + 1 < text.length && (powershell || '"\\$`\n'.includes(text[i + 1]))) word += text[++i];
+        } else if (text[i] === ESC && i + 1 < text.length && (!bash || '"\\$`\n'.includes(text[i + 1]))) word += text[++i];
         else word += text[i];
       }
       if (!closed) unclosed = true;
@@ -183,10 +230,14 @@ function shellWords(text, { powershell = false } = {}) {
  */
 function runnerArguments(words, pipes) {
   const nested = [];
-  const restOfCommand = (k) => {
+  const restOfCommand = (k, { requote = false } = {}) => {
     let end = k;
     while (end < words.length && words[end] !== null) end++;
-    return words.slice(k, end).join(' ');
+    const rest = words.slice(k, end);
+    // For cmd: a lone quoted command is the command itself (cmd strips the outer quotes); otherwise words
+    // that held spaces were quoted, so they are quoted again to stay whole.
+    if (!requote || rest.length === 1) return rest.join(' ');
+    return rest.map((x) => (/\s/.test(x) ? `"${x.replace(/"/g, '^"')}"` : x)).join(' ');
   };
   for (let i = 0; i < words.length; i++) {
     const w = words[i] ?? '';
@@ -195,8 +246,15 @@ function runnerArguments(words, pipes) {
       continue;
     }
     if (PS_EVALUATOR.test(w)) {
-      const k = /^-command$/i.test(words[i + 1] ?? '') ? i + 2 : i + 1;
-      if (words[k] != null) nested.push({ text: words[k], powershell: true });
+      const next = words[i + 1] ?? '';
+      const attached = PS_COMMAND.test(next) && next.includes(':') ? next.slice(next.indexOf(':') + 1) : null;
+      let text = attached ?? (PS_COMMAND.test(next) ? words[i + 2] : words[i + 1]);
+      if (text != null && /^\([\s\S]*\)$/.test(text)) {
+        // iex ("...") or iex ('...'): a literal in brackets is the script itself
+        const literal = shellWords(text.slice(1, -1), { powershell: true }).words.filter((x) => x !== null);
+        if (literal.length === 1) text = literal[0];
+      }
+      if (text != null) nested.push({ text, powershell: true });
       continue;
     }
     const posix = POSIX_SHELL.test(w);
@@ -207,7 +265,8 @@ function runnerArguments(words, pipes) {
       const arg = words[k];
       const run = cmd && arg.match(CMD_RUN);
       if (run) {
-        nested.push({ text: [run[3], restOfCommand(k + 1)].filter(Boolean).join(' '), powershell: false });
+        const text = run[3] ? [run[3], restOfCommand(k + 1)].filter(Boolean).join(' ') : restOfCommand(k + 1, { requote: true });
+        nested.push({ text, powershell: false, cmd: true });
         break;
       }
       if (posix && arg.startsWith('<<<')) {
@@ -215,7 +274,7 @@ function runnerArguments(words, pipes) {
         if (text) nested.push({ text, powershell: false });
         break;
       }
-      const takesCommand = posix ? /^-[a-z]*c[a-z]*$/.test(arg) : ps && /^-(c|command)$/i.test(arg);
+      const takesCommand = posix ? /^-[a-z]*c[a-z]*$/.test(arg) : ps && PS_COMMAND.test(arg) && !arg.includes(':');
       if (takesCommand && words[k + 1] != null) {
         nested.push({ text: words[k + 1], powershell: ps });
         break;
@@ -224,7 +283,7 @@ function runnerArguments(words, pipes) {
   }
   // Text piped into a runner: `echo "..." | bash`, `'...' | iex`.
   for (const p of pipes) {
-    const kind = runner(words[p + 1]);
+    const kind = runner(executable(words.slice(p + 1)));
     if (!kind) continue;
     let start = p - 1;
     while (start >= 0 && words[start] !== null) start--;
@@ -304,13 +363,13 @@ function visibleMessages(command, calls) {
 }
 
 /** Parse a command and every command nested in it. Returns { calls, unclosed }. */
-function parseAll(text, powershell, depth = 0) {
-  const { words, unclosed, inner, pipes } = shellWords(text, { powershell });
+function parseAll(text, powershell, depth = 0, cmd = false) {
+  const { words, unclosed, inner, pipes } = shellWords(text, { powershell, cmd });
   const result = { calls: findGuardedCalls(words), unclosed };
   if (depth >= MAX_DEPTH) return result;
   const nested = [...inner.map((t) => ({ text: t, powershell })), ...runnerArguments(words, pipes)];
   for (const n of nested) {
-    const sub = parseAll(n.text, n.powershell, depth + 1);
+    const sub = parseAll(n.text, n.powershell, depth + 1, !!n.cmd);
     result.calls.push(...sub.calls);
     result.unclosed ||= sub.unclosed;
   }
@@ -322,19 +381,15 @@ function parseAll(text, powershell, depth = 0) {
  * attached to (the command before it, or a pipe after it) runs it as code; then it stays, as code.
  */
 function setAsideMessages(command, powershell) {
-  const pipedToRunner = (text) => {
-    const m = text.match(/\|\s*([^\s|;&]+)/);
-    return !!m && !!runner(m[1]);
-  };
   const withoutHeredocs = command.replace(HEREDOC, (all, q, tag, rest, body, offset, string) => {
     const before = string.slice(string.lastIndexOf('\n', offset) + 1, offset);
-    return runner(lastCommandWord(before)) || pipedToRunner(rest) ? `<<heredoc ${rest}\n${body}` : `<<heredoc ${rest}`;
+    return runsAsCode(before, rest) ? `<<heredoc ${rest}\n${body}` : `<<heredoc ${rest}`;
   });
   if (!powershell) return withoutHeredocs;
   return withoutHeredocs.replace(HERESTRING, (all, q, body, offset, string) => {
     const before = string.slice(string.lastIndexOf('\n', offset) + 1, offset);
     const after = string.slice(offset + all.length).split('\n')[0];
-    return runner(lastCommandWord(before)) || pipedToRunner(after) ? `'herestring'\n${body}\n` : "'herestring'";
+    return runsAsCode(before, after) ? `'herestring'\n${body}\n` : "'herestring'";
   });
 }
 
