@@ -205,6 +205,7 @@ review of this sprint (`.claude/reviews/SPRINT-1-codex-c1.md`, 2026-09-30), befo
 | TASK-117 | Orchestrator | `.claude/**`, `tools/**`, `docs/**` | The receipt's safety properties tested (Codex c10 BLOCKER); docs state what the receipt does and doesn't guarantee | no |
 | TASK-118 | Orchestrator | `.claude/hooks/**`, `tools/hooks/**`, `docs/**` | Every ordinary spelling of a GitHub PR merge blocked and tested (Codex c11 BLOCKER, reviewer c10 warning) | no |
 | TASK-119 | Orchestrator | `.claude/hooks/**`, `docs/sprints/**` | Every guard check reads continued lines joined; PR-merge options anywhere; a negative test that reaches the rule | no |
+| TASK-120 | Orchestrator | `.claude/hooks/**`, `docs/sprints/**` | Each check reads the command as given and joined by its own shell's rule; the regression's three forms tested | no |
 
 **Past the cycle cap (owner, 2026-10-07).** Codex's fifth cycle still found BLOCKERs; asked to keep iterating,
 accept the findings or move them to Sprint 2 (engineering's recommendation), the owner chose to keep iterating, after
@@ -363,6 +364,16 @@ which also covers a skip flag split across lines. The PR-merge rule allows optio
 RED evidence at `09a7a81` (52 tests), each failing a named test on the first run: S1 bash continuations not
 joined, S2 PowerShell continuations not joined, S3 no options between `pr` and `merge`, S4 the PR-merge rule
 over-blocking any gh command (caught by the new negative case).
+
+### TASK-120: join by the right shell, and check both versions (reviewer c12)
+
+Status complete · Agent: Orchestrator (bootstrap exception) · Constraint validator: n/a · Review: Codex cycle 14, reviewer cycle 13.
+
+Codex cycle 13: APPROVED with no findings. The reviewer's cycle 12 (BLOCKED) found that TASK-119 reopened a push-side
+hole: joining applied bash's backslash rule to PowerShell too, so a path ending in `\` swallowed the next line
+(`cd C:\TemuCiv\` then a push with the skip flag, or a PR merge), and the first filter no longer saw `git`. Now
+each check reads two versions, the text as given and the text joined by its own shell's rule, and blocks if
+either matches. The three reproductions are tests. A PR-merge false alarm now names `--body-file`.
 
 ## Design conformance
 

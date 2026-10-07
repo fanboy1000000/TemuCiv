@@ -87,6 +87,13 @@ test('blocks merging a pull request on GitHub, which skips every local check', (
   assert.equal(guard(root, 'git push origin sprint/999 && gh pr view 1').status, 0, 'other gh commands');
 });
 
+test('a line ending in a backslash does not hide the next line from the checks', () => {
+  const root = repo();
+  assert.equal(guard(root, 'Set-Location C:\\TemuCiv\\\ngit push --no-verify origin main', 'PowerShell').status, 2, 'PowerShell path, skip flag');
+  assert.equal(guard(root, 'cd C:\\TemuCiv\\\ngh pr merge 1', 'PowerShell').status, 2, 'PowerShell path, PR merge');
+  assert.equal(guard(root, '# see C:\\TemuCiv\\\ngit push --no-verify origin main').status, 2, 'bash comment');
+});
+
 test('blocks the skip flag and core.hooksPath anywhere in the text, however the command is wrapped', () => {
   const root = repo();
   for (const command of [

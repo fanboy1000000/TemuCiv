@@ -15,9 +15,9 @@
 //     setting aside quoted text unless it contains a commit itself), a flag cluster contains n (-n);
 //   - `gh pr merge` (gh or gh.exe, options before or after `pr`), which moves `main` on GitHub without any
 //     local hook.
-// Every check reads the command with continued lines joined.
-// False alarms are accepted: a commit message that names those words goes through `-F <file>`, and a command
-// that runs `git commit` and, say, `head -n` on one segment is split. Exit 2 blocks the tool call.
+// Every check reads the command both as given and with continued lines joined by its shell's rule.
+// False alarms are accepted: a commit message that names those words goes through `-F <file>` (a PR body through
+// --body-file), and a command that runs `git commit` and, say, `head -n` on one segment is split. Exit 2 blocks.
 
 import { readFileSync } from 'node:fs';
 import { git } from '../../tools/lib/repo.mjs';
@@ -30,12 +30,15 @@ function main() {
     return 0;
   }
   if (!['Bash', 'PowerShell'].includes(payload?.tool_name)) return 0;
-  // Every check reads the command with continued lines joined: bash drops backslash-newline (the word carries
-  // on), PowerShell's backtick-newline is a space.
-  const command = String(payload?.tool_input?.command ?? '')
-    .replace(/\\\r?\n/g, '')
-    .replace(/`\r?\n/g, ' ');
-  if (!/\b(git|gh)(\.exe)?\b/i.test(command) || !/\b(commit|push|merge|pull)\b/i.test(command)) return 0;
+  // Each check reads two versions of the command and blocks if either matches: the text as given, and the text
+  // with continued lines joined by that shell's rule (bash drops backslash-newline, so the word carries on;
+  // PowerShell's backtick-newline is a space). Joining by the wrong shell's rule, or only joining, can hide a
+  // command (a PowerShell path ending in "\" would swallow the next line).
+  const raw = String(payload?.tool_input?.command ?? '');
+  const joined = payload.tool_name === 'PowerShell' ? raw.replace(/`\r?\n/g, ' ') : raw.replace(/\\\r?\n/g, '');
+  const versions = [raw, joined];
+  const anyMatch = (rx) => versions.some((v) => rx.test(v));
+  if (!anyMatch(/\b(git|gh)(\.exe)?\b/i) || !anyMatch(/\b(commit|push|merge|pull)\b/i)) return 0;
 
   const block = (why) => {
     process.stderr.write(`sprint-close-guard: ${why}\n`);
@@ -51,21 +54,25 @@ function main() {
   if (hooksPath.replace(/\\/g, '/').replace(/\/$/, '') !== '.githooks') {
     return block(`the git hooks aren't installed (core.hooksPath is "${hooksPath || 'unset'}"). Run \`npm run setup\` once, then try again.`);
   }
-  if (/--no-v(?!erbose)/i.test(command) || /core\.hookspath/i.test(command)) {
+  if (anyMatch(/--no-v(?!erbose)/i) || anyMatch(/core\.hookspath/i)) {
     return block(
       'this command would switch off or redirect the git hooks (--no-verify or core.hooksPath). They run the secret ' +
         'scan and the close gates. Remove it; if it is only message text, pass the message with -F <file>.',
     );
   }
-  if (/\bgh(\.exe)?\b[^;&|\n]*\bpr\b[^;&|\n]*\bmerge\b/i.test(command)) {
-    return block('`gh pr merge` moves main on GitHub without running the local checks. main only receives reviewed closes, pushed from here.');
+  if (anyMatch(/\bgh(\.exe)?\b[^;&|\n]*\bpr\b[^;&|\n]*\bmerge\b/i)) {
+    return block(
+      '`gh pr merge` moves main on GitHub without running the local checks. main only receives reviewed closes, ' +
+        'pushed from here. If "merge" is only text (a PR body), pass it with --body-file.',
+    );
   }
   // Quoted text is set aside (a message may say "-n"), except quoted text that itself contains a commit, such
   // as `bash -c "git commit ..."`, which is checked as a command of its own.
-  const joined = command;
   const QUOTED = /"(?:[^"\\]|\\.)*"|'[^']*'/g;
-  const quotedCommands = (joined.match(QUOTED) ?? []).filter((q) => /\bcommit\b/i.test(q)).map((q) => q.slice(1, -1));
-  const texts = [joined.replace(QUOTED, '""'), ...quotedCommands];
+  const texts = versions.flatMap((v) => [
+    v.replace(QUOTED, '""'),
+    ...(v.match(QUOTED) ?? []).filter((q) => /\bcommit\b/i.test(q)).map((q) => q.slice(1, -1)),
+  ]);
   const afterCommit = texts.flatMap((t) => t.match(/\bcommit\b([^;&|\n]*)/gi) ?? []);
   if (afterCommit.some((segment) => /(?:^|\s)-[a-zA-Z]*n[a-zA-Z]*(?=\s|$)/.test(segment))) {
     return block(
