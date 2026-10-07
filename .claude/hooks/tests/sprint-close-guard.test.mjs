@@ -26,6 +26,14 @@ const closable = (opts) => {
 };
 const guard = (root, command, env = OK_ENV) => runHook(HOOK, bash(command), { cwd: root, env });
 
+/** Prepare a close but keep the sprint log already written to the repository. */
+function prepareCloseKeepingLog(root) {
+  write(root, 'docs/sprints/INDEX.md', '| [Sprint 999](SPRINT-999.md) | complete |\n');
+  git(root, 'add', '-A');
+  stampReviews(root, 999);
+  writeCiRecord(root, { result: 'pass' });
+}
+
 // --- what the guard looks at -------------------------------------------------------------------------
 
 test('ignores commands that are not commits, including a close marker outside a commit', () => {
@@ -49,6 +57,8 @@ test('ignores other tools and unparseable input', () => {
 test('recognises every form of the commit command: PowerShell, git -C, git.exe, git --no-pager, heredocs', () => {
   const root = repo(); // nothing prepared, so a recognised close must be blocked
   const forms = [
+    'git commit -am "S999 close: x"',
+    "cat <<'EOF' | git commit -F -\nS999 close: x\nEOF",
     "git -C . commit -m 'S999 close: x'",
     'git.exe commit -m "S999 close: x"',
     'git --no-pager commit -m "S999 close: x"',
@@ -83,15 +93,39 @@ test('blocks skipping or redirecting the hooks, quoted, abbreviated or chained',
     'git -c core.hooksPath=/dev/null commit -m "TASK-1: x"',
     'git -c "core.hooksPath=/dev/null" commit -m "TASK-1: x"',
     'git config core.hooksPath /tmp/none && git commit -m "TASK-1: x"',
+    "cat <<'EOF' | git commit --no-verify -F -\nTASK-1: x\nEOF",
+    '(git commit --no-verify -m "TASK-1: x")',
+    "git commit $'--no-verify' -m \"TASK-1: x\"",
+    'git \\\ncommit --no-verify -m "TASK-1: x"',
   ]) {
     assert.equal(guard(root, command).status, 2, command);
   }
+});
+
+test('reads PowerShell escapes and continuations, and Bash line continuations, the way the shell does', () => {
+  const root = repo();
+  const ps = (command) => runHook(HOOK, { tool_name: 'PowerShell', tool_input: { command } }, { cwd: root, env: OK_ENV });
+  assert.equal(ps("git commit `\n  --no-verify -m 'TASK-1: x'").status, 2, 'backtick continuation');
+  assert.equal(ps("git commit \"--no`-verify\" -m 'TASK-1: x'").status, 2, 'backtick escape inside quotes');
+  assert.equal(ps("git commit --no``-verify -m 'TASK-1: x'").status, 0, 'a literal backtick is not an escape');
+  assert.equal(ps("git commit -m 'TASK-1: it''s fine'").status, 0, 'doubled single quote');
+  assert.equal(guard(root, 'git commit --no-\\\nverify -m "TASK-1: x"').status, 2, 'bash backslash-newline joins words');
+});
+
+test('blocks skipping the push hooks, and allows an ordinary push', () => {
+  const root = repo();
+  assert.equal(guard(root, 'git push --no-verify origin main').status, 2);
+  assert.equal(guard(root, 'git push "--no-veri" origin main').status, 2);
+  assert.equal(guard(root, 'git -c core.hooksPath=/x push origin main').status, 2);
+  assert.equal(guard(root, 'git push origin sprint/999').status, 0);
 });
 
 test('does not mistake "-n" inside a message, or a value after -m, for the flag', () => {
   const root = repo();
   assert.equal(guard(root, 'git commit -m "TASK-1: handle -n and --no-verify in docs"').status, 0);
   assert.equal(guard(root, 'git commit -m -n').status, 0);
+  assert.equal(guard(root, 'git commit -uno -m "TASK-1: -uno is --untracked-files=no"').status, 0);
+  assert.equal(guard(root, 'git commit -m "TASK-1: explain core.hooksPath in the docs"').status, 0);
   assert.equal(guard(root, "git commit -F - <<'EOF'\nTASK-1: docs\n\nExplain --no-verify and git commit -n.\nEOF").status, 0);
 });
 
@@ -162,6 +196,29 @@ test('changing the reviewed part of the sprint log, or the sprint template, afte
     assert.equal(run.status, 2);
     assert.match(run.stderr, /\[reviews\].*scope hash differs/);
   }
+});
+
+test('the sprint header status changing to complete after the review needs no re-review', () => {
+  const root = repo();
+  write(root, 'docs/sprints/SPRINT-999.md', sprintLog(999, { status: 'in-progress' }));
+  prepareCloseKeepingLog(root);
+  write(root, 'docs/sprints/SPRINT-999.md', sprintLog(999, { status: 'complete' }));
+  git(root, 'add', '-A');
+  writeCiRecord(root, { result: 'pass' });
+  const run = guard(root, CLOSE);
+  assert.equal(run.status, 0, run.stderr);
+});
+
+test('changing a task status in the sprint log after the review forces a re-review', () => {
+  const root = repo();
+  write(root, 'docs/sprints/SPRINT-999.md', sprintLog(999, { task: 'blocked' }));
+  prepareCloseKeepingLog(root);
+  write(root, 'docs/sprints/SPRINT-999.md', sprintLog(999, { task: 'complete' }));
+  git(root, 'add', '-A');
+  writeCiRecord(root, { result: 'pass' });
+  const run = guard(root, CLOSE);
+  assert.equal(run.status, 2);
+  assert.match(run.stderr, /\[reviews\].*scope hash differs/);
 });
 
 test('a completed task in the log does not make an unfinished sprint look complete', () => {

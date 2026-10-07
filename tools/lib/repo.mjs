@@ -18,14 +18,17 @@ const CLOSE_TIME_HEADER_ROWS = /^\|\s*\*\*(Status|Dates|CI verified|Previous clo
 
 /**
  * The part of a file the review covers. A sprint log is reviewed up to its "## Sprint-end review" heading,
- * minus the header rows filled in at close (Status, Dates, CI verified, Previous close on GitHub): the plan,
+ * minus the rows of its header table (before the first "## ") that are filled in at close (Status, Dates, CI
+ * verified, Previous close on GitHub). Task tables keep their Status rows: the plan,
  * the owner's rulings and the task evidence are frozen by the review, while the review summary, test summary,
  * retrospective and handoff are written afterwards. Every other file is reviewed whole.
  */
 export function reviewedPart(path, content) {
   if (!/^docs\/sprints\/SPRINT-\d+\.md$/.test(path)) return content;
   const beforeReview = content.toString('utf8').split(/^## Sprint-end review/m)[0];
-  return Buffer.from(beforeReview.split('\n').filter((line) => !CLOSE_TIME_HEADER_ROWS.test(line)).join('\n'));
+  const [header, ...sections] = beforeReview.split(/^(?=## )/m); // the header is everything before the first "## "
+  const keptHeader = header.split('\n').filter((line) => !CLOSE_TIME_HEADER_ROWS.test(line)).join('\n');
+  return Buffer.from([keptHeader, ...sections].join(''));
 }
 
 /** Where `npm run ci` records its last result. Gitignored. */

@@ -4,7 +4,8 @@
 // thing whether the commit used -m, a heredoc, -F, an editor, `git.exe` or any other form. A subject of the
 // form "S<N> close: <title>" must pass every close gate (tools/lib/close-gates.mjs). A subject that looks
 // like a close but isn't in exactly that form is refused, and so is any other commit that marks a sprint log
-// complete: neither can slip through as an ordinary commit.
+// complete: neither can slip through as an ordinary commit. Any commit on `main` is refused: main only
+// receives reviewed closes, by a fast-forward from the sprint branch (CONVENTIONS invariant 7).
 //
 // Usage (by git): node tools/hooks/commit-msg.mjs <path-to-message-file>
 
@@ -22,6 +23,20 @@ try {
 }
 
 const root = git(process.cwd(), ['rev-parse', '--show-toplevel']).trim();
+let branch = '';
+try {
+  branch = git(root, ['symbolic-ref', '--short', '-q', 'HEAD']).trim();
+} catch {
+  branch = ''; // detached HEAD
+}
+if (branch === 'main') {
+  process.stderr.write(
+    'commit-msg: no commits on main. main only receives reviewed sprint closes, by a fast-forward from the sprint ' +
+      'branch (docs/WORKFLOW.md, steps 0 and 8). Commit on sprint/N instead.\n',
+  );
+  process.exit(1);
+}
+
 const kind = classifyMessage(message);
 if (!kind) {
   const completed = sprintsMarkedComplete(root);

@@ -23,8 +23,9 @@ export function git(root, ...args) {
 }
 
 /**
- * A fresh repository with the gitignore rules the guard relies on. `commit: true` adds an initial commit.
- * `hooks: true` sets core.hooksPath the way `npm run setup` does, which the PreToolUse guard requires.
+ * A fresh repository with the gitignore rules the guard relies on. `commit: true` adds an initial commit on
+ * `main`; work then continues on the sprint branch `sprint/999`, as the workflow requires. `hooks: true` sets
+ * core.hooksPath the way `npm run setup` does, which the PreToolUse guard requires.
  */
 export function makeRepo({ commit = true, hooks = true } = {}) {
   const root = mkdtempSync(join(tmpdir(), 'temuciv-hook-'));
@@ -38,6 +39,9 @@ export function makeRepo({ commit = true, hooks = true } = {}) {
   if (commit) {
     git(root, 'add', '-A');
     git(root, 'commit', '-q', '-m', 'initial');
+    git(root, 'switch', '-q', '-c', 'sprint/999');
+  } else {
+    git(root, 'symbolic-ref', 'HEAD', 'refs/heads/sprint/999');
   }
   return root;
 }
@@ -59,10 +63,10 @@ export function prepareClose(root, sprint, { reviewerModel = 'claude-fable-5-1',
 }
 
 /** A minimal sprint log: header, a reviewed section, and the close-time sections after the review heading. */
-export function sprintLog(sprint, { status = 'complete', plan = 'The plan.', retro = 'Retrospective.' } = {}) {
+export function sprintLog(sprint, { status = 'complete', plan = 'The plan.', task = 'complete', retro = 'Retrospective.' } = {}) {
   return (
     `# Sprint ${sprint}\n\n| Field | Value |\n|---|---|\n| **Status** | ${status} |\n\n` +
-    `## Plan\n\n${plan}\n\n### TASK-1\n\n| **Status** | complete |\n\n` +
+    `## Plan\n\n${plan}\n\n### TASK-1\n\n| **Status** | ${task} |\n\n` +
     `## Sprint-end review (step 7)\n\nBoth lenses approved.\n\n## Retrospective\n\n${retro}\n`
   );
 }
@@ -82,6 +86,14 @@ export function commitWithHooks(root, args, { env = {} } = {}) {
   const cleanEnv = { ...process.env, ...env };
   delete cleanEnv.CLAUDE_PROJECT_DIR;
   const run = spawnSync('git', ['-c', `core.hooksPath=${GITHOOKS}`, 'commit', ...args], { cwd: root, env: cleanEnv, encoding: 'utf8', timeout: 60000 });
+  return { status: run.status, stderr: run.stderr + run.stdout };
+}
+
+/** Run a git command in a test repository with the project's git hooks active. */
+export function gitWithHooks(root, args, { env = {} } = {}) {
+  const cleanEnv = { ...process.env, ...env };
+  delete cleanEnv.CLAUDE_PROJECT_DIR;
+  const run = spawnSync('git', ['-c', `core.hooksPath=${GITHOOKS}`, ...args], { cwd: root, env: cleanEnv, encoding: 'utf8', timeout: 60000 });
   return { status: run.status, stderr: run.stderr + run.stdout };
 }
 

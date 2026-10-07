@@ -5,7 +5,8 @@
 //     and blocks attempts to skip the git hooks.
 //
 // Gates, each waivable by .claude/reviews/SPRINT-<N>-<gate>-WAIVED.md (owner's say-so, reason inside):
-//   sprint-log  docs/sprints/SPRINT-N.md exists, status complete, listed in the sprint INDEX
+//   sprint-log  docs/sprints/SPRINT-N.md exists, its header status is complete, and the sprint INDEX lists it
+//               as complete
 //   reviews     codex + reviewer files exist, not BLOCKED, stamped at HEAD with the current scope hash,
 //               and the reviewer ran on Fable
 //   local-ci    `npm run ci` passed on exactly the project files on disk now

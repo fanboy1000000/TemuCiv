@@ -40,7 +40,15 @@ test('check-docs fails on each kind of drift it guards', () => {
   const cases = [
     ['size budget', (r) => write(r, 'CLAUDE.md', 'line\n'.repeat(151)), /size: CLAUDE\.md has \d+ lines; budget is 150/],
     ['unlisted KB entry', (r) => write(r, 'docs/kb/decisions/ADR-002-y.md', '# ADR-002\n'), /ADR-002-y\.md is not listed/],
-    ['sprint numbering gap', (r) => write(r, 'docs/sprints/SPRINT-3.md', '# Sprint 3\n'), /SPRINT-3\.md is not listed|numbering has a gap/],
+    [
+      'sprint numbering gap',
+      (r) => {
+        write(r, 'docs/sprints/SPRINT-3.md', '# Sprint 3\n');
+        write(r, 'docs/sprints/INDEX.md', '| [Sprint 1](SPRINT-1.md) |\n| [Sprint 3](SPRINT-3.md) |\n');
+      },
+      /numbering has a gap or duplicate near SPRINT-3\.md/,
+    ],
+    ['unlisted sprint log', (r) => write(r, 'docs/sprints/SPRINT-2.md', '# Sprint 2\n'), /SPRINT-2\.md is not listed/],
     ['roster model mismatch', (r) => write(r, '.claude/agents/tester.md', AGENT('tester', 'opus')), /runs on "opus" but the roster says "sonnet"/],
     ['broken link', (r) => write(r, 'docs/WORKFLOW.md', 'See [gone](missing.md).\n'), /links to "missing\.md", which does not exist/],
   ];

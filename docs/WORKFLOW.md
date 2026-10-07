@@ -102,7 +102,8 @@ For each finished task:
    worktrees, merged commits, pending reviews, open questions, the next action.
 
 ### Step 7: Sprint-end review (dual lens)
-After every task is accepted and committed:
+After every task is accepted and committed, and the sprint log's task log and design conformance table are
+complete and committed (the review covers them):
 1. Stamp the state to be reviewed: `node tools/review-stamp.mjs` prints `reviewed-against-commit:` and
    `reviewed-scope-hash:`. Keep this output. If the reviewed files change, the stamp no longer matches. It refuses
    to stamp while anything outside the close paperwork is uncommitted or untracked, so the committed diff the
@@ -117,8 +118,9 @@ After every task is accepted and committed:
    hash.
 
 ### Step 8: Close
-1. Complete the sprint log: status `complete`, test summary (from real runs), design conformance table, review
-   summary, retrospective and handoff block. Update the row in `docs/sprints/INDEX.md`.
+1. Complete the sprint log: status `complete`, review summary, test summary (from real runs), retrospective and
+   handoff block. Update the row in `docs/sprints/INDEX.md`. Everything above the log's "Sprint-end review"
+   heading was filled in before the stamp.
 2. Route every open follow-up that's not scheduled for the next sprint into the `ROADMAP.md` backlog.
 3. Run `npm run ci` **last**, after all edits. It records a pass for the exact project files on disk.
 4. Commit on the sprint branch with a subject in exactly the form `S<N> close: <title>`. The commit-msg hook
@@ -164,18 +166,21 @@ GitHub push protection is on for the repository, so a known secret format is ref
 
 **Git hooks** (`.githooks/`, installed by `npm run setup`): **pre-commit** runs the secret scan on the staged
 files, so a secret is refused before it is ever committed. **commit-msg** is the authoritative close check: it
-reads the real commit message, so it works whatever form the command takes (`-m`, `-F`, a heredoc, an editor),
-and it refuses a subject that looks like a close but isn't exactly `S<N> close: <title>`.
+reads the real commit message, so it works whatever form the command takes (`-m`, `-F`, a heredoc, an editor);
+it refuses a subject that looks like a close but isn't exactly `S<N> close: <title>`, any other commit that marks
+a sprint complete, and any commit on `main`. **pre-push** refuses to push `main` unless its tip is a close
+commit, so unreviewed work never reaches the shared branch (CONVENTIONS invariant 7).
 
 **The sprint-close guard** (`.claude/hooks/sprint-close-guard.mjs`, run before every Bash/PowerShell command)
-protects the git hooks: it blocks any commit while they aren't installed, and any attempt to skip them
-(`--no-verify`, `-n`, a `core.hooksPath` override). When the command text shows a close message, it runs the
+protects the git hooks: it blocks any commit or push while they aren't installed, and any attempt to skip them
+(`--no-verify` or an abbreviation, `-n` on a commit, a `core.hooksPath` override), quoted or escaped for Bash or
+PowerShell, piped or in a subshell. It covers the common forms; the git hooks are the real check. When the command text shows a close message, it runs the
 gates up front. Both enforcement points share the gates in `tools/lib/close-gates.mjs`. A close is blocked
 unless:
 
 | Gate | Requires | Waiver file (`.claude/reviews/`) |
 |---|---|---|
-| sprint-log | `SPRINT-N.md` exists, its status is `complete`, and the sprint INDEX links it | `SPRINT-N-sprint-log-WAIVED.md` |
+| sprint-log | `SPRINT-N.md` exists, its header status is `complete`, and the sprint INDEX lists it as `complete` | `SPRINT-N-sprint-log-WAIVED.md` |
 | reviews | Both review files exist; neither verdict is BLOCKED; both were stamped at the current HEAD with the current scope hash; the reviewer ran on Fable | `SPRINT-N-reviews-WAIVED.md` |
 | local-ci | `npm run ci` passed on exactly the project files on disk now | `SPRINT-N-local-ci-WAIVED.md` |
 | untracked | No untracked, non-ignored files and no unstaged changes (local green on files that aren't committed proves nothing) | `SPRINT-N-untracked-WAIVED.md` |

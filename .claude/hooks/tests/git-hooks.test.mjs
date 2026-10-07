@@ -7,7 +7,9 @@ import { spawnSync } from 'node:child_process';
 import { join } from 'node:path';
 import { after, test } from 'node:test';
 import { scanText } from '../../../tools/lib/secrets.mjs';
-import { REPO_ROOT, cleanup, commitWithHooks, git, makeRepo, prepareClose, sprintLog, write } from './helpers.mjs';
+import { mkdtempSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { REPO_ROOT, cleanup, commitWithHooks, git, gitWithHooks, makeRepo, prepareClose, sprintLog, write } from './helpers.mjs';
 
 const OK_ENV = { TEMUCIV_CI_HEALTH_MOCK: 'success' };
 const repos = [];
@@ -75,6 +77,39 @@ test('commit-msg lets ordinary commits through, even when the body mentions a cl
   git(root, 'add', '-A');
   const run = commitWithHooks(root, ['-m', 'TASK-101: hex grid', '-m', 'Ready for the S999 close.']);
   assert.equal(run.status, 0, run.stderr);
+});
+
+// --- main only receives reviewed closes ----------------------------------------------------------------
+
+test('commit-msg refuses any commit on main', () => {
+  const root = repo();
+  git(root, 'switch', '-q', 'main');
+  write(root, 'src/game.txt', 'changed on main\n');
+  git(root, 'add', '-A');
+  const run = commitWithHooks(root, ['-m', 'TASK-1: straight onto main']);
+  assert.notEqual(run.status, 0);
+  assert.match(run.stderr, /no commits on main/);
+});
+
+test('pre-push refuses pushing main at a task commit, and allows it at a close commit', () => {
+  const root = repo();
+  const remote = mkdtempSync(join(tmpdir(), 'temuciv-remote-'));
+  repos.push(remote);
+  git(remote, 'init', '-q', '--bare');
+  git(root, 'remote', 'add', 'origin', remote);
+  write(root, 'src/game.txt', 'task work\n');
+  git(root, 'add', '-A');
+  git(root, 'commit', '-q', '-m', 'TASK-1: unreviewed work');
+  git(root, 'branch', '-f', 'main', 'HEAD');
+  const refused = gitWithHooks(root, ['push', '-q', 'origin', 'main']);
+  assert.notEqual(refused.status, 0);
+  assert.match(refused.stderr, /refusing to push main at "TASK-1: unreviewed work"/);
+
+  git(root, 'commit', '-q', '--allow-empty', '-m', 'S999 close: reviewed');
+  git(root, 'branch', '-f', 'main', 'HEAD');
+  const allowed = gitWithHooks(root, ['push', '-q', 'origin', 'main']);
+  assert.equal(allowed.status, 0, allowed.stderr);
+  assert.equal(gitWithHooks(root, ['push', '-q', 'origin', 'sprint/999']).status, 0);
 });
 
 // --- pre-commit: secret scan ------------------------------------------------------------------------------

@@ -1,0 +1,4 @@
+#!/bin/sh
+# TemuCiv: main only receives reviewed sprint closes; refuse pushing main at any other commit.
+# Installed by `npm run setup`.
+exec node "$(dirname "$0")/../tools/hooks/pre-push.mjs" "$@"

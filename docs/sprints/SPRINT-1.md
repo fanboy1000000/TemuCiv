@@ -195,6 +195,7 @@ review of this sprint (`.claude/reviews/SPRINT-1-codex-c1.md`, 2026-09-30), befo
 |---|---|---|---|---|
 | TASK-108 | Orchestrator | `.githooks/**`, `tools/**`, `.claude/hooks/**`, `.github/**`, `package.json`, `docs/**`, `CLAUDE.md` | Each Codex cycle-1 BLOCKER fixed, with a test that fails when the fix is removed → governance tests + mutation runs | no |
 | TASK-109 | Orchestrator | same as TASK-108, plus `.claude/agents/platform.md`, `docs/kb/**` | Each cycle-2 BLOCKER (Codex and reviewer) fixed, with a test that fails when the fix is removed → governance tests + mutation runs | no |
+| TASK-110 | Orchestrator | same as TASK-109 | Each cycle-3 BLOCKER (Codex c3, reviewer c2) fixed, with a test that fails when the fix is removed → governance tests + mutation runs | no |
 
 **Sprint branch (2026-10-07).** Codex cycle 2 found that committing tasks to local `main` before the review breaks
 CONVENTIONS invariant 7 ("reviewed before it is committed to `main`"). The workflow now keeps each sprint on
@@ -221,7 +222,7 @@ review below.
 | **Status** | complete |
 | **Agent** | Orchestrator (bootstrap exception: `.claude/**` and the gate tooling are Orchestrator-only) |
 | **Constraint validator** | n/a: no game code; self-checked (no secrets, scope as declared) |
-| **Review** | per-task review done inside the sprint-end review, cycle 2: the reviewer (Fable) and Codex were given TASK-108's claims and verified each against the code; both confirmed the six cycle-1 BLOCKERs fixed and found new ones (TASK-109) |
+| **Review** | per-task review inside the sprint-end review, cycle 2: both lenses were given TASK-108's claims to verify against the code. The reviewer confirmed the six cycle-1 fixes; both found new BLOCKERs, which became TASK-109 |
 
 The close gates were enforced only by reading the text of the command, which several ordinary commit forms
 slipped past. They now live in one shared module and are enforced where git sees the real message:
@@ -279,8 +280,30 @@ status read from the whole log → 2 tests fail; INDEX status not checked → 1;
 1; the whole sprint log outside the reviewed part → 1; all of `docs/sprints` outside the review hash → 2; a
 reviewer spawn allowed without naming Fable → 1.
 
-Declined, with reasons: `ROADMAP.md` stays outside the review hash (routing follow-ups is a required close step
+Declined, with reasons (TASK-109): `ROADMAP.md` stays outside the review hash (routing follow-ups is a required close step
 after the review); "Research" as a system name is renamed when `docs/architecture.md` lands (backlog).
+
+### TASK-110: cycle-3 fixes (Codex c3, reviewer c2)
+
+| Field | Value |
+|---|---|
+| **Status** | complete |
+| **Agent** | Orchestrator (bootstrap exception, as TASK-108) |
+| **Constraint validator** | n/a: no game code; self-checked |
+| **Review** | per-task review in the sprint-end review, cycle 4 (Codex) and 3 (reviewer) |
+
+Both lenses returned BLOCKED again, on narrower holes:
+
+| Finding | Fix | Test |
+|---|---|---|
+| Codex: the close-time row filter dropped every Status row above the review heading, so a task could go from blocked to complete after review | Only the header table (before the first `##`) loses its close-time rows | task-status and header-status tests |
+| Codex and reviewer: nothing stopped a task commit on `main` or a premature push of `main` | commit-msg refuses any commit on `main`; a new pre-push hook refuses pushing `main` unless its tip is a close; the guard also protects `git push` | main-commit and pre-push tests |
+| Codex: PowerShell backtick escapes and continuations slipped past | Words are split with PowerShell's rules for the PowerShell tool | PowerShell forms |
+| Reviewer: a heredoc piped into `git commit` and a subshell hid the command (regression) | Only the heredoc body is set aside; `(` and `)` separate commands; `$'...'` and backslash-newline read as bash does | four more bypass forms |
+| Reviewer: false positives (`-uno`, a message mentioning `core.hooksPath`) and a missed `-am` close | Optional attached values understood; only `git -c`/`git config` count; `-am` message read | allowed-forms tests |
+| Reviewer: a check-docs test passed for the wrong reason | The gap and the unlisted log are asserted separately | docs-and-ci tests |
+| Reviewer: step 8 asked for a table that the review freezes; TASK-108's record overstated the reviews | Step 7 now requires the task log and design conformance before the stamp; record reworded | n/a (docs) |
+| Codex: the gate table didn't say the INDEX row must be complete | Gate table and module header updated | n/a (docs) |
 
 ## Design conformance
 
@@ -300,48 +323,15 @@ _Pending._
 
 ## Handoff
 
-- **State:** all Sprint 1 files written; nothing committed yet (empty repository, remote `origin` set to the
-  public GitHub repo).
-- **In flight:** verification, then the sprint-end review.
-- **Waiting on:** nothing from the owner yet; the first push needs the owner's go-ahead.
-- **Next action:** RED evidence for the hook tests, then run Codex and the reviewer on the whole sprint. A Codex
-  cycle-1 result already exists (`.claude/reviews/SPRINT-1-codex-c1.md`, verdict BLOCKED): check which findings
-  are fixed before the next cycle. The ADR-007 doc changes (2026-10-04) and the ADR-008/ADR-009 changes
-  (2026-10-05) are part of the scope to review.
-- **Design brainstorm in progress** with the owner: rulings so far are under "Owner design rulings".
-- **Turn-based reversal (2026-10-05):** ADR-008 written and the real-time wording reverted (see the second
-  scope addition). Both join the sprint-end review scope. Whether the player commands battles by hand is parked
-  for the combat spec (owner: not a core feature). The AI approach is agreed (ADR-009); the
-  rivals' personality question is deferred by the owner.
-- **Brainstorm piece in progress (owner's pick, 2026-10-05): expansion and the map** (settling, growth, borders).
-  The expansion ruling is recorded (see "Owner design rulings"); the map and borders are not yet discussed.
-  Scope ruling (same day): the first version is antiquity only; its flagged tensions are listed with the rulings.
-- **Victory and the endgame (owner's pick, 2026-10-05):** research presented as an artifact ("TemuCiv Victory
-  Options", https://claude.ai/artifact/P1TRrL1zgE9aYz6y7C2j4h). Lean: one total fed by every path, a fixed end at
-  the close of antiquity, an early win by a dominant lead held through an announced countdown, conquest as the
-  sudden ending; goals drawn from the leader web as a possible later layer. Owner ruled the same day: dominant
-  lead, announced and held, one score, current not banked (see "Owner design rulings"). Still proposed, not
-  ruled: the end at the close of antiquity and conquest as a sudden ending. Remaining big pieces: diplomacy, the
-  map and borders, the hook, and re-ruling the antiquity tensions (eras inside antiquity, civ switching).
-  Stay at the big-picture level; details wait for each system's spec.
-- **Victory revised (2026-10-07):** the owner replaced the one score with a score per category, each won by a
-  multiple of the runner-up's score. Five categories, the fifth is military (see "Owner design rulings").
-  The rest of the win condition waits for the victory spec (owner). Next: the remaining big pieces, or closing
-  Sprint 1 first (engineering's recommendation, since nothing is committed yet).
-- **Progression revised (2026-10-07):** research presented as an artifact ("TemuCiv Progress Options",
-  https://claude.ai/artifact/6FvBqENjSBudNM7WoknvjU); the owner chose the web in rings (see "Owner design
-  rulings"). Remaining big pieces: diplomacy, the map and borders, the hook, civ switching.
-- **Scope clarified (2026-10-07):** antiquity only is the demo's scope, not the game's (see "Owner design
-  rulings"). Design for the full game; the demo is a slice. What the demo must prove is for `scope.md`.
-- **The hook (2026-10-07):** the owner does not want to name it now; it should grow organically while the idea
-  develops. Not a brainstorm piece; don't push for it.
-- **Demo scope (2026-10-07):** diplomacy and civ switching are out of the demo. Brainstorm piece in progress:
-  **map and borders** (owner's pick), big picture done the same day: borders tile by tile, map types as
-  generators (demo: one type like Civ 7's Continents and Islands); demo only: transport ships without sea
-  battles, no one else on the map, always at war. Working notes: `.claude/refinements/REFINEMENT-map-borders.md`.
-- **The economy under review (2026-10-07):** the owner is challenging "one currency buys everything". Research
-  presented as an artifact ("TemuCiv Currency Options", https://claude.ai/artifact/QMyAffdj5RQVLTARNoXFHX).
-  The owner added a currency per web branch and chose the mixed pricing (branch experience, coin tops up).
-  Open, carried over: which economy pays for units and buildings (lean: coin and goods). Working notes:
-  `.claude/refinements/REFINEMENT-economy.md`.
-- **Owner, 2026-10-07:** close and push Sprint 1; Sprint 2 analyzes the technical design choices.
+- **State:** TASK-101 to 110 committed on `sprint/1` (no `main` yet; it is created at the close). Nothing pushed.
+- **In flight:** the sprint-end review, Codex cycle 4 and reviewer cycle 3, on TASK-110's fixes.
+- **Waiting on:** nothing from the owner. The owner asked on 2026-10-07 to close and push this sprint, and for
+  Sprint 2 to analyze the technical design choices (ROADMAP backlog, "Architecture decision").
+- **Next action:** if both lenses pass, finish this log (review summary, tests, retrospective), run `npm run ci`,
+  commit `S1 close: Governance foundation` on `sprint/1`, create `main` there, push, watch GitHub CI.
+- **Design brainstorm, where it stands:** rulings are under "Owner design rulings" (later rulings supersede
+  earlier ones, struck through). Mapped: turns and combat, AI, expansion, victory (per-category dominance), scope
+  (antiquity is the demo slice), progression (the web in rings), map and borders, web pricing (branch
+  experience). Open, carried to the backlog: what pays for units and buildings (lean: coin and goods), the big
+  shape of logistics and of cities. Out of the demo: diplomacy, civ switching. The hook is left to grow on its
+  own (owner). Stay at the big-picture level; details wait for each system's spec.
