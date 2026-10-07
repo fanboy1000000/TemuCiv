@@ -345,6 +345,11 @@ It also guards `git merge`, whose skip flag bypasses commit-msg too (reviewer no
 untested rule, now has its test: changing the previous-close row after review forces a re-review. The docs
 again state the guard's limits (reviewer warning: TASK-111 had dropped them).
 
+RED evidence at `21b78d0` (55 tests): shell `-c` arguments not parsed, backticks or `$(...)` inside double
+quotes not parsed, a bare `commit` word ignored, merge not guarded, the previous-close row excluded again: each
+made a named test fail. Two first-run survivors led to fixes: a redundant top-level backtick branch was
+removed, and an escaped merge flag (which only the parse can see) got its own test.
+
 ## Design conformance
 
 Not applicable: no game design implemented this sprint.
