@@ -197,6 +197,11 @@ review of this sprint (`.claude/reviews/SPRINT-1-codex-c1.md`, 2026-09-30), befo
 | TASK-109 | Orchestrator | same as TASK-108, plus `.claude/agents/platform.md`, `docs/kb/**` | Each cycle-2 BLOCKER (Codex and reviewer) fixed, with a test that fails when the fix is removed → governance tests + mutation runs | no |
 | TASK-110 | Orchestrator | same as TASK-109 | Each cycle-3 BLOCKER (Codex c3, reviewer c2) fixed, with a test that fails when the fix is removed → governance tests + mutation runs | no |
 | TASK-111 | Orchestrator | `.claude/hooks/**`, `tools/lib/repo.mjs`, `docs/**`, `ROADMAP.md` | The reviewer's cycle-3 BLOCKER fixed with a fail-safe text check, with tests and mutation runs | no |
+| TASK-112 | Orchestrator | `.claude/hooks/**`, `docs/**` | Codex cycle-5 BLOCKERs and the reviewer's cycle-4 warning fixed, with tests and mutation runs | no |
+
+**Past the cycle cap (owner, 2026-10-07).** Codex's fifth cycle still found two BLOCKERs, so the workflow stopped
+and asked the owner: keep iterating, accept the findings, or move them to Sprint 2 (engineering recommended the
+last). The owner chose to keep iterating: TASK-112 and a sixth Codex cycle, fifth for the reviewer.
 
 **Sprint branch (2026-10-07).** Codex cycle 2 found that committing tasks to local `main` before the review breaks
 CONVENTIONS invariant 7 ("reviewed before it is committed to `main`"). The workflow now keeps each sprint on
@@ -252,12 +257,7 @@ review-stamp never refuses → 1; secret scan without the GitHub-token pattern �
 
 ### TASK-109: cycle-2 fixes (Codex and reviewer)
 
-| Field | Value |
-|---|---|
-| **Status** | complete |
-| **Agent** | Orchestrator (bootstrap exception, as TASK-108) |
-| **Constraint validator** | n/a: no game code; self-checked |
-| **Review** | per-task review in the sprint-end review, cycle 3 |
+Status complete · Agent: Orchestrator (bootstrap exception, as TASK-108) · Constraint validator: n/a: no game code; self-checked · Review: per-task review in the sprint-end review, cycle 3.
 
 Cycle 2 (`.claude/reviews/SPRINT-1-codex-c2.raw.md`, BLOCKED; reviewer, BLOCKED) found real holes in TASK-108:
 
@@ -286,12 +286,7 @@ after the review); "Research" as a system name is renamed when `docs/architectur
 
 ### TASK-110: cycle-3 fixes (Codex c3, reviewer c2)
 
-| Field | Value |
-|---|---|
-| **Status** | complete |
-| **Agent** | Orchestrator (bootstrap exception, as TASK-108) |
-| **Constraint validator** | n/a: no game code; self-checked |
-| **Review** | per-task review in the sprint-end review, cycle 4 (Codex) and 3 (reviewer) |
+Status complete · Agent: Orchestrator (bootstrap exception, as TASK-108) · Constraint validator: n/a: no game code; self-checked · Review: per-task review in the sprint-end review, cycle 4 (Codex) and 3 (reviewer).
 
 Both lenses returned BLOCKED again, on narrower holes:
 
@@ -320,12 +315,7 @@ and INDEX updates are done at close. Codex cycle 4: APPROVED; its one note (a bl
 
 ### TASK-111: a fail-safe guard (reviewer c3)
 
-| Field | Value |
-|---|---|
-| **Status** | complete |
-| **Agent** | Orchestrator (bootstrap exception, as TASK-108) |
-| **Constraint validator** | n/a: no game code; self-checked |
-| **Review** | per-task review in the sprint-end review, cycle 5 (Codex) and 4 (reviewer) |
+Status complete · Agent: Orchestrator (bootstrap exception, as TASK-108) · Constraint validator: n/a: no game code; self-checked · Review: per-task review in the sprint-end review, cycle 5 (Codex) and 4 (reviewer).
 
 The reviewer's cycle 3 confirmed TASK-110 but found the guard still missed `--no-verify` after a PowerShell
 here-string with an apostrophe, and, as a regression of TASK-110, inside commands with computed values such as
@@ -342,6 +332,18 @@ off, unclosed quotes allowed, `(...)` values not kept whole, commands inside com
 PowerShell here-strings not set aside, the escaped long flag not parsed, `-n` clusters not checked: each made
 1 to 4 named tests fail. A first run found one mutation that survived (a separate `$(` branch duplicated the
 general one); the branch was removed, which exposed and fixed the unparsed inner command.
+
+### TASK-112: wrapped commands and the previous-close test (Codex c5, reviewer c4)
+
+Status complete · Agent: Orchestrator (bootstrap exception, as TASK-108) · Constraint validator: n/a: no game code; self-checked · Review: per-task review in the sprint-end review, cycle 6 (Codex) and 5 (reviewer).
+
+Codex cycle 5 (BLOCKED) and the reviewer's cycle 4 (APPROVED-WITH-WARNINGS) agreed on the remaining hole: the
+short skip flag `-n` passed when the commit was wrapped (`bash -c`, backticks, `"$(...)"`, a variable holding
+`git`). The guard now parses every nested command (values in brackets, also inside double quotes; bash
+backticks; the command given to `bash -c`, `sh -c`, `pwsh -Command`) and treats any `commit` word as a commit.
+It also guards `git merge`, whose skip flag bypasses commit-msg too (reviewer note). Codex's second BLOCKER, an
+untested rule, now has its test: changing the previous-close row after review forces a re-review. The docs
+again state the guard's limits (reviewer warning: TASK-111 had dropped them).
 
 ## Design conformance
 

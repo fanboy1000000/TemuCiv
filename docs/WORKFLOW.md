@@ -170,15 +170,17 @@ reads the real commit message, so it works whatever form the command takes (`-m`
 it refuses a subject that looks like a close but isn't exactly `S<N> close: <title>`, any other commit that marks
 a sprint complete, and any commit on `main`. **pre-push** refuses to push `main` unless its tip is a close
 commit, so a task commit can't be pushed to the shared branch by mistake (CONVENTIONS invariant 7). Known limits:
-git doesn't run commit-msg for cherry-pick, revert or rebase, and both hooks run only on this computer; a GitHub
+git doesn't run commit-msg for cherry-pick, revert, rebase or `git am`, and both hooks run only on this computer; a GitHub
 branch rule for `main` is in the backlog.
 
 **The sprint-close guard** (`.claude/hooks/sprint-close-guard.mjs`, run before every Bash/PowerShell command)
-protects the git hooks. For any command that mentions git commit or push, it requires the hooks to be installed,
-and it fails safe: it blocks the command when its text names `--no-verify` (or an abbreviation) or
-`core.hooksPath`, or when it can't be read to the end, however the command is wrapped. A commit message that
-names those words goes through `-F` instead. It also parses the command the way Bash or PowerShell would, to
-catch escaped skip flags and `-n` in a commit's flags, and to run the gates up front when it sees a close message. Both enforcement
+protects the git hooks. For any command that mentions git commit, push or merge, it requires the hooks to be
+installed, and it fails safe: it blocks the command when its text names `--no-verify` (or an abbreviation) or
+`core.hooksPath`, or when it can't be read to the end. A commit message or search that names those words uses
+`-F` or a search tool instead. It also parses the command the way Bash or PowerShell would, including commands
+nested in `$(...)`, backticks and `bash -c`/`pwsh -Command`, to catch escaped skip flags and `-n` on a commit, and
+to run the gates up front when it sees a close message. It covers the common forms against mistakes; a skip
+flag assembled at run time is out of its reach, and the server-side backstops are in the backlog. Both enforcement
 points share the gates in `tools/lib/close-gates.mjs`. A close is blocked
 unless:
 

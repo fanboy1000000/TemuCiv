@@ -152,6 +152,35 @@ test('blocks wrapped and computed forms: bash -c, env variables, $(...) and (...
   assert.equal(ps('git commit -F (Join-Path . msg.txt) -n').status, 2, 'PowerShell (...) value before -n');
   assert.equal(guard(root, 'echo $(git commit -n -m "TASK-1: x")').status, 2, 'a commit inside $(...)');
   assert.equal(ps('Write-Output (git commit -n -m x)').status, 2, 'a commit inside a PowerShell (...) value');
+});
+
+test('looks inside wrapped commands for the short skip flag: shell -c, backticks, "$(...)", variables', () => {
+  const root = repo();
+  const ps = (command) => runHook(HOOK, { tool_name: 'PowerShell', tool_input: { command } }, { cwd: root, env: OK_ENV });
+  for (const command of [
+    'bash -c "git commit -n -m x"',
+    "sh -c 'git commit -n -m x'",
+    'bash -lc "cd . && git commit -qn -m x"',
+    'echo `git commit -n -m x`',
+    'echo "$(git commit -n -m x)"',
+    'echo "result: `git commit -n -m x`"',
+    'g=git; $g commit -n -m x',
+  ]) {
+    assert.equal(guard(root, command).status, 2, command);
+  }
+  assert.equal(ps('Write-Output "$(git commit -n -m x)"').status, 2, 'PowerShell "$(...)"');
+  assert.equal(ps('pwsh -Command "git commit -n -m x"').status, 2, 'pwsh -Command');
+  assert.equal(ps("powershell -c 'git commit -n -m x'").status, 2, 'powershell -c');
+  // Claude Code's usual commit form stays allowed.
+  assert.equal(guard(root, "git commit -m \"$(cat <<'EOF'\nTASK-1: usual form\n\nBody.\nEOF\n)\"").status, 0);
+  assert.equal(guard(root, 'bash -c "git commit -m x"').status, 0, 'a wrapped commit without the flag');
+});
+
+test('guards git merge as well: its skip flag bypasses commit-msg too', () => {
+  const root = repo();
+  assert.equal(guard(root, 'git merge --no-verify sprint/999').status, 2);
+  assert.equal(guard(root, 'git merge "--no-veri" sprint/999').status, 2);
+  assert.equal(guard(root, 'git merge --ff-only sprint/999').status, 0);
   assert.equal(guard(root, 'git -C $(pwd) commit -m "TASK-1: computed path"').status, 0, 'a computed value alone is fine');
   assert.equal(guard(root, "git commit -F - <<'EOF'\nTASK-1: docs\n\nExplain --no-verify and git commit -n.\nEOF").status, 0);
 });
@@ -241,6 +270,18 @@ test('changing a task status in the sprint log after the review forces a re-revi
   write(root, 'docs/sprints/SPRINT-999.md', sprintLog(999, { task: 'blocked' }));
   prepareCloseKeepingLog(root);
   write(root, 'docs/sprints/SPRINT-999.md', sprintLog(999, { task: 'complete' }));
+  git(root, 'add', '-A');
+  writeCiRecord(root, { result: 'pass' });
+  const run = guard(root, CLOSE);
+  assert.equal(run.status, 2);
+  assert.match(run.stderr, /\[reviews\].*scope hash differs/);
+});
+
+test('changing the previous-close row after the review forces a re-review (it is filled at sprint start)', () => {
+  const root = repo();
+  write(root, 'docs/sprints/SPRINT-999.md', sprintLog(999, { previousClose: 'run 1: success' }));
+  prepareCloseKeepingLog(root);
+  write(root, 'docs/sprints/SPRINT-999.md', sprintLog(999, { previousClose: 'run 2: success' }));
   git(root, 'add', '-A');
   writeCiRecord(root, { result: 'pass' });
   const run = guard(root, CLOSE);
