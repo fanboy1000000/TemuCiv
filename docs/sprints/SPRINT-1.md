@@ -331,6 +331,10 @@ now say what the receipt guarantees: pre-push is itself a hook, so the guard's p
 GitHub protects `main` (a gap there is a blocker; a gap in its commit checks is a note). Also: stale comments
 fixed; the guard joins continued lines, ignores quoted text for `-n`, and blocks `gh pr merge`.
 
+RED evidence at `524ae0b` (52 tests), each failing a named test on the first run: P1 receipt written before the
+gates are checked, P2 pre-push reading the checked-out tree, P3 any sprint's receipt accepted, P4 PR merges not
+blocked, P5 continued lines not joined, P6 quoted commands unchecked, P7 quoted text not set aside.
+
 ## Design conformance
 
 Not applicable: no game design implemented this sprint.
