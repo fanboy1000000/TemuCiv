@@ -337,6 +337,12 @@ message naming those words must use `-F`). Also: the "Previous close on GitHub" 
 at sprint start), the pre-push wording states its known limits, and a GitHub branch rule for `main` is in the
 backlog. The reviewer's raw output for cycle 3 is kept in `.claude/reviews/`.
 
+RED evidence at `a0f330e` (52 tests): the text check for the skip flag off, the text check for `core.hooksPath`
+off, unclosed quotes allowed, `(...)` values not kept whole, commands inside computed values not parsed,
+PowerShell here-strings not set aside, the escaped long flag not parsed, `-n` clusters not checked: each made
+1 to 4 named tests fail. A first run found one mutation that survived (a separate `$(` branch duplicated the
+general one); the branch was removed, which exposed and fixed the unparsed inner command.
+
 ## Design conformance
 
 Not applicable: no game design implemented this sprint.
