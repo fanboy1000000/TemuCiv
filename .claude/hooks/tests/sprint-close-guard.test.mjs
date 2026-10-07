@@ -226,7 +226,7 @@ test('reads the common ways of feeding text to iex or a shell', () => {
 
 test('a message heredoc stays a message even when a shell ran earlier on the line', () => {
   const root = repo();
-  const usual = "bash tools/x.sh && git commit -m \"$(cat <<'EOF'\nTASK-1: the owner's change\n\nIt's ready.\nEOF\n)\"";
+  const usual = "bash tools/x.sh && git commit -m \"$(cat <<'EOF'\nTASK-1: the owner's change\n\nReady.\nEOF\n)\"";
   assert.equal(guard(root, usual).status, 0);
 });
 
