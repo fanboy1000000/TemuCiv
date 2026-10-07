@@ -13,7 +13,9 @@
 //   - the text contains `--no-v...` (the skip flag or an abbreviation; `--no-verbose` aside) or `core.hooksPath`;
 //   - after the word `commit`, in the same command (up to ; & | or a newline, after joining continued lines and
 //     setting aside quoted text unless it contains a commit itself), a flag cluster contains n (-n);
-//   - `gh pr merge` (gh or gh.exe, with options before `pr`), which moves `main` on GitHub without any local hook.
+//   - `gh pr merge` (gh or gh.exe, options before or after `pr`), which moves `main` on GitHub without any
+//     local hook.
+// Every check reads the command with continued lines joined.
 // False alarms are accepted: a commit message that names those words goes through `-F <file>`, and a command
 // that runs `git commit` and, say, `head -n` on one segment is split. Exit 2 blocks the tool call.
 
@@ -28,7 +30,11 @@ function main() {
     return 0;
   }
   if (!['Bash', 'PowerShell'].includes(payload?.tool_name)) return 0;
-  const command = String(payload?.tool_input?.command ?? '');
+  // Every check reads the command with continued lines joined: bash drops backslash-newline (the word carries
+  // on), PowerShell's backtick-newline is a space.
+  const command = String(payload?.tool_input?.command ?? '')
+    .replace(/\\\r?\n/g, '')
+    .replace(/`\r?\n/g, ' ');
   if (!/\b(git|gh)(\.exe)?\b/i.test(command) || !/\b(commit|push|merge|pull)\b/i.test(command)) return 0;
 
   const block = (why) => {
@@ -51,12 +57,12 @@ function main() {
         'scan and the close gates. Remove it; if it is only message text, pass the message with -F <file>.',
     );
   }
-  if (/\bgh(\.exe)?\b[^;&|\n]*\bpr\s+merge\b/i.test(command)) {
+  if (/\bgh(\.exe)?\b[^;&|\n]*\bpr\b[^;&|\n]*\bmerge\b/i.test(command)) {
     return block('`gh pr merge` moves main on GitHub without running the local checks. main only receives reviewed closes, pushed from here.');
   }
-  // Continued lines are joined. Quoted text is set aside (a message may say "-n"), except quoted text that
-  // itself contains a commit, such as `bash -c "git commit ..."`, which is checked as a command of its own.
-  const joined = command.replace(/[\\`]\r?\n/g, ' ');
+  // Quoted text is set aside (a message may say "-n"), except quoted text that itself contains a commit, such
+  // as `bash -c "git commit ..."`, which is checked as a command of its own.
+  const joined = command;
   const QUOTED = /"(?:[^"\\]|\\.)*"|'[^']*'/g;
   const quotedCommands = (joined.match(QUOTED) ?? []).filter((q) => /\bcommit\b/i.test(q)).map((q) => q.slice(1, -1));
   const texts = [joined.replace(QUOTED, '""'), ...quotedCommands];

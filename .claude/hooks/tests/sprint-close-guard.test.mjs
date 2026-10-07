@@ -68,12 +68,23 @@ test('blocks any git commit, push, merge or pull while the hooks are not install
 
 test('blocks merging a pull request on GitHub, which skips every local check', () => {
   const root = repo();
-  for (const command of ['gh pr merge 1 --merge', 'gh.exe pr merge 1', 'gh -R owner/repo pr merge 1', 'gh --repo owner/repo pr merge']) {
+  for (const command of [
+    'gh pr merge 1 --merge',
+    'gh.exe pr merge 1',
+    'gh -R owner/repo pr merge 1',
+    'gh --repo owner/repo pr merge',
+    'gh pr -R owner/repo merge 1',
+    'gh \\\n  pr merge 1',
+  ]) {
     const run = guard(root, command);
     assert.equal(run.status, 2, command);
     assert.match(run.stderr, /moves main on GitHub/, command);
   }
-  assert.equal(guard(root, 'gh pr view 1').status, 0, 'other gh commands');
+  const ps = guard(root, 'gh `\n  pr merge 1', 'PowerShell');
+  assert.equal(ps.status, 2, 'PowerShell continuation');
+  assert.match(ps.stderr, /moves main on GitHub/);
+  // Gets past the first filter (it pushes), so the PR-merge rule itself decides.
+  assert.equal(guard(root, 'git push origin sprint/999 && gh pr view 1').status, 0, 'other gh commands');
 });
 
 test('blocks the skip flag and core.hooksPath anywhere in the text, however the command is wrapped', () => {
@@ -85,6 +96,7 @@ test('blocks the skip flag and core.hooksPath anywhere in the text, however the 
     'git push --no-verify origin main',
     'git merge --no-verify sprint/999',
     'git -c core.hooksPath=/dev/null commit -m x',
+    'git push --no-\\\nverify origin main',
     'git config core.hooksPath /tmp/none && git commit -m x',
   ]) {
     assert.equal(guard(root, command).status, 2, command);

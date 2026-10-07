@@ -204,6 +204,7 @@ review of this sprint (`.claude/reviews/SPRINT-1-codex-c1.md`, 2026-09-30), befo
 | TASK-116 | Orchestrator | `.claude/hooks/**`, `tools/**`, `docs/**`, `ROADMAP.md` | A close made with the hooks off can't be pushed to `main`; the guard is a short text check; tests fail when each rule is removed | no |
 | TASK-117 | Orchestrator | `.claude/**`, `tools/**`, `docs/**` | The receipt's safety properties tested (Codex c10 BLOCKER); docs state what the receipt does and doesn't guarantee | no |
 | TASK-118 | Orchestrator | `.claude/hooks/**`, `tools/hooks/**`, `docs/**` | Every ordinary spelling of a GitHub PR merge blocked and tested (Codex c11 BLOCKER, reviewer c10 warning) | no |
+| TASK-119 | Orchestrator | `.claude/hooks/**`, `docs/sprints/**` | Every guard check reads continued lines joined; PR-merge options anywhere; a negative test that reaches the rule | no |
 
 **Past the cycle cap (owner, 2026-10-07).** Codex's fifth cycle still found BLOCKERs; asked to keep iterating,
 accept the findings or move them to Sprint 2 (engineering's recommendation), the owner chose to keep iterating, after
@@ -348,6 +349,16 @@ comment matches the corrected wording, and WORKFLOW places `gh pr merge` with th
 RED evidence at `ca49066` (52 tests): Q1 only a bare `gh` directly before `pr merge` and Q2 quoted commands
 keeping their quotes each fail a named test. Q3 (the first filter without `gh.exe`) survived because it is
 equivalent: the old pattern already matched `gh.exe`, so that line change was cosmetic.
+
+### TASK-119: continued lines everywhere (Codex c12, reviewer c11)
+
+Status complete · Agent: Orchestrator (bootstrap exception) · Constraint validator: n/a · Review: Codex cycle 13, reviewer cycle 12.
+
+Codex cycle 12 (BLOCKED): `gh \` + newline + `pr merge` passed, because only the `-n` check joined continued lines.
+Now every check reads the joined command (bash drops backslash-newline; PowerShell's backtick-newline is a space),
+which also covers a skip flag split across lines. The PR-merge rule allows options between `pr` and `merge`
+(reviewer note). The "other gh commands" test now gets past the first filter, so it tests the rule itself
+(reviewer warning).
 
 ## Design conformance
 
