@@ -338,42 +338,18 @@ RED evidence at `524ae0b` (52 tests), each failing a named test on the first run
 gates are checked, P2 pre-push reading the checked-out tree, P3 any sprint's receipt accepted, P4 PR merges not
 blocked, P5 continued lines not joined, P6 quoted commands unchecked, P7 quoted text not set aside.
 
-### TASK-118: the PR-merge spellings (Codex c11, reviewer c10)
-
-Status complete · Agent: Orchestrator (bootstrap exception) · Constraint validator: n/a · Review: Codex cycle 12, reviewer cycle 11.
-
-Both lenses confirmed TASK-117 and found one gap: `gh.exe pr merge` and `gh -R owner/repo pr merge` passed the
-guard. The check now matches gh or gh.exe with options before `pr merge`, tested with each spelling and its
-reason. Also: quoted commands are checked without their quotes (`bash -c "git commit -m x -n"`), the pre-push
-comment matches the corrected wording, and WORKFLOW places `gh pr merge` with the push-side checks.
-
-RED evidence at `ca49066` (52 tests): Q1 only a bare `gh` directly before `pr merge` and Q2 quoted commands
-keeping their quotes each fail a named test. Q3 (the first filter without `gh.exe`) survived because it is
-equivalent: the old pattern already matched `gh.exe`, so that line change was cosmetic.
-
-### TASK-119: continued lines everywhere (Codex c12, reviewer c11)
-
-Status complete · Agent: Orchestrator (bootstrap exception) · Constraint validator: n/a · Review: Codex cycle 13, reviewer cycle 12.
-
-Codex cycle 12 (BLOCKED): `gh \` + newline + `pr merge` passed, because only the `-n` check joined continued lines.
-Now every check reads the joined command (bash drops backslash-newline; PowerShell's backtick-newline is a space),
-which also covers a skip flag split across lines. The PR-merge rule allows options between `pr` and `merge`
-(reviewer note). The "other gh commands" test now gets past the first filter, so it tests the rule itself
-(reviewer warning).
-
-RED evidence at `09a7a81` (52 tests), each failing a named test on the first run: S1 bash continuations not
-joined, S2 PowerShell continuations not joined, S3 no options between `pr` and `merge`, S4 the PR-merge rule
-over-blocking any gh command (caught by the new negative case).
-
-### TASK-120: join by the right shell, and check both versions (reviewer c12)
+### TASK-118 to TASK-120: the guard's text checks, tightened (Codex c11 to c13, reviewer c10 to c12)
 
 Status complete · Agent: Orchestrator (bootstrap exception) · Constraint validator: n/a · Review: Codex cycle 14, reviewer cycle 13.
 
-Codex cycle 13: APPROVED with no findings. The reviewer's cycle 12 (BLOCKED) found that TASK-119 reopened a push-side
-hole: joining applied bash's backslash rule to PowerShell too, so a path ending in `\` swallowed the next line
-(`cd C:\TemuCiv\` then a push with the skip flag, or a PR merge), and the first filter no longer saw `git`. Now
-each check reads two versions, the text as given and the text joined by its own shell's rule, and blocks if
-either matches. The three reproductions are tests. A PR-merge false alarm now names `--body-file`.
+Each round found one push-side spelling: PR merges as `gh.exe`, with `-R` or options between `pr` and `merge`
+(TASK-118); a continued line before `pr merge` (TASK-119); and a regression, joining by bash's rule in PowerShell
+so a path ending in `\` swallowed the next line (TASK-120). Now every check reads the command twice, as given and
+joined by its own shell's rule, and blocks if either matches. Quoted commands are checked without their quotes; a
+negative test reaches the PR-merge rule; a PR-merge false alarm names `--body-file`. Codex cycle 13 approved
+TASK-119 with no findings. RED evidence (named, per round): Q1-Q2, S1-S4, T1-T2 each fail a named test; Q3 and T3
+survive as equivalent mutations (the old filter already matched `gh.exe`; the as-given check covers the
+wrong-rule join). Details in the commit history and `.claude/reviews/`.
 
 ## Design conformance
 
@@ -393,18 +369,9 @@ _Pending._
 
 ## Handoff
 
-- **State:** TASK-101 to 113 committed on `sprint/1` (HEAD 827f8c6; no `main` yet; nothing pushed). 57 governance
-  tests pass; `npm run ci` passes.
-- **Review:** the owner chose to continue past the 5-cycle cap (option A). Codex cycle 7 (`.claude/reviews/
-  SPRINT-1-codex-c7.md`): BLOCKED on two wrapper spellings in the guard: `cmd /c"..."` with `/c` attached
-  (also `/d/c`), and `Invoke-Expression -Command "..."` / `Invoke-Expression @'...'@`; notes: unquoted backtick
-  bodies, and messages that omit `pull`. Reviewer cycle 6: APPROVED-WITH-WARNINGS
-  (`.claude/reviews/SPRINT-1-reviewer-c6.md`): `cmd //c` (Git Bash spelling), iex forms the docs oversell,
-  unnamed mutations for TASK-113.
-- **Next action:** fix the two Codex c7 items (TASK-114) with tests and mutations, re-stamp, re-run both lenses;
-  if they pass, finish this log (review summary, tests, retrospective), run `npm run ci`, commit
-  `S1 close: Governance foundation` on `sprint/1`, `git branch main sprint/1`, switch, push, watch GitHub CI.
-- **Retrospective material:** 7 Codex cycles, almost all on the shell-command guard; the guard's text layer now
-  blocks commands whose text names the skip flag (pass messages with -F, Codex prompts from a file).
-- **Design brainstorm:** see "Owner design rulings"; open items are in the ROADMAP backlog. Sprint 2 = technical
-  design analysis (owner).
+- **State:** TASK-101 to 120 committed on `sprint/1`; no `main` yet; nothing pushed. 53 governance tests pass.
+- **In flight:** the sprint-end review of TASK-120 (Codex cycle 14, reviewer cycle 13).
+- **Next action:** if both lenses pass, finish this log, run `npm run ci`, commit `S1 close: Governance foundation`
+  on `sprint/1`, create `main` there, push, watch GitHub CI. Sprint 2: adopt the ladder and proportional testing
+  in CONVENTIONS (owner approved the plan), the GitHub rule for `main`, the rulebook review, then the technical
+  design analysis.
