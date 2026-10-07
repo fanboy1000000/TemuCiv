@@ -33,7 +33,7 @@ including per-task review in high-risk areas). **Codex** is the external review 
 StatsTid's own purpose is to test how far AI governance can go. TemuCiv's purpose is to ship a fun game, so:
 - **Size budgets** on governance docs, enforced by CI. StatsTid's governance text grew to about the size of its
   production code, and its sprint logs to 75–146 KB each.
-- **Leaner model routing:** the model is fixed in each role's definition; the reviewer is checked to be a Fable
+- **Leaner model routing:** the model is set in each role's definition; the reviewer is checked to be a Fable
   model, not one exact version (StatsTid's exact-version pin needed a four-place update per release).
 - **Stronger close gate:** the review stamp includes a hash of the reviewed files, so any change after review
   forces a new review; StatsTid checked the commit only.

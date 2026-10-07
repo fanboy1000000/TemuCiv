@@ -72,7 +72,9 @@ backlog). Decided by the owner:
   Exploration proposed, arranged in a ring so neighbors form mixed zones.
 - ~~**Eras arrive for everyone on a schedule.** No research race; the web decides how much each player gets out of
   the shared content.~~ Replaced 2026-10-07 by the web in rings (see "Progression, revised").
-- **One currency buys everything** (buildings, units, web nodes). Each city's production only sets build speed.
+- ~~**One currency buys everything** (buildings, units, web nodes).~~ Replaced 2026-10-07 (see "Web pricing"):
+  web nodes are paid with branch experience; what pays for units and buildings is open again. Still standing:
+  each city's production only sets build speed.
 - ~~**Web prices fall with activity in a branch** (option A): fighting makes Military nodes cheaper, and so on. Any
   node can still be bought at full price.~~ Replaced 2026-10-07 by branch experience (see "Web pricing").
 - **Logistics is a major feature.** Food is physical and moved between cities; armies need food and supply lines;
@@ -147,8 +149,9 @@ big-picture map and borders questions are answered; the rest is parked for the m
 
 **Victory (2026-10-05).** Decided by the owner after the research (artifact "TemuCiv Victory Options"): you win
 by a dominant lead, announced to everyone and held through a countdown; ~~there is one score, not one per path~~ (reversed 2026-10-07, see below).
-Proposed by engineering, not yet confirmed: the game ends at the close of antiquity if nobody has won, highest
-score wins; conquest as a sudden ending; every path feeds the score. Ruled the same day: the score is current
+Proposed by engineering, not yet confirmed: ~~the game ends at the close of antiquity if nobody has won, highest
+score wins~~ (single-score proposal, superseded by "Victory, revised"); conquest as a sudden ending; ~~every path
+feeds the score~~ (superseded: each category has its own score). Ruled the same day: the score is current
 (what you have now, which rivals can take), with no banked part; owner and engineering agree the war winner is the
 main balance risk. Working notes: `.claude/refinements/REFINEMENT-victory.md`.
 
@@ -165,7 +168,8 @@ measured and how a game ends when nobody wins.
 
 **Progression, revised (2026-10-07).** The owner reconsidered the scheduled eras after the research (artifact
 "TemuCiv Progress Options") and chose system D, the web in rings: the leader web is also the tech tree, so new
-units, buildings and improvements sit on its nodes and are bought with the one currency. Each era of antiquity is
+units, buildings and improvements sit on its nodes and are bought (~~with the one currency~~; pricing replaced
+2026-10-07, see "Web pricing": branch experience, coin tops up). Each era of antiquity is
 a ring of the web. A ring opens for a player when the calendar has reached it and that player holds enough of the
 ring inside it (a double gate, as in Crusader Kings III). A small set of basics arrives with each era for
 everyone; ideas that neighbors and trading partners already own are cheaper; science lowers web prices and makes
@@ -190,6 +194,12 @@ review of this sprint (`.claude/reviews/SPRINT-1-codex-c1.md`, 2026-09-30), befo
 | Task | Agent | May write | Acceptance criteria → verified by | High-risk |
 |---|---|---|---|---|
 | TASK-108 | Orchestrator | `.githooks/**`, `tools/**`, `.claude/hooks/**`, `.github/**`, `package.json`, `docs/**`, `CLAUDE.md` | Each Codex cycle-1 BLOCKER fixed, with a test that fails when the fix is removed → governance tests + mutation runs | no |
+| TASK-109 | Orchestrator | same as TASK-108, plus `.claude/agents/platform.md`, `docs/kb/**` | Each cycle-2 BLOCKER (Codex and reviewer) fixed, with a test that fails when the fix is removed → governance tests + mutation runs | no |
+
+**Sprint branch (2026-10-07).** Codex cycle 2 found that committing tasks to local `main` before the review breaks
+CONVENTIONS invariant 7 ("reviewed before it is committed to `main`"). The workflow now keeps each sprint on
+`sprint/N` and fast-forwards `main` only at the reviewed close. This sprint's commits were moved to `sprint/1`
+(the local `main` was renamed, so `main` holds nothing until the close).
 
 ## Plan review (step 2)
 
@@ -211,7 +221,7 @@ review below.
 | **Status** | complete |
 | **Agent** | Orchestrator (bootstrap exception: `.claude/**` and the gate tooling are Orchestrator-only) |
 | **Constraint validator** | n/a: no game code; self-checked (no secrets, scope as declared) |
-| **Review** | covered by the sprint-end review |
+| **Review** | per-task review done inside the sprint-end review, cycle 2: the reviewer (Fable) and Codex were given TASK-108's claims and verified each against the code; both confirmed the six cycle-1 BLOCKERs fixed and found new ones (TASK-109) |
 
 The close gates were enforced only by reading the text of the command, which several ordinary commit forms
 slipped past. They now live in one shared module and are enforced where git sees the real message:
@@ -232,6 +242,39 @@ declined or deferred, with reasons: sprint logs stay outside the review hash (th
 after review; plans are reviewed in step 2); read-only agents keep Bash (they need it for tests and git history;
 an enforced allowlist goes to the backlog); the worktree sequence is settled in the first sprint that runs
 parallel agents; ADR-005's supported envelopes go to Sprint 2's technical design.
+
+RED evidence (one-line mutations in a throwaway worktree, each run against the 38 tests at `985ca88`): commit-msg
+ignores every message → 17 tests fail; GitHub gate accepts any conclusion → 1; GitHub gate fails open on errors
+→ 1; untracked gate checks nothing → 4; guard allows `--no-verify` → 1; guard skips the hooks-installed check → 1;
+review-stamp never refuses → 1; secret scan without the GitHub-token pattern → 2.
+
+### TASK-109: cycle-2 fixes (Codex and reviewer)
+
+| Field | Value |
+|---|---|
+| **Status** | complete |
+| **Agent** | Orchestrator (bootstrap exception, as TASK-108) |
+| **Constraint validator** | n/a: no game code; self-checked |
+| **Review** | per-task review in the sprint-end review, cycle 3 |
+
+Cycle 2 (`.claude/reviews/SPRINT-1-codex-c2.raw.md`, BLOCKED; reviewer, BLOCKED) found real holes in TASK-108:
+
+| Cycle-2 finding | Fix | Test |
+|---|---|---|
+| Codex: a completed task's Status row made an unfinished sprint look complete; the INDEX row wasn't checked | Only the log's header table counts; the INDEX row must say complete | completed-task-in-log test |
+| Codex: a quoted `"--no-verify"` slipped past the guard; reviewer: `--no-veri` and `git config core.hooksPath ... && git commit` too | The guard splits the command into words like a shell; blocks any `--no-verify` abbreviation, `-n` in a flag cluster, any `core.hooksPath` in a committing command; heredoc bodies are message text | ten bypass forms; message-text false positives |
+| Codex: committing to local `main` before review breaks invariant 7 | Sprint branches (see Plan); TASK-108's per-task review recorded | n/a (workflow) |
+| Both: "one currency buys everything" still read as a standing ruling | Struck through with pointers; superseded single-score proposals marked | n/a (record) |
+| Reviewer: a commit could mark a sprint complete under any other subject | commit-msg refuses an ordinary commit that sets a sprint log's header to complete | marks-complete test |
+| Both: sprint logs and the template were outside the review hash | A sprint log is hashed up to "## Sprint-end review" minus close-time header rows; the template and everything else in `docs/sprints/` is hashed; only INDEX.md and ROADMAP.md stay out | reviewed-part and template tests |
+| Reviewer: no test showed check-docs or the CI runner failing | Planted-problem tests for each of check-docs' five checks and for a failing CI step | `docs-and-ci.test.mjs` |
+| Codex: the reviewer's model wasn't required at spawn | A reviewer spawn must name Fable; the self-reported model line is documented as a known limit | routing test |
+| Reviewer and Codex: governance tooling and `package.json` ownership inconsistent | Governance tooling listed as Orchestrator-only in AGENTS.md, CLAUDE.md and platform.md; `package.json` reserved by default everywhere | n/a (docs) |
+| Codex: worktree hand-off unspecified | Agents leave changes uncommitted; the Orchestrator verifies, commits in the worktree, merges into the sprint branch | n/a (docs) |
+| Reviewer notes | gitleaks sha256 pinned in the workflow; GitHub-gate wording; "fixed" model wording; close-time edits belong before the stamp; FAIL-001 recorded | n/a |
+
+Declined, with reasons: `ROADMAP.md` stays outside the review hash (routing follow-ups is a required close step
+after the review); "Research" as a system name is renamed when `docs/architecture.md` lands (backlog).
 
 ## Design conformance
 

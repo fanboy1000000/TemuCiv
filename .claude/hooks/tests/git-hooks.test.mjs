@@ -7,7 +7,7 @@ import { spawnSync } from 'node:child_process';
 import { join } from 'node:path';
 import { after, test } from 'node:test';
 import { scanText } from '../../../tools/lib/secrets.mjs';
-import { REPO_ROOT, cleanup, commitWithHooks, git, makeRepo, prepareClose, write } from './helpers.mjs';
+import { REPO_ROOT, cleanup, commitWithHooks, git, makeRepo, prepareClose, sprintLog, write } from './helpers.mjs';
 
 const OK_ENV = { TEMUCIV_CI_HEALTH_MOCK: 'success' };
 const repos = [];
@@ -57,6 +57,18 @@ test('commit-msg refuses a subject that looks like a close but is malformed', ()
   assert.match(run.stderr, /isn't in the form/);
 });
 
+test('commit-msg refuses an ordinary commit that marks a sprint log complete', () => {
+  const root = repo();
+  write(root, 'docs/sprints/SPRINT-999.md', sprintLog(999, { status: 'in-progress' }));
+  git(root, 'add', '-A');
+  git(root, 'commit', '-q', '-m', 'TASK-1: start the log');
+  write(root, 'docs/sprints/SPRINT-999.md', sprintLog(999, { status: 'complete' }));
+  git(root, 'add', '-A');
+  const run = commitWithHooks(root, ['-m', 'Sprint 999 close: wrapping up'], { env: OK_ENV });
+  assert.notEqual(run.status, 0);
+  assert.match(run.stderr, /marks Sprint 999 complete, which only a close commit may do/);
+});
+
 test('commit-msg lets ordinary commits through, even when the body mentions a close', () => {
   const root = repo();
   write(root, 'src/game.txt', 'changed\n');
@@ -92,13 +104,15 @@ const stamp = (root) =>
 test('the review stamp refuses while reviewable files are uncommitted, but not for close paperwork', () => {
   const root = repo();
   write(root, 'src/new.txt', 'not committed yet\n');
+  write(root, 'docs/sprints/SPRINT-999.md', sprintLog(999, { status: 'in-progress' }));
   const refused = stamp(root);
   assert.equal(refused.status, 1);
   assert.match(refused.stderr, /src\/new\.txt/);
+  assert.match(refused.stderr, /SPRINT-999\.md/);
 
   git(root, 'add', '-A');
   git(root, 'commit', '-q', '-m', 'TASK-1: new');
-  write(root, 'docs/sprints/SPRINT-999.md', 'retrospective written after the review\n');
+  write(root, 'docs/sprints/INDEX.md', '| [Sprint 999](SPRINT-999.md) | complete |\n');
   write(root, 'ROADMAP.md', 'backlog updated at close\n');
   const ok = stamp(root);
   assert.equal(ok.status, 0, ok.stderr);

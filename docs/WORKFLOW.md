@@ -34,7 +34,9 @@ open questions (asked one at a time), assumptions, acceptance criteria, risks an
    the row to `docs/sprints/INDEX.md`. Record the **base commit** (HEAD at sprint start) in the header; for the
    first sprint of a repository it is the empty tree, so the sprint-end review covers every file. Record the
    previous close's GitHub CI run (id and result) in the header too: it only exists after that close was pushed.
-   Run `npm run setup` once per clone; it installs the git hooks the close gates depend on.
+   Run `npm run setup` once per clone; it installs the git hooks the close gates depend on. Create the sprint
+   branch from `main`: `git switch -c sprint/N main`. All of the sprint's commits go there; `main` receives them
+   only at the close, after the sprint-end review (CONVENTIONS invariant 7).
 3. **Entropy scan** (first sprint of each session, at minimum): run `npm run check-docs`, then the anti-pattern
    greps listed in the sprint template (the list grows with every FAIL entry), look for orphaned files from the
    last two sprints, and check that the docs still describe what the code does. Record findings as DRIFT (fix
@@ -92,8 +94,10 @@ For each finished task:
 1. Review any **PROPOSED KNOWLEDGE ENTRY** from agents. Approve valid ones as KB files and add them to
    `docs/kb/INDEX.md` (only the Orchestrator writes the KB).
 2. Record the task in the sprint log: status, agent, acceptance criteria with pass/fail, files changed, reviews.
-3. Commit the task locally on `main` (`TASK-N0x: <summary>`). Merge worktree branches first; resolve conflicts
-   and re-run `npm run ci` after every merge. Nothing is pushed until the sprint closes.
+3. Commit the task on the sprint branch (`TASK-N0x: <summary>`). A worktree agent leaves its changes
+   uncommitted; the Orchestrator verifies them in that worktree, commits them there on the worktree's branch,
+   merges that branch into `sprint/N`, re-runs `npm run ci` on the sprint branch, and removes the worktree.
+   Nothing is pushed until the sprint closes.
 4. Write or refresh the **handoff block** in the sprint log at every wave boundary: tasks in flight and their
    worktrees, merged commits, pending reviews, open questions, the next action.
 
@@ -117,9 +121,13 @@ After every task is accepted and committed:
    summary, retrospective and handoff block. Update the row in `docs/sprints/INDEX.md`.
 2. Route every open follow-up that's not scheduled for the next sprint into the `ROADMAP.md` backlog.
 3. Run `npm run ci` **last**, after all edits. It records a pass for the exact project files on disk.
-4. Commit with a subject in exactly the form `S<N> close: <title>`. The commit-msg hook reads the real message,
-   whatever form the command takes, and blocks the commit if any gate fails (see "Mechanical gates").
-5. `git push origin main`, then watch GitHub CI with **one** background command (`gh run watch`), never by
+4. Commit on the sprint branch with a subject in exactly the form `S<N> close: <title>`. The commit-msg hook
+   reads the real message, whatever form the command takes, and blocks the commit if any gate fails (see
+   "Mechanical gates"). Edits at close outside the close paperwork (a CLAUDE.md review, a new KB entry) belong
+   before the step-7 stamp, or they force a re-review.
+5. Bring `main` up to the close: `git switch main && git merge --ff-only sprint/N` (for a repository's first
+   sprint, `main` doesn't exist yet: `git branch main sprint/N && git switch main`). Delete the sprint branch.
+6. `git push origin main`, then watch GitHub CI with **one** background command (`gh run watch`), never by
    polling. A red GitHub CI blocks the next sprint's close.
 
 ### Step 9: Playtest (once a playable build exists)
@@ -171,26 +179,29 @@ unless:
 | reviews | Both review files exist; neither verdict is BLOCKED; both were stamped at the current HEAD with the current scope hash; the reviewer ran on Fable | `SPRINT-N-reviews-WAIVED.md` |
 | local-ci | `npm run ci` passed on exactly the project files on disk now | `SPRINT-N-local-ci-WAIVED.md` |
 | untracked | No untracked, non-ignored files and no unstaged changes (local green on files that aren't committed proves nothing) | `SPRINT-N-untracked-WAIVED.md` |
-| github-ci | The latest CI run for pushes to `main` has finished and succeeded, for the last pushed commit. Fails closed: an unfinished, missing or unreadable run blocks. Passes only when `main` was never pushed | `SPRINT-N-github-ci-WAIVED.md` |
+| github-ci | The latest CI run for pushes to `main` has finished and succeeded, for the last pushed commit. Fails closed: an unfinished, missing or unreadable run blocks. Passes only when this clone has no `origin/main` ref (`main` never pushed) | `SPRINT-N-github-ci-WAIVED.md` |
 
-The **review scope hash** covers every tracked or untracked non-ignored file **except** `docs/sprints/**` and
-`ROADMAP.md`, so the sprint log can be finished after the review, but any other change forces a new review. The CI
-hash covers every project file. A waiver is written only on the owner's say-so, states the reason, and is mentioned
+The **review scope hash** covers every tracked or untracked non-ignored file except `docs/sprints/INDEX.md` and
+`ROADMAP.md`. A sprint log counts only up to its "## Sprint-end review" heading, minus the header rows filled in at
+close (Status, Dates, CI verified, Previous close on GitHub): the plan, the owner's rulings and the task evidence
+are frozen by the review, while the review summary, test summary, retrospective and handoff are written after it.
+Any other change forces a new review. The CI hash covers every project file. A waiver is written only on the owner's say-so, states the reason, and is mentioned
 in the sprint log. The governance tests (`.claude/hooks/tests/`) run in CI; run them after any hook or tool change.
 
 **The model-routing guard** (`.claude/hooks/model-routing-guard.mjs`, run before every agent spawn) blocks a
-`reviewer` spawn on any model but Fable, and a generic spawn (`general-purpose`/`claude`) that names no model.
+`reviewer` spawn that doesn't name Fable, and a generic spawn (`general-purpose`/`claude`) that names no model.
 
 ## Model routing
 
 Judgment runs on the strongest reviewer model; implementation runs on strong but cheaper models. Each role's model
 is set in its definition's frontmatter (`.claude/agents/<name>.md`), so spawning by role name picks the right one.
-Only the reviewer's model is enforced by a guard; for other roles a spawn-time override is possible and must be
-recorded in the sprint log.
+Only the reviewer's model is enforced by a guard: a reviewer spawn must name Fable explicitly. For other roles a
+spawn-time override is possible and must be recorded in the sprint log. Known limit: the close gate reads the
+reviewer's self-reported `reviewed-by-model:` line; Claude Code exposes no record of the model actually used.
 
 | Role | Model |
 |---|---|
-| reviewer | Fable (guard-enforced; the close gate checks the `reviewed-by-model:` line) |
+| reviewer | Fable (the spawn must name it; the close gate checks the `reviewed-by-model:` line) |
 | simulation, ai-player, presentation, platform, test-qa | Opus |
 | content, trace, constraint-validator | Sonnet |
 | sweep | Haiku |
@@ -247,8 +258,8 @@ These cost StatsTid real time. We start with them instead of relearning them.
 - **A test that can't fail proves nothing.** Tests derive expected values from the design and must be seen failing.
 - **Agents' briefs are often wrong about the code.** Every agent verifies claims and reports contradictions
   (AGENTS.md, "Brief challenge"); every contradiction is read before output is accepted.
-- **Worktrees start from the remote branch,** which lags local `main` for the whole sprint. Every worktree agent
-  first checks itself against local `main` (AGENTS.md).
+- **Worktrees start from the remote branch,** which lags the local sprint branch for the whole sprint. Every
+  worktree agent first checks itself against the local sprint branch (AGENTS.md).
 - **`git stash` is repository-wide.** Never use it while any agent is running.
 - **Gitignored files don't exist in a worktree.** Inline them in the prompt or track them.
 - **Codex needs stdin closed** (`< /dev/null`) or it can hang indefinitely.

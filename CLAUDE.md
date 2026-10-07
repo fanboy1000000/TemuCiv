@@ -72,8 +72,9 @@ format, module layout, test framework.
 
 ## Hard rules (details in the linked docs)
 
-- Agents write only inside their declared scope. `docs/**`, `CLAUDE.md`, `ROADMAP.md`, `.claude/**` and
-  `package.json` are Orchestrator-only (AGENTS.md).
+- Agents write only inside their declared scope. `docs/**`, `CLAUDE.md`, `ROADMAP.md`, `.claude/**` and the
+  governance tooling are Orchestrator-only; `package.json` is reserved unless a task hands it to `platform`
+  (AGENTS.md). Each sprint works on `sprint/N`; `main` only receives reviewed closes.
 - Never commit secrets: the repository is public, and a secret scan runs on every push.
 - Never `git stash` while an agent is running. Never read an exit status through a pipe.
 - A sprint closes only through the close gates: commit subject exactly `S<N> close: <title>`; the commit-msg hook

@@ -6,7 +6,7 @@
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import { writeCiRecord } from '../../../tools/lib/repo.mjs';
-import { bash, cleanup, git, makeRepo, prepareClose, runHook, stampReviews, write } from './helpers.mjs';
+import { bash, cleanup, git, makeRepo, prepareClose, runHook, sprintLog, stampReviews, write } from './helpers.mjs';
 
 const HOOK = 'sprint-close-guard.mjs';
 const CLOSE = 'git commit -m "S999 close: test sprint"';
@@ -70,21 +70,29 @@ test('blocks any commit while the git hooks are not installed', () => {
   assert.match(run.stderr, /npm run setup/);
 });
 
-test('blocks skipping or redirecting the hooks', () => {
+test('blocks skipping or redirecting the hooks, quoted, abbreviated or chained', () => {
   const root = repo();
   for (const command of [
     'git commit --no-verify -m "TASK-1: x"',
     'git commit -n -m "TASK-1: x"',
     'git commit -qn -m "TASK-1: x"',
+    'git commit --no-veri -m "TASK-1: x"',
+    'git commit "--no-verify" -F message.txt',
+    "git commit '-n' -F message.txt",
+    'git "commit" --no-verify -m "TASK-1: x"',
     'git -c core.hooksPath=/dev/null commit -m "TASK-1: x"',
+    'git -c "core.hooksPath=/dev/null" commit -m "TASK-1: x"',
+    'git config core.hooksPath /tmp/none && git commit -m "TASK-1: x"',
   ]) {
     assert.equal(guard(root, command).status, 2, command);
   }
 });
 
-test('does not mistake "-n" inside a quoted message for the flag', () => {
+test('does not mistake "-n" inside a message, or a value after -m, for the flag', () => {
   const root = repo();
   assert.equal(guard(root, 'git commit -m "TASK-1: handle -n and --no-verify in docs"').status, 0);
+  assert.equal(guard(root, 'git commit -m -n').status, 0);
+  assert.equal(guard(root, "git commit -F - <<'EOF'\nTASK-1: docs\n\nExplain --no-verify and git commit -n.\nEOF").status, 0);
 });
 
 test('blocks a subject that looks like a close but is not in the exact form', () => {
@@ -130,13 +138,43 @@ test('a code change after the review invalidates the review and the CI record', 
 
 test('finishing the sprint log after the review needs only a fresh CI run', () => {
   const root = closable();
-  write(root, 'docs/sprints/SPRINT-999.md', '# Sprint 999\n\n| **Status** | complete |\n\nRetrospective added after review.\n');
+  write(root, 'docs/sprints/SPRINT-999.md', sprintLog(999, { retro: 'Retrospective written after the review.' }));
+  write(root, 'docs/sprints/INDEX.md', '| [Sprint 999](SPRINT-999.md) | Title | complete | 38 tests |\n');
+  write(root, 'ROADMAP.md', 'Follow-ups routed at close.\n');
   git(root, 'add', '-A');
   const stale = guard(root, CLOSE);
   assert.equal(stale.status, 2);
   assert.doesNotMatch(stale.stderr, /\[reviews\]/);
   writeCiRecord(root, { result: 'pass' });
   assert.equal(guard(root, CLOSE).status, 0);
+});
+
+test('changing the reviewed part of the sprint log, or the sprint template, after the review forces a re-review', () => {
+  for (const change of [
+    (root) => write(root, 'docs/sprints/SPRINT-999.md', sprintLog(999, { plan: 'A ruling quietly rewritten.' })),
+    (root) => write(root, 'docs/sprints/TEMPLATE.md', '# Template changed after review\n'),
+  ]) {
+    const root = closable();
+    change(root);
+    git(root, 'add', '-A');
+    writeCiRecord(root, { result: 'pass' });
+    const run = guard(root, CLOSE);
+    assert.equal(run.status, 2);
+    assert.match(run.stderr, /\[reviews\].*scope hash differs/);
+  }
+});
+
+test('a completed task in the log does not make an unfinished sprint look complete', () => {
+  const root = closable();
+  write(root, 'docs/sprints/SPRINT-999.md', sprintLog(999, { status: 'in-progress' }));
+  write(root, 'docs/sprints/INDEX.md', '| [Sprint 999](SPRINT-999.md) | in-progress |\n');
+  git(root, 'add', '-A');
+  stampReviews(root, 999);
+  writeCiRecord(root, { result: 'pass' });
+  const run = guard(root, CLOSE);
+  assert.equal(run.status, 2);
+  assert.match(run.stderr, /header status is not "complete"/);
+  assert.match(run.stderr, /does not list Sprint 999 as complete/);
 });
 
 test('a new commit after the review invalidates the review stamp', () => {
@@ -198,7 +236,7 @@ test('an incomplete or unlisted sprint log blocks the close', () => {
   writeCiRecord(root, { result: 'pass' });
   const run = guard(root, CLOSE);
   assert.equal(run.status, 2);
-  assert.match(run.stderr, /status is not "complete"/);
+  assert.match(run.stderr, /header status is not "complete"/);
   assert.match(run.stderr, /does not link SPRINT-999\.md/);
 });
 

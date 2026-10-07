@@ -10,8 +10,8 @@ accepts output, writes docs and commits. Agents are specialists: they receive a 
 task only, and report back. They never assign themselves work, never spawn other agents, and never edit outside
 their scope. A need outside their scope is **declared** in the report, not acted on.
 
-Each role has a definition in `.claude/agents/<name>.md` that fixes its model and standing instructions. Spawn
-by role name (`subagent_type: "<name>"`). The roster below is the record, and `tools/check-docs.mjs` fails CI if a
+Each role has a definition in `.claude/agents/<name>.md` that sets its model and standing instructions. Spawn
+by role name (`subagent_type: "<name>"`); the reviewer's spawn must also name Fable (`model: "fable"`). The roster below is the record, and `tools/check-docs.mjs` fails CI if a
 definition exists that isn't listed here, or the listed model differs from the definition's.
 
 ## Roster
@@ -25,7 +25,7 @@ sprint) confirms or adjusts them, and this table changes with it.
 | `simulation` | opus | `src/sim/**` | Game rules: map, units, cities, combat, research, turns, victory. Pure and deterministic |
 | `ai-player` | opus | `src/ai/**` | Computer opponents: read a player's view, choose actions. Never reads hidden state |
 | `presentation` | opus | `src/client/**` | Rendering, input, UI screens. Reads state and sends actions; never computes rules |
-| `platform` | opus | `src/app/**`, `tools/**`, `.github/**`, build config | App shell, desktop packaging, save-file I/O, build and CI tooling |
+| `platform` | opus | `src/app/**`, `tools/**` (except the governance tooling below), `.github/**`, build config | App shell, desktop packaging, save-file I/O, build and CI tooling |
 | `content` | sonnet | `data/**` | Turns the owner's designs into data files (units, techs, terrain, numbers) |
 | `test-qa` | opus | `tests/**` | Tests derived from the design; RED-first; determinism, soak and performance tests |
 | `reviewer` | fable | none (read-only) | Internal review lens: plans, tasks, sprint-end |
@@ -35,8 +35,10 @@ sprint) confirms or adjusts them, and this table changes with it.
 <!-- roster:end -->
 
 **Orchestrator-only files:** `CLAUDE.md`, `ROADMAP.md`, `docs/**`, `.claude/**` (agents, hooks, skills, settings),
-`.githooks/**`, and every file the architecture doc marks as shared. **Reserved by default:** `package.json` and the
-lockfile belong to the Orchestrator unless a task's scope explicitly hands them to `platform`.
+every file the architecture doc marks as shared, and the **governance tooling** that enforces the workflow:
+`.githooks/**`, `tools/hooks/**`, `tools/lib/**`, `tools/ci.mjs`, `tools/check-*.mjs`, `tools/review-stamp.mjs`.
+**Reserved by default:** `package.json` and the lockfile belong to the Orchestrator unless a task's scope explicitly
+hands them to `platform`.
 
 **A new role** is added only when an area is big enough that a specialist pays for itself. It gets a definition,
 a roster row and a line in the sprint log. Until then, the task's explicit file list in the sprint plan decides
@@ -49,9 +51,11 @@ Every spawn uses this structure. Parts in [brackets] are filled in by the Orches
 ```
 You are the [role] agent for TemuCiv, a turn-based 4X strategy game.
 
-★ FIRST, BEFORE ANY WORK (worktree agents only): check your worktree against the main checkout's LOCAL main
-branch, not origin/main (which lags by design, since we push only at sprint close). Compare
-`git log --oneline -1` in both. Fast-forward if you are behind, and say in your report what you found.
+★ FIRST, BEFORE ANY WORK (worktree agents only): check your worktree against the LOCAL sprint branch
+[sprint/N], not origin/main (which lags by design, since we push only at sprint close). Compare
+`git rev-parse HEAD` with `git rev-parse [sprint/N]` (branch refs are shared between worktrees, so you can
+read it from yours). Fast-forward if you are behind, and say in your report what you found. Leave your changes
+uncommitted: the Orchestrator commits and merges them.
 
 TASK: [what to do, in plain language, with the design excerpt it implements]
 SCOPE: You may create or modify ONLY: [explicit file list or globs]. Declare anything else you need.
@@ -104,11 +108,12 @@ A test that has never failed proves nothing.
 ## Worktree rules
 
 - Agents that write in parallel get `isolation: "worktree"`. Each worktree agent first checks itself against
-  local `main` (the ★ line in the template).
+  the local sprint branch (the ★ line in the template) and leaves its changes uncommitted.
 - **Never `git stash`** while any agent is running: the stash is shared by every worktree of the repository.
 - **Gitignored files don't reach a worktree.** If an agent needs one, inline it in the prompt or track it.
-- The Orchestrator merges worktree branches, re-runs `npm run ci` after each merge, and removes finished
-  worktrees before the sprint closes.
+- The Orchestrator, in order: reviews the agent's uncommitted changes in its worktree, runs the checks there,
+  commits them on the worktree's branch (`git -C <worktree> commit`), merges that branch into the sprint
+  branch, re-runs `npm run ci`, and removes the worktree. All finished worktrees are gone before the close.
 
 ## Reviewer
 

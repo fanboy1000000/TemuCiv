@@ -14,6 +14,8 @@
 //
 // An error inside a gate counts as that gate failing: a guard that crashes open silently stops guarding.
 //
+// A commit that marks a sprint log complete is a close, whatever its subject (see sprintsMarkedComplete).
+//
 // Test seam: TEMUCIV_CI_HEALTH_MOCK=success|failure|cancelled|in_progress|stale|none|error replaces the GitHub
 // call, honoured ONLY for the harness-reserved sprint number 999, so a leaked variable can never decide a
 // real gate.
@@ -21,7 +23,7 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { CI_RECORD, REVIEW_EXCLUDE, git, gitHead, scopeHash } from './repo.mjs';
+import { CI_RECORD, git, gitHead, reviewScopeHash, scopeHash } from './repo.mjs';
 
 export const HARNESS_SPRINT = '999';
 export const GATES = ['sprint-log', 'reviews', 'local-ci', 'untracked', 'github-ci'];
@@ -41,6 +43,43 @@ export function classifyMessage(message) {
   if (exact) return { sprint: exact[1] };
   if (/^\s*s\s*\d+\s*[-:]?\s*close\b/i.test(subject)) return { malformed: subject.trim() };
   return null;
+}
+
+/**
+ * Whether a sprint log's own header says it is complete. Only the metadata table before the first "## "
+ * heading counts: task tables further down also have a Status row, and a finished task must never make an
+ * unfinished sprint look complete.
+ */
+export function logSaysComplete(text) {
+  const header = String(text ?? '').split(/^## /m)[0];
+  return /^\|\s*\*\*Status\*\*\s*\|\s*complete\s*\|/im.test(header);
+}
+
+/** Whether docs/sprints/INDEX.md lists sprint N with the status "complete". */
+export function indexSaysComplete(indexText, sprint) {
+  const row = String(indexText ?? '')
+    .split(/\r?\n/)
+    .find((line) => line.includes(`(SPRINT-${sprint}.md)`));
+  return !!row && /\|\s*complete\s*\|/i.test(row);
+}
+
+/**
+ * Sprints whose log this commit marks complete: the staged log's header says complete and HEAD's did not.
+ * Completing a sprint is what a close does, so such a commit must carry the close subject.
+ */
+export function sprintsMarkedComplete(root) {
+  const staged = git(root, ['diff', '--cached', '--name-only', '-z']).split('\0').filter(Boolean);
+  const show = (spec) => {
+    try {
+      return git(root, ['show', spec]);
+    } catch {
+      return null;
+    }
+  };
+  return staged
+    .map((path) => [path, path.match(/^docs\/sprints\/SPRINT-(\d+)\.md$/)?.[1]])
+    .filter(([path, n]) => n && logSaysComplete(show(`:${path}`)) && !logSaysComplete(show(`HEAD:${path}`)))
+    .map(([, n]) => n);
 }
 
 /** The commit origin/main points at locally, or null if main was never pushed (or fetched). */
@@ -87,15 +126,16 @@ function gateChecks(root, sprint, env) {
       const log = readIfExists(`docs/sprints/SPRINT-${sprint}.md`);
       if (log === null) return [`docs/sprints/SPRINT-${sprint}.md does not exist`];
       const problems = [];
-      if (!/^\|\s*\*\*Status\*\*\s*\|\s*complete\b/im.test(log)) problems.push(`SPRINT-${sprint}.md status is not "complete"`);
+      if (!logSaysComplete(log)) problems.push(`SPRINT-${sprint}.md header status is not "complete"`);
       const index = readIfExists('docs/sprints/INDEX.md') ?? '';
       if (!index.includes(`(SPRINT-${sprint}.md)`)) problems.push(`docs/sprints/INDEX.md does not link SPRINT-${sprint}.md`);
+      else if (!indexSaysComplete(index, sprint)) problems.push(`docs/sprints/INDEX.md does not list Sprint ${sprint} as complete`);
       return problems;
     },
 
     reviews: () => {
       const problems = [];
-      const currentHash = scopeHash(root, REVIEW_EXCLUDE);
+      const currentHash = reviewScopeHash(root);
       for (const lens of ['codex', 'reviewer']) {
         const file = `.claude/reviews/SPRINT-${sprint}-${lens}.md`;
         const text = readIfExists(file);

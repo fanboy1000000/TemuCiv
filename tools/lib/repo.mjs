@@ -11,8 +11,22 @@ import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 
-/** Files that may change after the sprint-end review without invalidating it (the close paperwork). */
-export const REVIEW_EXCLUDE = [/^docs\/sprints\//, /^ROADMAP\.md$/];
+/** Files the close paperwork may change after the sprint-end review without invalidating it. */
+export const REVIEW_EXCLUDE = [/^docs\/sprints\/INDEX\.md$/, /^ROADMAP\.md$/];
+
+const CLOSE_TIME_HEADER_ROWS = /^\|\s*\*\*(Status|Dates|CI verified|Previous close on GitHub)\*\*\s*\|/;
+
+/**
+ * The part of a file the review covers. A sprint log is reviewed up to its "## Sprint-end review" heading,
+ * minus the header rows filled in at close (Status, Dates, CI verified, Previous close on GitHub): the plan,
+ * the owner's rulings and the task evidence are frozen by the review, while the review summary, test summary,
+ * retrospective and handoff are written afterwards. Every other file is reviewed whole.
+ */
+export function reviewedPart(path, content) {
+  if (!/^docs\/sprints\/SPRINT-\d+\.md$/.test(path)) return content;
+  const beforeReview = content.toString('utf8').split(/^## Sprint-end review/m)[0];
+  return Buffer.from(beforeReview.split('\n').filter((line) => !CLOSE_TIME_HEADER_ROWS.test(line)).join('\n'));
+}
 
 /** Where `npm run ci` records its last result. Gitignored. */
 export const CI_RECORD = '.claude/ci/last-run.json';
@@ -36,8 +50,11 @@ export function listFiles(root) {
   return [...new Set(out.split('\0').filter(Boolean))].sort();
 }
 
-/** SHA-256 over path + content of every project file, skipping paths matched by `exclude`. */
-export function scopeHash(root, exclude = []) {
+/**
+ * SHA-256 over path + content of every project file, skipping paths matched by `exclude`. `part` picks the
+ * part of each file's content that counts (the whole file by default).
+ */
+export function scopeHash(root, exclude = [], part = (path, content) => content) {
   const hash = createHash('sha256');
   for (const path of listFiles(root)) {
     if (exclude.some((rx) => rx.test(path))) continue;
@@ -45,7 +62,7 @@ export function scopeHash(root, exclude = []) {
     hash.update(path);
     hash.update('\0');
     if (existsSync(abs) && statSync(abs).isFile()) {
-      hash.update(createHash('sha256').update(readFileSync(abs)).digest('hex'));
+      hash.update(createHash('sha256').update(part(path, readFileSync(abs))).digest('hex'));
     } else {
       hash.update('<missing>'); // tracked but deleted on disk
     }
@@ -56,7 +73,12 @@ export function scopeHash(root, exclude = []) {
 
 /** The stamp a review is made against: the HEAD commit and the review-scope hash. */
 export function reviewStamp(root) {
-  return { commit: gitHead(root) ?? '(none)', scopeHash: scopeHash(root, REVIEW_EXCLUDE) };
+  return { commit: gitHead(root) ?? '(none)', scopeHash: reviewScopeHash(root) };
+}
+
+/** The hash a review stamp records: the review scope, with sprint logs reduced to their reviewed part. */
+export function reviewScopeHash(root) {
+  return scopeHash(root, REVIEW_EXCLUDE, reviewedPart);
 }
 
 /** Record a CI result for the exact files on disk now. */

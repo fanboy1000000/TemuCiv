@@ -24,4 +24,8 @@ None yet. Patterns are recorded once they've been validated in practice.
 
 ## Failures (FAIL): what went wrong and the guard we added
 
-None yet. Lessons inherited from StatsTid are listed in `docs/WORKFLOW.md`, "Inherited lessons".
+| ID | Title | Guard added | Areas |
+|---|---|---|---|
+| [FAIL-001](failures/FAIL-001-close-gate-read-the-command.md) | The close gate read the command, not the commit | git commit-msg hook on the real message; gates fail closed; mutation-tested | governance tooling |
+
+Lessons inherited from StatsTid are listed in `docs/WORKFLOW.md`, "Inherited lessons".

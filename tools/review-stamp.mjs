@@ -5,7 +5,8 @@
 //
 // It refuses to stamp while files in review scope are uncommitted or untracked: reviewers read the
 // committed diff (git diff <base>..HEAD), so anything not yet committed would be hashed without being
-// reviewed. The close paperwork (REVIEW_EXCLUDE: sprint logs, ROADMAP.md) may stay uncommitted.
+// reviewed. Only the files the close paperwork may change (REVIEW_EXCLUDE: docs/sprints/INDEX.md,
+// ROADMAP.md) may stay uncommitted; the sprint log itself must be committed before the stamp.
 //
 // Usage: node tools/review-stamp.mjs
 

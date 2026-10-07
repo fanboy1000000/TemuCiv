@@ -8,8 +8,10 @@ import { runHook } from './helpers.mjs';
 const HOOK = 'model-routing-guard.mjs';
 const spawn = (tool_input) => runHook(HOOK, { tool_name: 'Agent', tool_input: { prompt: 'x', ...tool_input } }, { cwd: tmpdir() });
 
-test('the reviewer with no override is allowed (its definition fixes Fable)', () => {
-  assert.equal(spawn({ subagent_type: 'reviewer' }).status, 0);
+test('the reviewer must name Fable explicitly; relying on the definition default is blocked', () => {
+  const run = spawn({ subagent_type: 'reviewer' });
+  assert.equal(run.status, 2);
+  assert.match(run.stderr, /must name it/);
 });
 
 test('the reviewer explicitly on Fable is allowed, by alias or full model id', () => {

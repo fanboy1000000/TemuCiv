@@ -1,7 +1,8 @@
 // model-routing-guard: a PreToolUse hook on the Agent tool.
 //
 // Enforces the two routing rules in docs/WORKFLOW.md ("Model routing") at the moment an agent is spawned:
-//   1. The reviewer runs only on Fable. A cheaper override would silently lower the review bar.
+//   1. The reviewer runs only on Fable, and the spawn must say so explicitly (model "fable" or a full Fable id):
+//      relying on the definition's default would let an environment-level model override win silently.
 //   2. A generic spawn (general-purpose / claude) must name its model, so the choice is deliberate.
 // Named roles get their model from their definition's frontmatter (.claude/agents/<name>.md).
 // Read-only built-ins pass. Exit 2 blocks the spawn; unparseable input is allowed.
@@ -29,8 +30,8 @@ const block = (why) => {
 };
 
 if (PASS_THROUGH.has(type)) process.exit(0);
-if (type === 'reviewer' && model && model !== 'fable' && !/^claude-fable-/.test(model)) {
-  block(`the reviewer runs only on Fable, but this spawn asks for "${model}". Remove the model override`);
+if (type === 'reviewer' && model !== 'fable' && !/^claude-fable-/.test(model ?? '')) {
+  block(`the reviewer runs only on Fable, and the spawn must name it: set model "fable"${model ? ` (this spawn asks for "${model}")` : ''}`);
 }
 if (GENERIC.has(type) && !model) {
   block(`a generic "${type}" spawn must name its model explicitly, or use a named role from docs/AGENTS.md`);

@@ -51,11 +51,20 @@ export function cleanup(root) {
  * both reviews stamped against the current files, a passing CI record, and everything staged.
  */
 export function prepareClose(root, sprint, { reviewerModel = 'claude-fable-5-1', verdict = 'APPROVED' } = {}) {
-  write(root, `docs/sprints/SPRINT-${sprint}.md`, `# Sprint ${sprint}\n\n| Field | Value |\n|---|---|\n| **Status** | complete |\n`);
+  write(root, `docs/sprints/SPRINT-${sprint}.md`, sprintLog(sprint));
   write(root, 'docs/sprints/INDEX.md', `| [Sprint ${sprint}](SPRINT-${sprint}.md) | complete |\n`);
   git(root, 'add', '-A');
   stampReviews(root, sprint, { reviewerModel, verdict });
   writeCiRecord(root, { result: 'pass' });
+}
+
+/** A minimal sprint log: header, a reviewed section, and the close-time sections after the review heading. */
+export function sprintLog(sprint, { status = 'complete', plan = 'The plan.', retro = 'Retrospective.' } = {}) {
+  return (
+    `# Sprint ${sprint}\n\n| Field | Value |\n|---|---|\n| **Status** | ${status} |\n\n` +
+    `## Plan\n\n${plan}\n\n### TASK-1\n\n| **Status** | complete |\n\n` +
+    `## Sprint-end review (step 7)\n\nBoth lenses approved.\n\n## Retrospective\n\n${retro}\n`
+  );
 }
 
 export function stampReviews(root, sprint, { reviewerModel = 'claude-fable-5-1', verdict = 'APPROVED' } = {}) {
