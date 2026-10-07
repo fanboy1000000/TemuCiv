@@ -198,6 +198,7 @@ review of this sprint (`.claude/reviews/SPRINT-1-codex-c1.md`, 2026-09-30), befo
 | TASK-110 | Orchestrator | same as TASK-109 | Each cycle-3 BLOCKER (Codex c3, reviewer c2) fixed, with a test that fails when the fix is removed → governance tests + mutation runs | no |
 | TASK-111 | Orchestrator | `.claude/hooks/**`, `tools/lib/repo.mjs`, `docs/**`, `ROADMAP.md` | The reviewer's cycle-3 BLOCKER fixed with a fail-safe text check, with tests and mutation runs | no |
 | TASK-112 | Orchestrator | `.claude/hooks/**`, `docs/**` | Codex cycle-5 BLOCKERs and the reviewer's cycle-4 warning fixed, with tests and mutation runs | no |
+| TASK-113 | Orchestrator | `.claude/hooks/**`, `docs/**` | Codex cycle-6 BLOCKER and the reviewer's cycle-5 warning fixed, with tests and mutation runs | no |
 
 **Past the cycle cap (owner, 2026-10-07).** Codex's fifth cycle still found two BLOCKERs, so the workflow stopped
 and asked the owner: keep iterating, accept the findings, or move them to Sprint 2 (engineering recommended the
@@ -250,10 +251,7 @@ after review; plans are reviewed in step 2); read-only agents keep Bash (they ne
 an enforced allowlist goes to the backlog); the worktree sequence is settled in the first sprint that runs
 parallel agents; ADR-005's supported envelopes go to Sprint 2's technical design.
 
-RED evidence (one-line mutations in a throwaway worktree, each run against the 38 tests at `985ca88`): commit-msg
-ignores every message → 17 tests fail; GitHub gate accepts any conclusion → 1; GitHub gate fails open on errors
-→ 1; untracked gate checks nothing → 4; guard allows `--no-verify` → 1; guard skips the hooks-installed check → 1;
-review-stamp never refuses → 1; secret scan without the GitHub-token pattern → 2.
+RED evidence: eight one-line mutations at `985ca88` (38 tests), each failing at least one named test.
 
 ### TASK-109: cycle-2 fixes (Codex and reviewer)
 
@@ -275,11 +273,7 @@ Cycle 2 (`.claude/reviews/SPRINT-1-codex-c2.raw.md`, BLOCKED; reviewer, BLOCKED)
 | Codex: worktree hand-off unspecified | Agents leave changes uncommitted; the Orchestrator verifies, commits in the worktree, merges into the sprint branch | n/a (docs) |
 | Reviewer notes | gitleaks sha256 pinned in the workflow; GitHub-gate wording; "fixed" model wording; close-time edits belong before the stamp; FAIL-001 recorded | n/a |
 
-RED evidence (one-line mutations in a throwaway worktree, each run against the 44 tests at `1bed53c`): sprint
-status read from the whole log → 2 tests fail; INDEX status not checked → 1; only the exact `--no-verify` caught
-→ 1; quotes kept in words → 18; `core.hooksPath` checked nowhere → 1; marking a sprint complete never detected →
-1; the whole sprint log outside the reviewed part → 1; all of `docs/sprints` outside the review hash → 2; a
-reviewer spawn allowed without naming Fable → 1.
+RED evidence: nine one-line mutations at `1bed53c` (44 tests), each failing at least one named test.
 
 Declined, with reasons (TASK-109): `ROADMAP.md` stays outside the review hash (routing follow-ups is a required close step
 after the review); "Research" as a system name is renamed when `docs/architecture.md` lands (backlog).
@@ -301,16 +295,10 @@ Both lenses returned BLOCKED again, on narrower holes:
 | Reviewer: step 8 asked for a table that the review freezes; TASK-108's record overstated the reviews | Step 7 now requires the task log and design conformance before the stamp; record reworded | n/a (docs) |
 | Codex: the gate table didn't say the INDEX row must be complete | Gate table and module header updated | n/a (docs) |
 
-RED evidence (one-line mutations in a throwaway worktree against the 50 tests at `1257ea3`): close-time filter
-over the whole reviewed part, commits on main allowed, pre-push accepting any tip, PowerShell split with bash
-rules, the heredoc opening line dropped, parentheses not separators, push not guarded, `-u` read as a flag
-cluster: each made at least one named test fail (1 or 2 each).
+RED evidence: eight one-line mutations at `1257ea3` (50 tests), each failing at least one named test.
 
-Reviewer cycle 2's warnings, one by one: W1 (more shell forms) fixed by the word splitter and the docs now say
-"common forms"; W2 (commits on `main`) fixed; W3 (close-time rows) fixed and tested; W4 (step 8 ordering) fixed;
-W5 (TASK-108 record) reworded; W6 (a test that passed for the wrong reason) fixed; W7 (stale handoff) refreshed.
-Its notes: the `platform.md` exception removed; the false positives and the missed `-am` close fixed; the ROADMAP
-and INDEX updates are done at close. Codex cycle 4: APPROVED; its one note (a blank line at the end of
+Reviewer cycle 2's warnings W1 to W7 are all fixed (shell forms, commits on `main`, close-time rows, step 8
+ordering, TASK-108 wording, a test that couldn't fail, the handoff), and its notes too. Codex cycle 4: APPROVED; its one note (a blank line at the end of
 `docs/design/notes.md`) is declined, because that file is the owner's and is never edited by engineering.
 
 ### TASK-111: a fail-safe guard (reviewer c3)
@@ -327,11 +315,8 @@ message naming those words must use `-F`). Also: the "Previous close on GitHub" 
 at sprint start), the pre-push wording states its known limits, and a GitHub branch rule for `main` is in the
 backlog. The reviewer's raw output for cycle 3 is kept in `.claude/reviews/`.
 
-RED evidence at `a0f330e` (52 tests): the text check for the skip flag off, the text check for `core.hooksPath`
-off, unclosed quotes allowed, `(...)` values not kept whole, commands inside computed values not parsed,
-PowerShell here-strings not set aside, the escaped long flag not parsed, `-n` clusters not checked: each made
-1 to 4 named tests fail. A first run found one mutation that survived (a separate `$(` branch duplicated the
-general one); the branch was removed, which exposed and fixed the unparsed inner command.
+RED evidence: eight mutations at `a0f330e` (52 tests), each failing a named test; a first-run survivor
+exposed a redundant branch, removed with a fix for unparsed inner commands.
 
 ### TASK-112: wrapped commands and the previous-close test (Codex c5, reviewer c4)
 
@@ -339,16 +324,24 @@ Status complete · Agent: Orchestrator (bootstrap exception, as TASK-108) · Con
 
 Codex cycle 5 (BLOCKED) and the reviewer's cycle 4 (APPROVED-WITH-WARNINGS) agreed on the remaining hole: the
 short skip flag `-n` passed when the commit was wrapped (`bash -c`, backticks, `"$(...)"`, a variable holding
-`git`). The guard now parses every nested command (values in brackets, also inside double quotes; bash
-backticks; the command given to `bash -c`, `sh -c`, `pwsh -Command`) and treats any `commit` word as a commit.
+`git`). The guard now parses nested commands (values in brackets, also inside double quotes; backticks inside
+double quotes; the command given to `bash -c`, `sh -c`, `pwsh -Command`) and treats any `commit` word as a commit.
 It also guards `git merge`, whose skip flag bypasses commit-msg too (reviewer note). Codex's second BLOCKER, an
 untested rule, now has its test: changing the previous-close row after review forces a re-review. The docs
 again state the guard's limits (reviewer warning: TASK-111 had dropped them).
 
-RED evidence at `21b78d0` (55 tests): shell `-c` arguments not parsed, backticks or `$(...)` inside double
-quotes not parsed, a bare `commit` word ignored, merge not guarded, the previous-close row excluded again: each
-made a named test fail. Two first-run survivors led to fixes: a redundant top-level backtick branch was
-removed, and an escaped merge flag (which only the parse can see) got its own test.
+RED evidence: six mutations at `21b78d0` (55 tests), each failing a named test; two first-run survivors led to
+removing a redundant branch and testing an escaped merge flag.
+
+### TASK-113: the remaining wrappers (Codex c6, reviewer c5)
+
+Status complete · Agent: Orchestrator (bootstrap exception) · Constraint validator: n/a · Review: cycle 7 (Codex), 6 (reviewer).
+
+Codex cycle 6 (BLOCKED) found `cmd /c "git commit -n ..."` still passed; the reviewer's cycle 5 (APPROVED-WITH-
+WARNINGS) named the rest of that family: `eval`, `Invoke-Expression`/`iex`, a heredoc fed to `bash`, `bash -ce`.
+The guard now parses all of them, guards `git pull` (it runs a merge), explains a blocked `commit -n` that may be a
+search, and the docs list exactly what is parsed. Declined: the blank line at the end of `docs/design/notes.md`
+(the owner's file).
 
 ## Design conformance
 

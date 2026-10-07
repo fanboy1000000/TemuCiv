@@ -7,14 +7,15 @@
 // backstops are in the backlog). It works in two layers:
 //
 //   1. A conservative text check, which needs no parsing. If the command mentions git together with commit,
-//      push or merge, it is blocked when its text (heredoc and here-string bodies aside) contains `--no-v...`
+//      push, merge or pull, it is blocked when its text (message bodies aside) contains `--no-v...`
 //      or `core.hooksPath`, or when it can't be read to the end (an unclosed quote or bracket). The price is
 //      a rare false alarm: a -m message or a search that names those words must use -F or a search tool.
 //   2. A parse of the command into words, the way its shell does (POSIX quoting and backslash escapes for
 //      Bash; PowerShell quoting, backtick escapes, continuations and here-strings for PowerShell). Commands
 //      nested inside the command are parsed too: "(...)" and "$(...)" values and bash backticks inside double
-//      quotes, and the command given to `bash -c`, `sh -c`, `pwsh -Command` and the like. (Unquoted backticks
-//      need no special case: the words inside them are ordinary words.) Every
+//      quotes; the command given to bash/sh/zsh/dash/ksh `-c`, pwsh/powershell `-Command`, `cmd /c` or `/k`,
+//      `eval`, `Invoke-Expression`/`iex`; and a heredoc or here-string fed to a shell or to iex, whose body is
+//      code, not a message. (Unquoted backticks need no special case: their words are ordinary words.) Every
 //      `commit` subcommand found (after git, git.exe or anything else, such as a variable) is checked for -n in
 //      its flag clusters, and every commit, push or merge for a skip flag written with escapes.
 //
@@ -33,9 +34,13 @@ const VALUE_SHORT = new Set(['m', 'F', 'C', 'c', 't']); // the value follows, at
 const OPTIONAL_ATTACHED = new Set(['u', 'S']); // an optional value, attached only (-uno, -Skey)
 const VALUE_LONG = new Set(['--message', '--file', '--template', '--author', '--date', '--reuse-message', '--reedit-message', '--fixup', '--squash', '--cleanup', '--trailer', '--pathspec-from-file']);
 const GLOBAL_WITH_VALUE = new Set(['-C', '-c', '--git-dir', '--work-tree', '--namespace', '--config-env']);
-const GUARDED = new Set(['commit', 'push', 'merge']);
+const GUARDED = new Set(['commit', 'push', 'merge', 'pull']);
 const POSIX_SHELL = /(^|[\\/])(ba|z|da|k)?sh(\.exe)?$/i;
 const PS_SHELL = /(^|[\\/])(pwsh|powershell)(\.exe)?$/i;
+const CMD_SHELL = /(^|[\\/])cmd(\.exe)?$/i;
+const EVALUATORS = /^(eval|iex|invoke-expression)$/i;
+/** Text before a heredoc or after a here-string that feeds it to something that runs it as code. */
+const RUNS_CODE = /(^|[\s;&|(\\/])((ba|z|da|k)?sh|pwsh|powershell|cmd|iex|invoke-expression|eval)(\.exe)?\b/i;
 const MAX_DEPTH = 4;
 
 /**
@@ -144,17 +149,38 @@ function shellWords(text, { powershell = false } = {}) {
   return { words, unclosed, inner };
 }
 
-/** The commands handed to a shell by `bash -c "..."`, `pwsh -Command "..."` and the like: [{ text, powershell }]. */
+/**
+ * The command strings handed to something that runs them: `bash -c "..."` (any flag cluster with c), `pwsh
+ * -Command "..."`, `cmd /c ...` (the rest of the line), `eval ...` (its words joined) and `iex "..."`.
+ * Returns [{ text, powershell }].
+ */
 function shellArguments(words) {
   const nested = [];
+  const restOfCommand = (k) => {
+    let end = k;
+    while (end < words.length && words[end] !== null) end++;
+    return words.slice(k, end).join(' ');
+  };
   for (let i = 0; i < words.length; i++) {
-    const posix = POSIX_SHELL.test(words[i] ?? '');
-    if (!posix && !PS_SHELL.test(words[i] ?? '')) continue;
+    const w = words[i] ?? '';
+    if (EVALUATORS.test(w)) {
+      const text = /^eval$/i.test(w) ? restOfCommand(i + 1) : words[i + 1];
+      if (text) nested.push({ text, powershell: !/^eval$/i.test(w) });
+      continue;
+    }
+    const posix = POSIX_SHELL.test(w);
+    const ps = PS_SHELL.test(w);
+    const cmd = CMD_SHELL.test(w);
+    if (!posix && !ps && !cmd) continue;
     for (let k = i + 1; k < words.length && words[k] !== null; k++) {
       const flag = words[k];
-      const takesCommand = posix ? /^-[a-z]*c$/.test(flag) : /^-(c|command)$/i.test(flag);
+      if (cmd && /^\/[ck]$/i.test(flag)) {
+        nested.push({ text: restOfCommand(k + 1), powershell: false });
+        break;
+      }
+      const takesCommand = posix ? /^-[a-z]*c[a-z]*$/.test(flag) : ps && /^-(c|command)$/i.test(flag);
       if (takesCommand && words[k + 1] != null) {
-        nested.push({ text: words[k + 1], powershell: !posix });
+        nested.push({ text: words[k + 1], powershell: ps });
         break;
       }
     }
@@ -183,7 +209,7 @@ function findGuardedCalls(words) {
     if (j === null) continue;
     let end = j + 1;
     while (end < words.length && words[end] !== null) end++;
-    calls.push({ sub: words[j], args: words.slice(j + 1, end) });
+    calls.push({ sub: words[j], args: words.slice(j + 1, end), bare: j === i });
   }
   return calls;
 }
@@ -192,7 +218,7 @@ function findGuardedCalls(words) {
  * Why a guarded subcommand's parsed arguments skip the hooks, or null: --no-verify or an abbreviation (written
  * with escapes the text check can't see), or -n in a commit's flag cluster. Option values are skipped.
  */
-function skipsHooks({ sub, args }) {
+function skipsHooks({ sub, args, bare }) {
   for (let k = 0; k < args.length; k++) {
     const a = args[k];
     if (a.startsWith('--')) {
@@ -201,7 +227,10 @@ function skipsHooks({ sub, args }) {
       if (sub === 'commit' && VALUE_LONG.has(name) && !a.includes('=')) k++;
     } else if (sub === 'commit' && a.startsWith('-') && a.length > 1) {
       for (let p = 1; p < a.length; p++) {
-        if (a[p] === 'n') return `${a} contains -n (--no-verify), which skips the commit hooks`;
+        if (a[p] === 'n') {
+          const hint = bare ? ' (the word "commit" is followed by -n; if this is a search, not a commit, use a search tool)' : '';
+          return `${a} contains -n (--no-verify), which skips the commit hooks${hint}`;
+        }
         if (OPTIONAL_ATTACHED.has(a[p])) break;
         if (VALUE_SHORT.has(a[p])) {
           if (p === a.length - 1) k++;
@@ -252,9 +281,19 @@ function main() {
   if (!['Bash', 'PowerShell'].includes(payload?.tool_name)) return 0;
   const command = String(payload?.tool_input?.command ?? '');
   const powershell = payload.tool_name === 'PowerShell';
-  const code = command.replace(HEREDOC, '<<heredoc $3').replace(HERESTRING, powershell ? "'herestring'" : '$&');
+  // A heredoc or here-string body is message text, unless it is fed to something that runs it as code.
+  const code = command
+    .replace(HEREDOC, (all, q, tag, rest, body, offset) => {
+      const before = command.slice(command.lastIndexOf('\n', offset) + 1, offset);
+      return RUNS_CODE.test(before) || RUNS_CODE.test(rest) ? `<<heredoc ${rest}\n${body}` : `<<heredoc ${rest}`;
+    })
+    .replace(HERESTRING, (all, q, body, offset) => {
+      if (!powershell) return all;
+      const after = command.slice(offset + all.length).split('\n')[0];
+      return RUNS_CODE.test(after) ? `'herestring'\n${body}\n` : "'herestring'";
+    });
   const { calls, unclosed } = parseAll(code, powershell);
-  const mentions = /\bgit(\.exe)?\b/i.test(code) && /\b(commit|push|merge)\b/i.test(code);
+  const mentions = /\bgit(\.exe)?\b/i.test(code) && /\b(commit|push|merge|pull)\b/i.test(code);
   if (calls.length === 0 && !mentions) return 0;
 
   const root = process.env.CLAUDE_PROJECT_DIR || process.cwd();

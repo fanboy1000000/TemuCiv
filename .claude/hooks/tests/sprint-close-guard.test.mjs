@@ -182,8 +182,35 @@ test('guards git merge as well: its skip flag bypasses commit-msg too', () => {
   assert.equal(guard(root, 'git merge "--no-veri" sprint/999').status, 2);
   assert.equal(guard(root, 'git merge --no-\\verify sprint/999').status, 2, 'an escaped flag only the parse can see');
   assert.equal(guard(root, 'git merge --ff-only sprint/999').status, 0);
-  assert.equal(guard(root, 'git -C $(pwd) commit -m "TASK-1: computed path"').status, 0, 'a computed value alone is fine');
+  assert.equal(guard(root, 'git pull --no-verify origin main').status, 2, 'pull runs a merge');
+  assert.equal(guard(root, 'git pull --ff-only origin main').status, 0);
+});
+
+test('a computed value and a heredoc message that names the flag are fine', () => {
+  const root = repo();
+  assert.equal(guard(root, 'git -C $(pwd) commit -m "TASK-1: computed path"').status, 0);
   assert.equal(guard(root, "git commit -F - <<'EOF'\nTASK-1: docs\n\nExplain --no-verify and git commit -n.\nEOF").status, 0);
+});
+
+test('looks inside cmd /c, eval, iex, and heredocs or here-strings fed to a shell', () => {
+  const root = repo();
+  const ps = (command) => runHook(HOOK, { tool_name: 'PowerShell', tool_input: { command } }, { cwd: root, env: OK_ENV });
+  for (const command of [
+    'cmd /c "git commit -n -m x"',
+    'cmd.exe /d /s /c "git commit -n -m x"',
+    'cmd /c git commit -n -m x',
+    'eval "git commit -n -m x"',
+    "bash -ce 'git commit -n -m x'",
+    "bash <<'EOF'\ngit commit -n -m x\nEOF",
+    "cat <<'EOF' | sh\ngit commit --no-verify -m x\nEOF",
+  ]) {
+    assert.equal(guard(root, command).status, 2, command);
+  }
+  assert.equal(ps('Invoke-Expression "git commit -n -m x"').status, 2, 'Invoke-Expression');
+  assert.equal(ps("iex 'git commit -n -m x'").status, 2, 'iex');
+  assert.equal(ps("@'\ngit commit -n -m x\n'@ | iex").status, 2, 'a here-string fed to iex');
+  assert.equal(ps('cmd /c "git commit -n -m x"').status, 2, 'cmd /c from PowerShell');
+  assert.equal(guard(root, 'cmd /c "git status"').status, 0, 'cmd /c without a commit');
 });
 
 test('blocks a subject that looks like a close but is not in the exact form', () => {
