@@ -184,6 +184,7 @@ test('guards git merge as well: its skip flag bypasses commit-msg too', () => {
   assert.equal(guard(root, 'git merge --ff-only sprint/999').status, 0);
   assert.equal(guard(root, 'git pull --no-verify origin main').status, 2, 'pull runs a merge');
   assert.equal(guard(root, 'git pull --ff-only origin main').status, 0);
+  assert.equal(guard(root, 'git pull --no-\\verify origin main').status, 2, 'an escaped pull flag only the parse can see');
 });
 
 test('a computed value and a heredoc message that names the flag are fine', () => {
