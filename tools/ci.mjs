@@ -2,7 +2,7 @@
 //
 // Each step runs as its own process and its own exit code decides pass or fail (never a piped status).
 // On success the result is recorded against the exact project files on disk (tools/lib/repo.mjs), which the
-// sprint-close guard requires. If files change while CI runs, the run fails: it proved nothing about
+// close gates require. If files change while CI runs, the run fails: it proved nothing about
 // the files that exist now.
 //
 // New checks (type check, lint, unit tests, determinism, headless games, performance budgets) are added

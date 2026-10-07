@@ -1,8 +1,7 @@
-// The sprint-close gates (docs/WORKFLOW.md, "Mechanical gates"), shared by the two places that enforce them:
-//   - the git commit-msg hook (.githooks/commit-msg), which reads the real commit message and is the
-//     authoritative check, whatever form the commit command took;
-//   - the Claude Code PreToolUse guard (.claude/hooks/sprint-close-guard.mjs), which gives early feedback
-//     and blocks attempts to skip the git hooks.
+// The sprint-close gates (docs/WORKFLOW.md, "Mechanical gates"). The git commit-msg hook (.githooks/commit-msg)
+// runs them on the real commit message of every close, whatever form the command took, and leaves a receipt
+// when all pass; pre-push requires that receipt before `main` can move. (The Claude guard,
+// .claude/hooks/sprint-close-guard.mjs, only keeps the git hooks switched on; it doesn't run the gates.)
 //
 // Gates, each waivable by .claude/reviews/SPRINT-<N>-<gate>-WAIVED.md (owner's say-so, reason inside):
 //   sprint-log  docs/sprints/SPRINT-N.md exists, its header status is complete, and the sprint INDEX lists it
@@ -233,7 +232,7 @@ export function readCloseReceipt(root, tree) {
   return existsSync(path) ? JSON.parse(readFileSync(path, 'utf8')) : null;
 }
 
-/** The message both enforcement points print when a close is blocked. */
+/** The message commit-msg prints when a close is blocked. */
 export function blockedMessage(sprint, failures) {
   return (
     `S${sprint} close commit BLOCKED (docs/WORKFLOW.md, "Mechanical gates"):\n` +

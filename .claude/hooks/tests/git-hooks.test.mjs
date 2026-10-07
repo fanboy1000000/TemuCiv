@@ -6,6 +6,7 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { join } from 'node:path';
 import { after, test } from 'node:test';
+import { readCloseReceipt, writeCloseReceipt } from '../../../tools/lib/close-gates.mjs';
 import { scanText } from '../../../tools/lib/secrets.mjs';
 import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -129,6 +130,54 @@ test('pre-push lets main advance to a close made through the hooks, but not to o
   git(root, 'branch', '-f', 'main', 'HEAD');
   const allowed = gitWithHooks(root, ['push', '-q', 'origin', 'main']);
   assert.equal(allowed.status, 0, allowed.stderr);
+});
+
+test('a close that fails its gates leaves no receipt', () => {
+  const root = repo();
+  write(root, 'src/game.txt', 'changed\n');
+  git(root, 'add', '-A');
+  const tree = git(root, 'write-tree').trim();
+  const run = commitWithHooks(root, ['-m', 'S999 close: not prepared'], { env: OK_ENV });
+  assert.notEqual(run.status, 0);
+  assert.equal(readCloseReceipt(root, tree), null);
+});
+
+test('a receipt only covers the exact content that passed: a different close is refused', () => {
+  const root = repoWithRemote();
+  prepareClose(root, 999);
+  assert.equal(commitWithHooks(root, ['-m', 'S999 close: reviewed content'], { env: OK_ENV }).status, 0);
+  write(root, 'src/game.txt', 'changed after the close passed\n');
+  git(root, 'add', '-A');
+  git(root, 'commit', '-q', '--amend', '-m', 'S999 close: different content'); // no hooks: no new receipt
+  git(root, 'branch', '-f', 'main', 'HEAD');
+  const refused = gitWithHooks(root, ['push', '-q', 'origin', 'main']);
+  assert.notEqual(refused.status, 0);
+  assert.match(refused.stderr, /no record that this close passed the close gates/);
+});
+
+test('pre-push checks the commit being pushed, not the one checked out', () => {
+  const root = repoWithRemote();
+  prepareClose(root, 999);
+  assert.equal(commitWithHooks(root, ['-m', 'S999 close: through the hooks'], { env: OK_ENV }).status, 0);
+  git(root, 'switch', '-q', '-c', 'unchecked');
+  write(root, 'src/game.txt', 'other content\n');
+  git(root, 'add', '-A');
+  git(root, 'commit', '-q', '-m', 'S999 close: hooks switched off'); // different content, no receipt
+  git(root, 'switch', '-q', 'sprint/999'); // checked out: the close that has a receipt
+  const refused = gitWithHooks(root, ['push', '-q', 'origin', 'unchecked:main']);
+  assert.notEqual(refused.status, 0);
+  assert.match(refused.stderr, /hooks switched off/);
+});
+
+test('a receipt for another sprint does not cover this close', () => {
+  const root = repoWithRemote();
+  prepareClose(root, 999);
+  git(root, 'commit', '-q', '-m', 'S999 close: hooks switched off');
+  writeCloseReceipt(root, '998', git(root, 'rev-parse', 'HEAD^{tree}').trim());
+  git(root, 'branch', '-f', 'main', 'HEAD');
+  const refused = gitWithHooks(root, ['push', '-q', 'origin', 'main']);
+  assert.notEqual(refused.status, 0);
+  assert.match(refused.stderr, /no record that this close passed the close gates/);
 });
 
 // --- pre-commit: secret scan ------------------------------------------------------------------------------

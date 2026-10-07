@@ -54,6 +54,7 @@ test('allows ordinary commits and pushes, including the usual heredoc message', 
   assert.equal(guard(root, 'git add -A && git commit -q -m "TASK-1: hex grid"').status, 0);
   assert.equal(guard(root, "git commit -m \"$(cat <<'EOF'\nTASK-1: the owner's change\n\nBody.\nEOF\n)\"").status, 0);
   assert.equal(guard(root, 'git commit -m "TASK-1: x" && head -n 5 README.md').status, 0, '-n of another command');
+  assert.equal(guard(root, 'git commit -m "TASK-1: handle -n in docs"').status, 0, '-n inside the message');
   assert.equal(guard(root, 'git push origin sprint/999').status, 0);
   assert.equal(guard(root, "git commit -F msg.txt", 'PowerShell').status, 0);
 });
@@ -63,6 +64,11 @@ test('blocks any git commit, push, merge or pull while the hooks are not install
   const run = guard(root, 'git commit -m "TASK-1: anything"');
   assert.equal(run.status, 2);
   assert.match(run.stderr, /npm run setup/);
+});
+
+test('blocks merging a pull request on GitHub, which skips every local check', () => {
+  const root = repo();
+  assert.equal(guard(root, 'gh pr merge 1 --merge').status, 2);
 });
 
 test('blocks the skip flag and core.hooksPath anywhere in the text, however the command is wrapped', () => {
@@ -83,7 +89,14 @@ test('blocks the skip flag and core.hooksPath anywhere in the text, however the 
 
 test('blocks -n in a flag cluster after commit, also when wrapped', () => {
   const root = repo();
-  for (const command of ['git commit -n -m x', 'git commit -qn -m x', 'bash -c "git commit -n -m x"', 'cmd /c "git commit -n -m x"']) {
+  for (const command of [
+    'git commit -n -m x',
+    'git commit -qn -m x',
+    'bash -c "git commit -n -m x"',
+    'cmd /c "git commit -n -m x"',
+    'git commit -m x \\\n  -n',
+    'git commit -m "fix A; tidy B" -n',
+  ]) {
     const run = guard(root, command);
     assert.equal(run.status, 2, command);
     assert.match(run.stderr, /-n on a commit/);

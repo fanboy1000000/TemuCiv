@@ -170,17 +170,19 @@ reads the real commit message, so it works whatever form the command takes; it r
 a close but isn't exactly `S<N> close: <title>`, any other commit that marks a sprint complete, and any commit on
 `main`. When every gate passes for a close, it leaves a **receipt** for the exact content committed
 (`.claude/ci/close-receipts/`). **pre-push** lets `main` advance only to a close commit that has its receipt, so
-neither a task commit nor a close made with the hooks switched off can reach the shared branch, however the
-command was typed (CONVENTIONS invariant 7). Known limits: the hooks run only on this computer, and a hand-made
-receipt or a deliberately assembled skip flag is out of reach (the threat is mistakes, not a hostile author); a
-GitHub branch rule for `main` is in the backlog.
+neither a task commit nor a close made with its commit hooks skipped can reach the shared branch (CONVENTIONS
+invariant 7). Known limits: pre-push is itself a hook, kept running by the guard's checks below until GitHub
+protects `main` itself (backlog); git doesn't run commit-msg for cherry-pick, revert, rebase or `git am`; the hooks
+run only on this computer; a hand-made receipt or a deliberately assembled skip flag is out of reach (the threat
+is mistakes, not a hostile author).
 
 **The sprint-close guard** (`.claude/hooks/sprint-close-guard.mjs`, run before every Bash/PowerShell command) is a
-cheap early warning, deliberately blunt (about 60 lines, no shell parsing). For a command that mentions git with
+cheap early warning, deliberately blunt (about 70 lines, no shell parsing). For a command that mentions git with
 commit, push, merge or pull, it blocks while the hooks aren't installed, and when the text names `--no-verify` (or
 an abbreviation), names `core.hooksPath`, or has a `-n` flag cluster after `commit`. A commit message that names
-those words goes through `-F <file>`. Gaps in the guard are not blockers: the receipt check at push is the real
-protection. The close gates live in `tools/lib/close-gates.mjs`. A close is blocked
+those words goes through `-F <file>`. It also blocks `gh pr merge`, which would move `main` on GitHub without
+any local check. A gap in its commit checks is a note (the receipt still guards `main`); a gap in its push checks
+(the skip flag, `core.hooksPath`) is a blocker, because those keep pre-push running. The close gates live in `tools/lib/close-gates.mjs`. A close is blocked
 unless:
 
 | Gate | Requires | Waiver file (`.claude/reviews/`) |

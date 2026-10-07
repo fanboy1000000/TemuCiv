@@ -20,7 +20,7 @@
             "type": "command",
             "command": "node .claude/hooks/sprint-close-guard.mjs",
             "timeout": 30,
-            "statusMessage": "Checking sprint-close gates"
+            "statusMessage": "Checking that the git hooks stay switched on"
           }
         ]
       }

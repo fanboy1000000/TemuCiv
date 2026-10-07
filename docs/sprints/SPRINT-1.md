@@ -202,6 +202,7 @@ review of this sprint (`.claude/reviews/SPRINT-1-codex-c1.md`, 2026-09-30), befo
 | TASK-114 | Orchestrator | `.claude/hooks/**`, `docs/**` | Codex cycle-7 BLOCKERs and the reviewer's cycle-6 warnings fixed, with tests and named mutations | no |
 | TASK-115 | Orchestrator | `.claude/hooks/**`, `docs/**` | Codex cycle-8 BLOCKER (a regression) and the reviewer's cycle-7 warning fixed at the root, with tests and named mutations | no |
 | TASK-116 | Orchestrator | `.claude/hooks/**`, `tools/**`, `docs/**`, `ROADMAP.md` | A close made with the hooks off can't be pushed to `main`; the guard is a short text check; tests fail when each rule is removed | no |
+| TASK-117 | Orchestrator | `.claude/**`, `tools/**`, `docs/**` | The receipt's safety properties tested (Codex c10 BLOCKER); docs state what the receipt does and doesn't guarantee | no |
 
 **Past the cycle cap (owner, 2026-10-07).** Codex's fifth cycle still found BLOCKERs; asked to keep iterating,
 accept the findings or move them to Sprint 2 (engineering's recommendation), the owner chose to keep iterating, after
@@ -310,7 +311,7 @@ commit-msg now leaves a receipt for the exact content of a close that passes eve
 advance only to a close commit with its receipt. A close made with the hooks switched off, or a task commit,
 can't reach GitHub however the command is typed, which settles Codex cycle 9's two BLOCKERs at the root. The
 guard is a 60-line text check (skip flag, `core.hooksPath`, `-n` after `commit`, hooks installed); the parser
-and its 22 tests are deleted; the 21 close-gate tests now call the gates directly. Refinement:
+and 23 of its tests are deleted; the 21 close-gate tests now call the gates directly. Refinement:
 `.claude/refinements/REFINEMENT-guard-shrink.md`. Adopting ponytail's ladder and proportional testing in
 CONVENTIONS is Sprint 2 (owner decision pending).
 
@@ -318,6 +319,17 @@ RED evidence at `b887401` (47 tests), each failing a named test on the first run
 check, R2 commit-msg writes no receipt, R3 pre-push accepts any tip of `main`, G1 hooks-installed check off, G2
 skip-flag text check off, G3 `core.hooksPath` check off, G4 `-n` after `commit` unchecked, G5 `-n` checked
 across the whole line instead of per command (a false alarm the allowed-forms test catches).
+
+### TASK-117: test what the receipt promises (Codex c10, reviewer c9)
+
+Status complete · Agent: Orchestrator (bootstrap exception) · Constraint validator: n/a · Review: Codex cycle 11, reviewer cycle 10.
+
+Codex cycle 10 (BLOCKED) and the reviewer's cycle 9 (APPROVED-WITH-WARNINGS) confirmed the receipt flow but found
+its safety properties untested. New tests: a failed close leaves no receipt; a receipt for other content, or for
+another sprint, doesn't cover a close; pre-push checks the commit actually pushed, not the one checked out. Docs
+now say what the receipt guarantees: pre-push is itself a hook, so the guard's push checks stay essential until
+GitHub protects `main` (a gap there is a blocker; a gap in its commit checks is a note). Also: stale comments
+fixed; the guard joins continued lines, ignores quoted text for `-n`, and blocks `gh pr merge`.
 
 ## Design conformance
 
