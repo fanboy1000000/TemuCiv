@@ -360,6 +360,10 @@ which also covers a skip flag split across lines. The PR-merge rule allows optio
 (reviewer note). The "other gh commands" test now gets past the first filter, so it tests the rule itself
 (reviewer warning).
 
+RED evidence at `09a7a81` (52 tests), each failing a named test on the first run: S1 bash continuations not
+joined, S2 PowerShell continuations not joined, S3 no options between `pr` and `merge`, S4 the PR-merge rule
+over-blocking any gh command (caught by the new negative case).
+
 ## Design conformance
 
 Not applicable: no game design implemented this sprint.
