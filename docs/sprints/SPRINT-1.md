@@ -357,6 +357,11 @@ Both lenses found that TASK-114's narrower heredoc rule lost forms: `FOO=bar bas
 settings and `env`-style wrappers), checks every pipeline stage, and checks the command around a `$(...)`. Also:
 `iex -C`/`-Com`/`-Command:` and `iex ("...")`; `#` comments; cmd's own quoting (single quotes are text).
 
+RED evidence at `29b24bc` (64 tests), each failing a named test: N1 settings not skipped, N2 env-style wrappers
+not skipped, N3 only the first pipeline stage checked, N4 the command around `$(...)` unchecked, N5 `-Command`
+abbreviations ignored, N6 bracketed literal not unwrapped, N7 comments unrecognised, N8 cmd reading `'` as a
+quote (it first survived; its new test, committed broken in `a68a33f`, was fixed in `29b24bc`).
+
 ## Design conformance
 
 Not applicable: no game design implemented this sprint.
