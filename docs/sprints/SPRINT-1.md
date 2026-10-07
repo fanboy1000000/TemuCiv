@@ -345,6 +345,10 @@ guard. The check now matches gh or gh.exe with options before `pr merge`, tested
 reason. Also: quoted commands are checked without their quotes (`bash -c "git commit -m x -n"`), the pre-push
 comment matches the corrected wording, and WORKFLOW places `gh pr merge` with the push-side checks.
 
+RED evidence at `ca49066` (52 tests): Q1 only a bare `gh` directly before `pr merge` and Q2 quoted commands
+keeping their quotes each fail a named test. Q3 (the first filter without `gh.exe`) survived because it is
+equivalent: the old pattern already matched `gh.exe`, so that line change was cosmetic.
+
 ## Design conformance
 
 Not applicable: no game design implemented this sprint.
