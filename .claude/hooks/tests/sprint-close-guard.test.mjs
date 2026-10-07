@@ -68,7 +68,12 @@ test('blocks any git commit, push, merge or pull while the hooks are not install
 
 test('blocks merging a pull request on GitHub, which skips every local check', () => {
   const root = repo();
-  assert.equal(guard(root, 'gh pr merge 1 --merge').status, 2);
+  for (const command of ['gh pr merge 1 --merge', 'gh.exe pr merge 1', 'gh -R owner/repo pr merge 1', 'gh --repo owner/repo pr merge']) {
+    const run = guard(root, command);
+    assert.equal(run.status, 2, command);
+    assert.match(run.stderr, /moves main on GitHub/, command);
+  }
+  assert.equal(guard(root, 'gh pr view 1').status, 0, 'other gh commands');
 });
 
 test('blocks the skip flag and core.hooksPath anywhere in the text, however the command is wrapped', () => {
@@ -96,6 +101,8 @@ test('blocks -n in a flag cluster after commit, also when wrapped', () => {
     'cmd /c "git commit -n -m x"',
     'git commit -m x \\\n  -n',
     'git commit -m "fix A; tidy B" -n',
+    'bash -c "git commit -m x -n"',
+    "bash -c 'git commit -m x -n'",
   ]) {
     const run = guard(root, command);
     assert.equal(run.status, 2, command);

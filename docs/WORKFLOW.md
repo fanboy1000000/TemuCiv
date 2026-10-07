@@ -181,8 +181,9 @@ cheap early warning, deliberately blunt (about 70 lines, no shell parsing). For 
 commit, push, merge or pull, it blocks while the hooks aren't installed, and when the text names `--no-verify` (or
 an abbreviation), names `core.hooksPath`, or has a `-n` flag cluster after `commit`. A commit message that names
 those words goes through `-F <file>`. It also blocks `gh pr merge`, which would move `main` on GitHub without
-any local check. A gap in its commit checks is a note (the receipt still guards `main`); a gap in its push checks
-(the skip flag, `core.hooksPath`) is a blocker, because those keep pre-push running. The close gates live in `tools/lib/close-gates.mjs`. A close is blocked
+any local check. A gap in its commit checks is a note (the receipt still guards `main`). A gap in its push-side
+checks (the skip flag, `core.hooksPath`, `gh pr merge`) that an agent would plausibly write by mistake is a blocker,
+because those keep unreviewed work off `main` on GitHub. The close gates live in `tools/lib/close-gates.mjs`. A close is blocked
 unless:
 
 | Gate | Requires | Waiver file (`.claude/reviews/`) |

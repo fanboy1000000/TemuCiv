@@ -203,6 +203,7 @@ review of this sprint (`.claude/reviews/SPRINT-1-codex-c1.md`, 2026-09-30), befo
 | TASK-115 | Orchestrator | `.claude/hooks/**`, `docs/**` | Codex cycle-8 BLOCKER (a regression) and the reviewer's cycle-7 warning fixed at the root, with tests and named mutations | no |
 | TASK-116 | Orchestrator | `.claude/hooks/**`, `tools/**`, `docs/**`, `ROADMAP.md` | A close made with the hooks off can't be pushed to `main`; the guard is a short text check; tests fail when each rule is removed | no |
 | TASK-117 | Orchestrator | `.claude/**`, `tools/**`, `docs/**` | The receipt's safety properties tested (Codex c10 BLOCKER); docs state what the receipt does and doesn't guarantee | no |
+| TASK-118 | Orchestrator | `.claude/hooks/**`, `tools/hooks/**`, `docs/**` | Every ordinary spelling of a GitHub PR merge blocked and tested (Codex c11 BLOCKER, reviewer c10 warning) | no |
 
 **Past the cycle cap (owner, 2026-10-07).** Codex's fifth cycle still found BLOCKERs; asked to keep iterating,
 accept the findings or move them to Sprint 2 (engineering's recommendation), the owner chose to keep iterating, after
@@ -334,6 +335,15 @@ fixed; the guard joins continued lines, ignores quoted text for `-n`, and blocks
 RED evidence at `524ae0b` (52 tests), each failing a named test on the first run: P1 receipt written before the
 gates are checked, P2 pre-push reading the checked-out tree, P3 any sprint's receipt accepted, P4 PR merges not
 blocked, P5 continued lines not joined, P6 quoted commands unchecked, P7 quoted text not set aside.
+
+### TASK-118: the PR-merge spellings (Codex c11, reviewer c10)
+
+Status complete · Agent: Orchestrator (bootstrap exception) · Constraint validator: n/a · Review: Codex cycle 12, reviewer cycle 11.
+
+Both lenses confirmed TASK-117 and found one gap: `gh.exe pr merge` and `gh -R owner/repo pr merge` passed the
+guard. The check now matches gh or gh.exe with options before `pr merge`, tested with each spelling and its
+reason. Also: quoted commands are checked without their quotes (`bash -c "git commit -m x -n"`), the pre-push
+comment matches the corrected wording, and WORKFLOW places `gh pr merge` with the push-side checks.
 
 ## Design conformance
 

@@ -4,7 +4,8 @@
 // fast-forward to the sprint's close commit and pushed from there. So a push that updates the remote `main`
 // is refused unless the commit it sends is a close ("S<N> close: <title>") whose content passed the close gates
 // here: commit-msg leaves a receipt for the exact tree when every gate passes. A task commit, or a close made
-// with the git hooks switched off, can't reach the shared branch this way, however the command was typed.
+// with its commit hooks skipped, can't reach the shared branch this way. This hook is itself skipped by a push
+// with the skip flag; the Claude guard blocks that, until GitHub protects `main` itself (backlog).
 //
 // Usage (by git): node tools/hooks/pre-push.mjs <remote> <url>, with "<local ref> <local sha> <remote ref>
 // <remote sha>" lines on stdin.
