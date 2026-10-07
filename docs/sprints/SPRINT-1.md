@@ -273,6 +273,12 @@ Cycle 2 (`.claude/reviews/SPRINT-1-codex-c2.raw.md`, BLOCKED; reviewer, BLOCKED)
 | Codex: worktree hand-off unspecified | Agents leave changes uncommitted; the Orchestrator verifies, commits in the worktree, merges into the sprint branch | n/a (docs) |
 | Reviewer notes | gitleaks sha256 pinned in the workflow; GitHub-gate wording; "fixed" model wording; close-time edits belong before the stamp; FAIL-001 recorded | n/a |
 
+RED evidence (one-line mutations in a throwaway worktree, each run against the 44 tests at `1bed53c`): sprint
+status read from the whole log → 2 tests fail; INDEX status not checked → 1; only the exact `--no-verify` caught
+→ 1; quotes kept in words → 18; `core.hooksPath` checked nowhere → 1; marking a sprint complete never detected →
+1; the whole sprint log outside the reviewed part → 1; all of `docs/sprints` outside the review hash → 2; a
+reviewer spawn allowed without naming Fable → 1.
+
 Declined, with reasons: `ROADMAP.md` stays outside the review hash (routing follow-ups is a required close step
 after the review); "Research" as a system name is renamed when `docs/architecture.md` lands (backlog).
 
