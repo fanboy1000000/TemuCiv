@@ -1,6 +1,7 @@
-// Tests for the sprint-close guard. Each test builds a throwaway git repository, prepares (or breaks)
-// one close gate, and runs the hook exactly as Claude Code would. Sprint 999 is the harness-reserved
-// number that lets TEMUCIV_CI_HEALTH_MOCK replace the GitHub call.
+// Tests for the sprint-close guard (the PreToolUse hook) and the close gates it shares with the commit-msg
+// hook. Each test builds a throwaway git repository, prepares (or breaks) one gate, and runs the hook
+// exactly as Claude Code would. Sprint 999 is the harness-reserved number that lets TEMUCIV_CI_HEALTH_MOCK
+// replace the GitHub call.
 
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
@@ -23,15 +24,20 @@ const closable = (opts) => {
   prepareClose(root, 999);
   return root;
 };
+const guard = (root, command, env = OK_ENV) => runHook(HOOK, bash(command), { cwd: root, env });
 
-test('ignores commands that are not commits', () => {
+// --- what the guard looks at -------------------------------------------------------------------------
+
+test('ignores commands that are not commits, including a close marker outside a commit', () => {
   const root = repo();
-  assert.equal(runHook(HOOK, bash('git status && echo "S999 close"'), { cwd: root }).status, 0);
+  assert.equal(guard(root, 'git status && echo "S999 close"').status, 0);
+  assert.equal(guard(root, 'echo "git commit -m S999 close: x"').status, 0);
 });
 
 test('ignores ordinary commits without a close marker', () => {
   const root = repo();
-  assert.equal(runHook(HOOK, bash('git commit -m "TASK-101: add hex grid"'), { cwd: root }).status, 0);
+  assert.equal(guard(root, 'git commit -m "TASK-101: add hex grid"').status, 0);
+  assert.equal(guard(root, 'git commit -m "TASK-102: prepare for the S999 close"').status, 0);
 });
 
 test('ignores other tools and unparseable input', () => {
@@ -40,40 +46,83 @@ test('ignores other tools and unparseable input', () => {
   assert.equal(runHook(HOOK, 'not json', { cwd: root }).status, 0);
 });
 
+test('recognises every form of the commit command: PowerShell, git -C, git.exe, git --no-pager, heredocs', () => {
+  const root = repo(); // nothing prepared, so a recognised close must be blocked
+  const forms = [
+    "git -C . commit -m 'S999 close: x'",
+    'git.exe commit -m "S999 close: x"',
+    'git --no-pager commit -m "S999 close: x"',
+    'git -c user.name=x commit --message="S999 close: x"',
+    "git commit -F - <<'EOF'\nS999 close: x\nEOF",
+    'git commit -m "$(cat <<\'EOF\'\nS999 close: x\n\nBody.\nEOF\n)"',
+  ];
+  for (const command of forms) assert.equal(guard(root, command).status, 2, command);
+  const ps = { tool_name: 'PowerShell', tool_input: { command: "git commit -m 'S999 close: x'" } };
+  assert.equal(runHook(HOOK, ps, { cwd: root, env: OK_ENV }).status, 2);
+});
+
+// --- protecting the git hooks ------------------------------------------------------------------------
+
+test('blocks any commit while the git hooks are not installed', () => {
+  const root = repo({ hooks: false });
+  const run = guard(root, 'git commit -m "TASK-101: anything"');
+  assert.equal(run.status, 2);
+  assert.match(run.stderr, /npm run setup/);
+});
+
+test('blocks skipping or redirecting the hooks', () => {
+  const root = repo();
+  for (const command of [
+    'git commit --no-verify -m "TASK-1: x"',
+    'git commit -n -m "TASK-1: x"',
+    'git commit -qn -m "TASK-1: x"',
+    'git -c core.hooksPath=/dev/null commit -m "TASK-1: x"',
+  ]) {
+    assert.equal(guard(root, command).status, 2, command);
+  }
+});
+
+test('does not mistake "-n" inside a quoted message for the flag', () => {
+  const root = repo();
+  assert.equal(guard(root, 'git commit -m "TASK-1: handle -n and --no-verify in docs"').status, 0);
+});
+
+test('blocks a subject that looks like a close but is not in the exact form', () => {
+  const root = closable();
+  for (const subject of ['s999 close: lower case', 'S999 close - dash', 'S 999 close: spaced']) {
+    const run = guard(root, `git commit -m "${subject}"`);
+    assert.equal(run.status, 2, subject);
+    assert.match(run.stderr, /isn't in the form/);
+  }
+});
+
+// --- the gates -------------------------------------------------------------------------------------------
+
 test('blocks an unprepared close and names every failing gate', () => {
   const root = repo();
   write(root, 'src/new.txt', 'untracked\n');
-  const run = runHook(HOOK, bash(CLOSE), { cwd: root, env: OK_ENV });
+  const run = guard(root, CLOSE);
   assert.equal(run.status, 2);
-  for (const gate of ['sprint-log', 'reviews', 'local-ci', 'staging']) assert.match(run.stderr, new RegExp(`\\[${gate}\\]`));
+  for (const gate of ['sprint-log', 'reviews', 'local-ci', 'untracked']) assert.match(run.stderr, new RegExp(`\\[${gate}\\]`));
 });
 
 test('allows a fully prepared close', () => {
   const root = closable();
-  const run = runHook(HOOK, bash(CLOSE), { cwd: root, env: OK_ENV });
+  const run = guard(root, CLOSE);
   assert.equal(run.status, 0, run.stderr);
 });
 
 test('allows the very first close in a repository with no commits yet', () => {
   const root = closable({ commit: false });
-  const run = runHook(HOOK, bash(CLOSE), { cwd: root, env: OK_ENV });
+  const run = guard(root, CLOSE);
   assert.equal(run.status, 0, run.stderr);
-});
-
-test('recognises the PowerShell tool and git -C', () => {
-  const root = closable();
-  const ps = { tool_name: 'PowerShell', tool_input: { command: "git -C . commit -m 'S999 close: x'" } };
-  assert.equal(runHook(HOOK, ps, { cwd: root, env: OK_ENV }).status, 0);
-  write(root, 'src/game.txt', 'changed after review\n');
-  git(root, 'add', '-A');
-  assert.equal(runHook(HOOK, ps, { cwd: root, env: OK_ENV }).status, 2);
 });
 
 test('a code change after the review invalidates the review and the CI record', () => {
   const root = closable();
   write(root, 'src/game.txt', 'changed after review\n');
   git(root, 'add', '-A');
-  const run = runHook(HOOK, bash(CLOSE), { cwd: root, env: OK_ENV });
+  const run = guard(root, CLOSE);
   assert.equal(run.status, 2);
   assert.match(run.stderr, /\[reviews\].*scope hash differs/);
   assert.match(run.stderr, /\[local-ci\].*files changed/);
@@ -83,18 +132,18 @@ test('finishing the sprint log after the review needs only a fresh CI run', () =
   const root = closable();
   write(root, 'docs/sprints/SPRINT-999.md', '# Sprint 999\n\n| **Status** | complete |\n\nRetrospective added after review.\n');
   git(root, 'add', '-A');
-  const stale = runHook(HOOK, bash(CLOSE), { cwd: root, env: OK_ENV });
+  const stale = guard(root, CLOSE);
   assert.equal(stale.status, 2);
   assert.doesNotMatch(stale.stderr, /\[reviews\]/);
   writeCiRecord(root, { result: 'pass' });
-  assert.equal(runHook(HOOK, bash(CLOSE), { cwd: root, env: OK_ENV }).status, 0);
+  assert.equal(guard(root, CLOSE).status, 0);
 });
 
 test('a new commit after the review invalidates the review stamp', () => {
   const root = closable();
   git(root, 'commit', '-q', '-m', 'TASK-999: sneaked in');
   writeCiRecord(root, { result: 'pass' });
-  const run = runHook(HOOK, bash(CLOSE), { cwd: root, env: OK_ENV });
+  const run = guard(root, CLOSE);
   assert.equal(run.status, 2);
   assert.match(run.stderr, /\[reviews\].*stamped at/);
 });
@@ -102,7 +151,7 @@ test('a new commit after the review invalidates the review stamp', () => {
 test('a BLOCKED verdict blocks the close', () => {
   const root = closable();
   stampReviews(root, 999, { verdict: 'BLOCKED' });
-  const run = runHook(HOOK, bash(CLOSE), { cwd: root, env: OK_ENV });
+  const run = guard(root, CLOSE);
   assert.equal(run.status, 2);
   assert.match(run.stderr, /verdict is BLOCKED/);
 });
@@ -110,7 +159,7 @@ test('a BLOCKED verdict blocks the close', () => {
 test('a reviewer that did not run on Fable blocks the close', () => {
   const root = closable();
   stampReviews(root, 999, { reviewerModel: 'claude-opus-5-5' });
-  const run = runHook(HOOK, bash(CLOSE), { cwd: root, env: OK_ENV });
+  const run = guard(root, CLOSE);
   assert.equal(run.status, 2);
   assert.match(run.stderr, /must run on Fable/);
 });
@@ -118,7 +167,7 @@ test('a reviewer that did not run on Fable blocks the close', () => {
 test('a failed CI record blocks the close', () => {
   const root = closable();
   writeCiRecord(root, { result: 'fail' });
-  const run = runHook(HOOK, bash(CLOSE), { cwd: root, env: OK_ENV });
+  const run = guard(root, CLOSE);
   assert.equal(run.status, 2);
   assert.match(run.stderr, /\[local-ci\].*"fail"/);
 });
@@ -126,9 +175,9 @@ test('a failed CI record blocks the close', () => {
 test('an untracked file blocks the close', () => {
   const root = closable();
   write(root, 'tests/forgotten.test.txt', 'never staged\n');
-  const run = runHook(HOOK, bash(CLOSE), { cwd: root, env: OK_ENV });
+  const run = guard(root, CLOSE);
   assert.equal(run.status, 2);
-  assert.match(run.stderr, /\[staging\] untracked files: tests\/forgotten\.test\.txt/);
+  assert.match(run.stderr, /\[untracked\] untracked files: tests\/forgotten\.test\.txt/);
 });
 
 test('an unstaged change blocks the close even when the hashes match', () => {
@@ -136,9 +185,9 @@ test('an unstaged change blocks the close even when the hashes match', () => {
   write(root, 'src/game.txt', 'edited but not staged\n');
   stampReviews(root, 999);
   writeCiRecord(root, { result: 'pass' });
-  const run = runHook(HOOK, bash(CLOSE), { cwd: root, env: OK_ENV });
+  const run = guard(root, CLOSE);
   assert.equal(run.status, 2);
-  assert.match(run.stderr, /\[staging\] unstaged changes: src\/game\.txt/);
+  assert.match(run.stderr, /\[untracked\] unstaged changes: src\/game\.txt/);
 });
 
 test('an incomplete or unlisted sprint log blocks the close', () => {
@@ -147,7 +196,7 @@ test('an incomplete or unlisted sprint log blocks the close', () => {
   write(root, 'docs/sprints/INDEX.md', 'nothing here\n');
   git(root, 'add', '-A');
   writeCiRecord(root, { result: 'pass' });
-  const run = runHook(HOOK, bash(CLOSE), { cwd: root, env: OK_ENV });
+  const run = guard(root, CLOSE);
   assert.equal(run.status, 2);
   assert.match(run.stderr, /status is not "complete"/);
   assert.match(run.stderr, /does not link SPRINT-999\.md/);
@@ -157,23 +206,46 @@ test('a waiver bypasses only its own gate', () => {
   const root = closable();
   stampReviews(root, 999, { verdict: 'BLOCKED' });
   write(root, '.claude/reviews/SPRINT-999-reviews-WAIVED.md', 'Owner accepted the findings.\n');
-  assert.equal(runHook(HOOK, bash(CLOSE), { cwd: root, env: OK_ENV }).status, 0);
+  assert.equal(guard(root, CLOSE).status, 0);
   writeCiRecord(root, { result: 'fail' });
-  assert.equal(runHook(HOOK, bash(CLOSE), { cwd: root, env: OK_ENV }).status, 2);
+  assert.equal(guard(root, CLOSE).status, 2);
 });
 
-test('a red GitHub CI run blocks the close', () => {
+test('the documented waiver file name for the untracked gate works', () => {
   const root = closable();
-  const run = runHook(HOOK, bash(CLOSE), { cwd: root, env: { TEMUCIV_CI_HEALTH_MOCK: 'failure' } });
-  assert.equal(run.status, 2);
-  assert.match(run.stderr, /\[github-ci\]/);
+  write(root, 'notes/scratch.txt', 'left untracked on purpose\n');
+  writeCiRecord(root, { result: 'pass' });
+  stampReviews(root, 999);
+  assert.equal(guard(root, CLOSE).status, 2);
+  write(root, '.claude/reviews/SPRINT-999-untracked-WAIVED.md', 'Owner: scratch file stays out of the commit.\n');
+  const run = guard(root, CLOSE);
+  assert.equal(run.status, 0, run.stderr);
+});
+
+// --- the GitHub gate fails closed --------------------------------------------------------------------
+
+test('a GitHub CI run that is red, cancelled, unfinished, missing, stale or unreadable blocks the close', () => {
+  const root = closable();
+  const cases = {
+    failure: /did not succeed \(failure\)/,
+    cancelled: /did not succeed \(cancelled\)/,
+    in_progress: /has not finished/,
+    none: /no GitHub CI run found/,
+    stale: /not the last pushed commit/,
+    error: /\[github-ci\] the gate itself failed/,
+  };
+  for (const [mock, message] of Object.entries(cases)) {
+    const run = guard(root, CLOSE, { TEMUCIV_CI_HEALTH_MOCK: mock });
+    assert.equal(run.status, 2, mock);
+    assert.match(run.stderr, message, mock);
+  }
 });
 
 test('the CI mock is ignored for any sprint other than the harness-reserved 999', () => {
   const root = repo();
   prepareClose(root, 5);
-  // A leaked mock must not decide anything for a real sprint. Here the real gh call cannot find runs
-  // for this throwaway repository, so the gate fails open and the close is allowed.
-  const run = runHook(HOOK, bash('git commit -m "S5 close: real sprint"'), { cwd: root, env: { TEMUCIV_CI_HEALTH_MOCK: 'failure' } });
+  // A leaked mock must not decide anything for a real sprint. This throwaway repository has never been
+  // pushed (no origin/main), so there is no remote CI state to check and the close is allowed.
+  const run = guard(root, 'git commit -m "S5 close: real sprint"', { TEMUCIV_CI_HEALTH_MOCK: 'failure' });
   assert.equal(run.status, 0, run.stderr);
 });

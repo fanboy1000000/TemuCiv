@@ -29,7 +29,7 @@ const block = (why) => {
 };
 
 if (PASS_THROUGH.has(type)) process.exit(0);
-if (type === 'reviewer' && model && model !== 'fable') {
+if (type === 'reviewer' && model && model !== 'fable' && !/^claude-fable-/.test(model)) {
   block(`the reviewer runs only on Fable, but this spawn asks for "${model}". Remove the model override`);
 }
 if (GENERIC.has(type) && !model) {

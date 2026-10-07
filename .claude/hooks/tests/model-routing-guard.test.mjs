@@ -12,8 +12,9 @@ test('the reviewer with no override is allowed (its definition fixes Fable)', ()
   assert.equal(spawn({ subagent_type: 'reviewer' }).status, 0);
 });
 
-test('the reviewer explicitly on Fable is allowed', () => {
+test('the reviewer explicitly on Fable is allowed, by alias or full model id', () => {
   assert.equal(spawn({ subagent_type: 'reviewer', model: 'fable' }).status, 0);
+  assert.equal(spawn({ subagent_type: 'reviewer', model: 'claude-fable-5-1' }).status, 0);
 });
 
 test('the reviewer on a cheaper model is blocked', () => {

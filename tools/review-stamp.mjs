@@ -3,10 +3,29 @@
 // (.claude/reviews/SPRINT-N-<lens>.md). The sprint-close guard recomputes both at close; if any
 // reviewed file changed since, the review no longer counts. See docs/WORKFLOW.md, step 7.
 //
+// It refuses to stamp while files in review scope are uncommitted or untracked: reviewers read the
+// committed diff (git diff <base>..HEAD), so anything not yet committed would be hashed without being
+// reviewed. The close paperwork (REVIEW_EXCLUDE: sprint logs, ROADMAP.md) may stay uncommitted.
+//
 // Usage: node tools/review-stamp.mjs
 
-import { reviewStamp } from './lib/repo.mjs';
+import { REVIEW_EXCLUDE, git, reviewStamp } from './lib/repo.mjs';
 
-const stamp = reviewStamp(process.cwd());
+const root = process.cwd();
+const pending = git(root, ['--no-optional-locks', 'status', '--porcelain', '--untracked-files=all'])
+  .split('\n')
+  .filter(Boolean)
+  .map((line) => line.slice(3).replace(/^.* -> /, ''))
+  .filter((path) => !REVIEW_EXCLUDE.some((rx) => rx.test(path)));
+if (pending.length) {
+  process.stderr.write(
+    `review-stamp: refusing to stamp; commit these first so the reviewed diff matches the stamp:\n` +
+      pending.map((p) => `  ${p}`).join('\n') +
+      '\n',
+  );
+  process.exit(1);
+}
+
+const stamp = reviewStamp(root);
 console.log(`reviewed-against-commit: ${stamp.commit}`);
 console.log(`reviewed-scope-hash: ${stamp.scopeHash}`);

@@ -8,6 +8,7 @@
     "node": ">=22"
   },
   "scripts": {
+    "setup": "git config core.hooksPath .githooks",
     "ci": "node tools/ci.mjs",
     "check-docs": "node tools/check-docs.mjs",
     "test:hooks": "node --test \".claude/hooks/tests/*.test.mjs\"",

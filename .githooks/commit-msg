@@ -1,0 +1,4 @@
+#!/bin/sh
+# TemuCiv: enforce the sprint-close gates on the real commit message (docs/WORKFLOW.md, "Mechanical gates").
+# Installed by `npm run setup` (git config core.hooksPath .githooks).
+exec node "$(dirname "$0")/../tools/hooks/commit-msg.mjs" "$1"

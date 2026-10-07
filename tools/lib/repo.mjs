@@ -2,8 +2,9 @@
 //
 // The central idea is the "scope hash": one SHA-256 over the path and content of every file git would
 // consider part of the project (tracked, plus untracked files that are not ignored), read from disk.
-// Two hashes are equal only if the project's files are byte-for-byte the same. The sprint-close guard
-// uses it to prove that what was reviewed and what passed CI is exactly what is being committed.
+// Ignored files (node_modules, .env, review and CI records) and file metadata (modes, symlink targets)
+// are not part of it. Two hashes are equal only if the project files' contents are byte-for-byte the
+// same. The close gates use it to prove that what was reviewed and what passed CI is what gets committed.
 
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';

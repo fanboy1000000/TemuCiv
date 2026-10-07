@@ -31,7 +31,10 @@ open questions (asked one at a time), assumptions, acceptance criteria, risks an
 ### Step 0: Start
 1. Read the latest sprint log's handoff block, `ROADMAP.md` and `docs/kb/INDEX.md`.
 2. Copy `docs/sprints/TEMPLATE.md` to `docs/sprints/SPRINT-N.md` (N = last sprint + 1, never skipped) and add
-   the row to `docs/sprints/INDEX.md`. Record the **base commit** (HEAD at sprint start) in the header.
+   the row to `docs/sprints/INDEX.md`. Record the **base commit** (HEAD at sprint start) in the header; for the
+   first sprint of a repository it is the empty tree, so the sprint-end review covers every file. Record the
+   previous close's GitHub CI run (id and result) in the header too: it only exists after that close was pushed.
+   Run `npm run setup` once per clone; it installs the git hooks the close gates depend on.
 3. **Entropy scan** (first sprint of each session, at minimum): run `npm run check-docs`, then the anti-pattern
    greps listed in the sprint template (the list grows with every FAIL entry), look for orphaned files from the
    last two sprints, and check that the docs still describe what the code does. Record findings as DRIFT (fix
@@ -97,7 +100,9 @@ For each finished task:
 ### Step 7: Sprint-end review (dual lens)
 After every task is accepted and committed:
 1. Stamp the state to be reviewed: `node tools/review-stamp.mjs` prints `reviewed-against-commit:` and
-   `reviewed-scope-hash:`. Keep this output. If the reviewed files change, the stamp no longer matches.
+   `reviewed-scope-hash:`. Keep this output. If the reviewed files change, the stamp no longer matches. It refuses
+   to stamp while anything outside the close paperwork is uncommitted or untracked, so the committed diff the
+   lenses read is exactly what the stamp covers.
 2. Run **Codex** on the whole sprint (`git diff <base>..HEAD`, AGENTS.md prompt) and the **reviewer** agent on
    the same scope, in parallel.
 3. Save each result as `.claude/reviews/SPRINT-N-codex.md` and `.claude/reviews/SPRINT-N-reviewer.md`, with the
@@ -111,9 +116,9 @@ After every task is accepted and committed:
 1. Complete the sprint log: status `complete`, test summary (from real runs), design conformance table, review
    summary, retrospective and handoff block. Update the row in `docs/sprints/INDEX.md`.
 2. Route every open follow-up that's not scheduled for the next sprint into the `ROADMAP.md` backlog.
-3. Run `npm run ci` **last**, after all edits. It records a pass for the exact files on disk.
-4. Commit with a subject that starts `S<N> close: <title>`. Pass the message with `-m` or a heredoc, never `-F`,
-   so the close guard can see it. The guard (see "Mechanical gates") blocks the commit if any gate fails.
+3. Run `npm run ci` **last**, after all edits. It records a pass for the exact project files on disk.
+4. Commit with a subject in exactly the form `S<N> close: <title>`. The commit-msg hook reads the real message,
+   whatever form the command takes, and blocks the commit if any gate fails (see "Mechanical gates").
 5. `git push origin main`, then watch GitHub CI with **one** background command (`gh run watch`), never by
    polling. A red GitHub CI blocks the next sprint's close.
 
@@ -138,29 +143,40 @@ The owner plays the sprint's build. Their notes are recorded at the top of the n
 
 Rules that matter are enforced by machines. Memory and good intentions are not enforcement.
 
-**`npm run ci`** (`tools/ci.mjs`) runs every check the project has: currently the docs check and the hook tests.
-Type checks, lint, unit tests, the determinism check, headless games and performance budgets are added as
-the code arrives. Each step's own exit code is checked. On success it records the HEAD commit and a hash of every
-file on disk in `.claude/ci/last-run.json`.
+**`npm run ci`** (`tools/ci.mjs`) runs every check the project has: currently the docs check, a secret scan and
+the governance tests (hooks and tools). Type checks, lint, unit tests, the determinism check, headless games and
+performance budgets are added as the code arrives. Each step's own exit code is checked. On success it records
+the HEAD commit and a hash of the content of every project file (tracked, plus untracked files that aren't
+ignored) in `.claude/ci/last-run.json`. Ignored files and file modes are outside the hash, so checks must not
+depend on them.
 
-**GitHub Actions** (`.github/workflows/ci.yml`) runs the same checks on every push, plus a secret scan. Jobs are
-independent: one red job must never hide another.
+**GitHub Actions** (`.github/workflows/ci.yml`) runs the same checks on every push, plus a gitleaks scan of the
+full history. Jobs are independent: one red job must never hide another. Actions are pinned to commit SHAs.
+GitHub push protection is on for the repository, so a known secret format is refused at push time.
+
+**Git hooks** (`.githooks/`, installed by `npm run setup`): **pre-commit** runs the secret scan on the staged
+files, so a secret is refused before it is ever committed. **commit-msg** is the authoritative close check: it
+reads the real commit message, so it works whatever form the command takes (`-m`, `-F`, a heredoc, an editor),
+and it refuses a subject that looks like a close but isn't exactly `S<N> close: <title>`.
 
 **The sprint-close guard** (`.claude/hooks/sprint-close-guard.mjs`, run before every Bash/PowerShell command)
-blocks a close commit unless:
+protects the git hooks: it blocks any commit while they aren't installed, and any attempt to skip them
+(`--no-verify`, `-n`, a `core.hooksPath` override). When the command text shows a close message, it runs the
+gates up front. Both enforcement points share the gates in `tools/lib/close-gates.mjs`. A close is blocked
+unless:
 
 | Gate | Requires | Waiver file (`.claude/reviews/`) |
 |---|---|---|
 | sprint-log | `SPRINT-N.md` exists, its status is `complete`, and the sprint INDEX links it | `SPRINT-N-sprint-log-WAIVED.md` |
 | reviews | Both review files exist; neither verdict is BLOCKED; both were stamped at the current HEAD with the current scope hash; the reviewer ran on Fable | `SPRINT-N-reviews-WAIVED.md` |
-| local-ci | `npm run ci` passed on exactly the files on disk now | `SPRINT-N-local-ci-WAIVED.md` |
-| untracked | No untracked, non-ignored files (local green on files that aren't committed proves nothing) | `SPRINT-N-untracked-WAIVED.md` |
-| github-ci | The latest completed push run on `main` isn't a failure (fails open if `gh` is unavailable) | `SPRINT-N-github-ci-WAIVED.md` |
+| local-ci | `npm run ci` passed on exactly the project files on disk now | `SPRINT-N-local-ci-WAIVED.md` |
+| untracked | No untracked, non-ignored files and no unstaged changes (local green on files that aren't committed proves nothing) | `SPRINT-N-untracked-WAIVED.md` |
+| github-ci | The latest CI run for pushes to `main` has finished and succeeded, for the last pushed commit. Fails closed: an unfinished, missing or unreadable run blocks. Passes only when `main` was never pushed | `SPRINT-N-github-ci-WAIVED.md` |
 
 The **review scope hash** covers every tracked or untracked non-ignored file **except** `docs/sprints/**` and
 `ROADMAP.md`, so the sprint log can be finished after the review, but any other change forces a new review. The CI
-hash covers every file. A waiver is written only on the owner's say-so, states the reason, and is mentioned in the
-sprint log. The guard's own tests (`.claude/hooks/tests/`) run in CI; run them after any hook change.
+hash covers every project file. A waiver is written only on the owner's say-so, states the reason, and is mentioned
+in the sprint log. The governance tests (`.claude/hooks/tests/`) run in CI; run them after any hook or tool change.
 
 **The model-routing guard** (`.claude/hooks/model-routing-guard.mjs`, run before every agent spawn) blocks a
 `reviewer` spawn on any model but Fable, and a generic spawn (`general-purpose`/`claude`) that names no model.
@@ -168,7 +184,9 @@ sprint log. The guard's own tests (`.claude/hooks/tests/`) run in CI; run them a
 ## Model routing
 
 Judgment runs on the strongest reviewer model; implementation runs on strong but cheaper models. Each role's model
-is fixed in its definition's frontmatter (`.claude/agents/<name>.md`), so spawning by role name picks the right one.
+is set in its definition's frontmatter (`.claude/agents/<name>.md`), so spawning by role name picks the right one.
+Only the reviewer's model is enforced by a guard; for other roles a spawn-time override is possible and must be
+recorded in the sprint log.
 
 | Role | Model |
 |---|---|

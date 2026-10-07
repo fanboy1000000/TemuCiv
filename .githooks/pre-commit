@@ -1,0 +1,4 @@
+#!/bin/sh
+# TemuCiv: refuse a commit whose staged files contain a secret. The repository is public, and GitHub's
+# own scan only sees a secret after it has been pushed. Installed by `npm run setup`.
+exec node "$(dirname "$0")/../tools/check-secrets.mjs" --staged

@@ -5,9 +5,10 @@
 | **Sprint** | N |
 | **Status** | planned \| in-progress \| complete |
 | **Dates** | YYYY-MM-DD → YYYY-MM-DD |
-| **Base commit** | `<sha>` (HEAD at sprint start) |
+| **Base commit** | `<sha>` (HEAD at sprint start; the empty tree for a repository's first sprint) |
+| **Previous close on GitHub** | run `<id>`: success \| failure (the push of the previous sprint's close) |
 | **Orchestrator model** | `<model id>` (Claude Code `<version>`) |
-| **CI verified** | no \| local `npm run ci` PASS on close state; GitHub run `<id>` |
+| **CI verified** | no \| local `npm run ci` PASS on the close state (the GitHub run is recorded by the next sprint) |
 
 ## Playtest input
 

@@ -35,8 +35,8 @@ sprint) confirms or adjusts them, and this table changes with it.
 <!-- roster:end -->
 
 **Orchestrator-only files:** `CLAUDE.md`, `ROADMAP.md`, `docs/**`, `.claude/**` (agents, hooks, skills, settings),
-`package.json` and the lockfile (`platform` may change them only when the task's scope says so), and every
-file the architecture doc marks as shared.
+`.githooks/**`, and every file the architecture doc marks as shared. **Reserved by default:** `package.json` and the
+lockfile belong to the Orchestrator unless a task's scope explicitly hands them to `platform`.
 
 **A new role** is added only when an area is big enough that a specialist pays for itself. It gets a definition,
 a roster row and a line in the sprint log. Until then, the task's explicit file list in the sprint plan decides

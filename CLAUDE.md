@@ -46,8 +46,9 @@ resists a first fix, use `systematic-debugging` (no code changes before the root
 | [ROADMAP.md](ROADMAP.md) | Milestones, backlog, parking lot | Orchestrator |
 
 **Tooling:** `npm run ci` (every check; records the result for the close gate) · `npm run check-docs` ·
-`npm run review-stamp` (stamp before a review) · hooks in `.claude/hooks/` (sprint-close guard, model-routing
-guard, with tests) · GitHub Actions in `.github/workflows/ci.yml` · skills in `.claude/skills/`.
+`npm run review-stamp` (stamp before a review) · `npm run setup` (once per clone: installs the git hooks in
+`.githooks/`) · Claude hooks in `.claude/hooks/` (sprint-close guard, model-routing guard, with tests) · GitHub
+Actions in `.github/workflows/ci.yml` · skills in `.claude/skills/`.
 
 ## Decisions so far
 
@@ -75,8 +76,8 @@ format, module layout, test framework.
   `package.json` are Orchestrator-only (AGENTS.md).
 - Never commit secrets: the repository is public, and a secret scan runs on every push.
 - Never `git stash` while an agent is running. Never read an exit status through a pipe.
-- A sprint closes only through the close guard: commit subject `S<N> close: <title>`, message passed with `-m`.
-  Waivers need the owner's explicit say-so.
+- A sprint closes only through the close gates: commit subject exactly `S<N> close: <title>`; the commit-msg hook
+  checks the gates. Never skip the git hooks. Waivers need the owner's explicit say-so.
 - Ask the owner one question at a time, with options, trade-offs and a recommendation.
 
 ## Maintaining this file

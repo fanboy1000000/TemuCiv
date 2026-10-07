@@ -5,8 +5,9 @@
 | **Sprint** | 1 |
 | **Status** | in-progress |
 | **Dates** | 2026-09-30 → |
-| **Base commit** | `(none)`: first sprint, empty repository |
-| **Orchestrator model** | `claude-opus-5-5` (Claude Code 2.1.286) |
+| **Base commit** | the empty tree (`4b825dc`): first sprint, so the sprint-end review covers every file |
+| **Previous close on GitHub** | n/a (first sprint; `main` never pushed) |
+| **Orchestrator model** | `claude-opus-5-5` (Claude Code 2.1.286, later 2.1.292) |
 | **CI verified** | pending |
 
 ## Playtest input
@@ -33,8 +34,10 @@ StatsTid project (ADR-006, option B).
 
 **Bootstrap exception (declared deviation).** The workflow, the agent definitions and the review tooling are what
 this sprint creates, so its own steps couldn't run before it: no plan review (step 2), no agent delegation (step
-3). The Orchestrator wrote everything directly. **Compensation:** the full result goes through the dual-lens
-sprint-end review (step 7) with the normal cycle cap, and the close guard applies to this sprint's own close.
+3), no per-task commits (step 6). The Orchestrator wrote everything directly, and TASK-101 to 107 were committed
+together as one local commit (`e2a1e51`, 2026-10-07) before the sprint-end review. **Compensation:** the full
+result goes through the dual-lens sprint-end review (step 7) with the normal cycle cap, reviewing every file
+against the empty tree, and the close gates apply to this sprint's own close.
 
 | Task | Agent | May write | Acceptance criteria → verified by | High-risk |
 |---|---|---|---|---|
@@ -181,6 +184,13 @@ rule that prices fall with activity. Still open, carried over: what pays for uni
 lean: one coin for the abstract plus a few physical goods hauled by logistics). Working notes:
 `.claude/refinements/REFINEMENT-economy.md`.
 
+**Follow-up task (2026-10-07).** TASK-108 fixes the six BLOCKERs and four of the WARNINGs from the first Codex
+review of this sprint (`.claude/reviews/SPRINT-1-codex-c1.md`, 2026-09-30), before the review is re-run.
+
+| Task | Agent | May write | Acceptance criteria → verified by | High-risk |
+|---|---|---|---|---|
+| TASK-108 | Orchestrator | `.githooks/**`, `tools/**`, `.claude/hooks/**`, `.github/**`, `package.json`, `docs/**`, `CLAUDE.md` | Each Codex cycle-1 BLOCKER fixed, with a test that fails when the fix is removed → governance tests + mutation runs | no |
+
 ## Plan review (step 2)
 
 | Field | Value |
@@ -189,7 +199,39 @@ lean: one coin for the abstract plus a few physical goods hauled by logistics). 
 
 ## Task log
 
-_Recorded after verification._
+### TASK-101 to TASK-107: governance foundation (bootstrap)
+
+Written directly by the Orchestrator (see Plan). Committed together as `e2a1e51`. Verified by the sprint-end
+review below.
+
+### TASK-108: close-gate fixes after Codex cycle 1
+
+| Field | Value |
+|---|---|
+| **Status** | complete |
+| **Agent** | Orchestrator (bootstrap exception: `.claude/**` and the gate tooling are Orchestrator-only) |
+| **Constraint validator** | n/a: no game code; self-checked (no secrets, scope as declared) |
+| **Review** | covered by the sprint-end review |
+
+The close gates were enforced only by reading the text of the command, which several ordinary commit forms
+slipped past. They now live in one shared module and are enforced where git sees the real message:
+
+| Codex cycle-1 BLOCKER | Fix | Test |
+|---|---|---|
+| Close detection parsed command text; `git.exe`, `--no-pager`, `-F` and variables slipped past; "S1 close" matched anywhere | Versioned git `commit-msg` hook (`.githooks/`, `npm run setup`) checks the gates on the real message; exact subject `S<N> close: <title>`; look-alike subjects refused. The Claude guard blocks commits while the hooks aren't installed and blocks `--no-verify`, `-n`, `core.hooksPath` overrides | `git-hooks.test.mjs`; guard tests for every command form |
+| Step 7 assumed committed tasks and a base; staged and untracked files were hashed but not reviewed | Base for a first sprint is the empty tree; `review-stamp` refuses while anything outside the close paperwork is uncommitted; this sprint's tasks committed (`e2a1e51`) | stamp-refusal test |
+| Gate named `staging` in code, `untracked` in the docs | Renamed to `untracked` in code; docs say it also covers unstaged changes | documented-waiver-name test |
+| GitHub gate passed anything but a literal `failure`, ignored newer runs, failed open | Fails closed: the newest CI run for pushes to `main` must be finished, successful and for the last pushed commit; passes only if `main` was never pushed | six mocked states (red, cancelled, unfinished, missing, stale, error) |
+| Secrets were only caught after a push | Pre-commit secret scan of staged files and a scan step in `npm run ci`; GitHub push protection confirmed on | secret-pattern and pre-commit tests |
+| The template asked for the close's own GitHub run id, which can't exist yet | Template and Step 0 record the previous close's run at the next sprint's start | n/a (docs) |
+
+WARNINGs fixed: the CI-hash wording (project-file content, not "every file on disk"); the routing guard now
+accepts full Fable model ids and the docs say only the reviewer's model is enforced; the `package.json` ownership
+rule made consistent; GitHub Actions pinned to commit SHAs and the gitleaks download checksum-verified. WARNINGs
+declined or deferred, with reasons: sprint logs stay outside the review hash (the close paperwork must be editable
+after review; plans are reviewed in step 2); read-only agents keep Bash (they need it for tests and git history;
+an enforced allowlist goes to the backlog); the worktree sequence is settled in the first sprint that runs
+parallel agents; ADR-005's supported envelopes go to Sprint 2's technical design.
 
 ## Design conformance
 

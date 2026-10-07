@@ -9,6 +9,9 @@ import { reviewStamp, writeCiRecord } from '../../../tools/lib/repo.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 export const HOOKS = resolve(here, '..');
+/** The repository's versioned git hooks (.githooks), used by tests that make real commits. */
+export const GITHOOKS = resolve(here, '../../../.githooks');
+export const REPO_ROOT = resolve(here, '../../..');
 
 export function write(root, path, content) {
   mkdirSync(dirname(join(root, path)), { recursive: true });
@@ -19,13 +22,17 @@ export function git(root, ...args) {
   return execFileSync('git', args, { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
 }
 
-/** A fresh repository with the gitignore rules the guard relies on. `commit: true` adds an initial commit. */
-export function makeRepo({ commit = true } = {}) {
+/**
+ * A fresh repository with the gitignore rules the guard relies on. `commit: true` adds an initial commit.
+ * `hooks: true` sets core.hooksPath the way `npm run setup` does, which the PreToolUse guard requires.
+ */
+export function makeRepo({ commit = true, hooks = true } = {}) {
   const root = mkdtempSync(join(tmpdir(), 'temuciv-hook-'));
   git(root, 'init', '-q', '-b', 'main');
   git(root, 'config', 'user.email', 'test@example.invalid');
   git(root, 'config', 'user.name', 'Hook Test');
   git(root, 'config', 'core.autocrlf', 'false');
+  if (hooks) git(root, 'config', 'core.hooksPath', '.githooks');
   write(root, '.gitignore', '.claude/reviews/\n.claude/ci/\n');
   write(root, 'src/game.txt', 'initial\n');
   if (commit) {
@@ -56,6 +63,17 @@ export function stampReviews(root, sprint, { reviewerModel = 'claude-fable-5-1',
   const stamp = `reviewed-against-commit: ${s.commit}\nreviewed-scope-hash: ${s.scopeHash}\n`;
   write(root, `.claude/reviews/SPRINT-${sprint}-codex.md`, `${stamp}\nNo findings.\nverdict: ${verdict}\n`);
   write(root, `.claude/reviews/SPRINT-${sprint}-reviewer.md`, `reviewed-by-model: ${reviewerModel}\n${stamp}\nNo findings.\nverdict: ${verdict}\n`);
+}
+
+/**
+ * Make a real commit in a test repository with the project's git hooks active (pre-commit secret scan,
+ * commit-msg close gates). Returns git's exit status and stderr.
+ */
+export function commitWithHooks(root, args, { env = {} } = {}) {
+  const cleanEnv = { ...process.env, ...env };
+  delete cleanEnv.CLAUDE_PROJECT_DIR;
+  const run = spawnSync('git', ['-c', `core.hooksPath=${GITHOOKS}`, 'commit', ...args], { cwd: root, env: cleanEnv, encoding: 'utf8', timeout: 60000 });
+  return { status: run.status, stderr: run.stderr + run.stdout };
 }
 
 /** Run a hook with a tool-call payload on stdin, the way Claude Code does. */

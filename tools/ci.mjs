@@ -1,7 +1,7 @@
 // The one command that runs every check the project has: `npm run ci`.
 //
 // Each step runs as its own process and its own exit code decides pass or fail (never a piped status).
-// On success the result is recorded against the exact files on disk (tools/lib/repo.mjs), which the
+// On success the result is recorded against the exact project files on disk (tools/lib/repo.mjs), which the
 // sprint-close guard requires. If files change while CI runs, the run fails: it proved nothing about
 // the files that exist now.
 //
@@ -13,7 +13,8 @@ import { scopeHash, writeCiRecord } from './lib/repo.mjs';
 
 const STEPS = [
   { name: 'docs consistency', cmd: process.execPath, args: ['tools/check-docs.mjs'] },
-  { name: 'hook tests', cmd: process.execPath, args: ['--test', '.claude/hooks/tests/*.test.mjs'] },
+  { name: 'secret scan', cmd: process.execPath, args: ['tools/check-secrets.mjs'] },
+  { name: 'governance tests (hooks and tools)', cmd: process.execPath, args: ['--test', '.claude/hooks/tests/*.test.mjs'] },
 ];
 
 const root = process.cwd();
