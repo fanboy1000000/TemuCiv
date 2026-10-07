@@ -12,8 +12,9 @@
 //      a rare false alarm: a -m message or a search that names those words must use -F or a search tool.
 //   2. A parse of the command into words, the way its shell does (POSIX quoting and backslash escapes for
 //      Bash; PowerShell quoting, backtick escapes, continuations and here-strings for PowerShell). Commands
-//      nested inside the command are parsed too: "(...)" and "$(...)" values (also inside double quotes),
-//      bash backticks, and the command given to `bash -c`, `sh -c`, `pwsh -Command` and the like. Every
+//      nested inside the command are parsed too: "(...)" and "$(...)" values and bash backticks inside double
+//      quotes, and the command given to `bash -c`, `sh -c`, `pwsh -Command` and the like. (Unquoted backticks
+//      need no special case: the words inside them are ordinary words.) Every
 //      `commit` subcommand found (after git, git.exe or anything else, such as a variable) is checked for -n in
 //      its flag clusters, and every commit, push or merge for a skip flag written with escapes.
 //
@@ -40,7 +41,7 @@ const MAX_DEPTH = 4;
 /**
  * Split a command into shell words; separators (; & | newline, a "(" that starts a command, and ")") become
  * null entries. Returns { words, unclosed, inner }: `unclosed` is true when a quote or bracket never closed;
- * `inner` holds the commands nested in the text ((...) and $(...) values, bash backticks), parsed separately.
+ * `inner` holds the commands nested in the text ((...) and $(...) values, backticks inside double quotes).
  */
 function shellWords(text, { powershell = false } = {}) {
   const ESC = powershell ? '`' : '\\';
@@ -66,7 +67,7 @@ function shellWords(text, { powershell = false } = {}) {
     unclosed = true;
     return [text.slice(i), text.length];
   };
-  /** A bash backtick substitution starting at text[i] === "`": [text, end index]. */
+  /** A bash backtick substitution inside double quotes, starting at text[i] === "`": [text, end index]. */
   const backticks = (i) => {
     for (let k = i + 1; k < text.length; k++) {
       if (text[k] === '\\') k++;
@@ -85,10 +86,6 @@ function shellWords(text, { powershell = false } = {}) {
       word = word ?? ''; // $'...': ANSI-C quoting, backslash escapes inside
       for (i += 2; i < text.length && text[i] !== "'"; i++) word += text[i] === '\\' && i + 1 < text.length ? text[++i] : text[i];
       if (i >= text.length) unclosed = true;
-    } else if (c === '`' && !powershell) {
-      const [content, end] = backticks(i);
-      word = (word ?? '') + content;
-      i = end;
     } else if (c === '(' && !atCommandStart()) {
       const [content, end] = group(i); // (...) or $(...) inside a command: a computed value, one word
       word = (word ?? '') + content;

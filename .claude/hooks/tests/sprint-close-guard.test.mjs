@@ -180,6 +180,7 @@ test('guards git merge as well: its skip flag bypasses commit-msg too', () => {
   const root = repo();
   assert.equal(guard(root, 'git merge --no-verify sprint/999').status, 2);
   assert.equal(guard(root, 'git merge "--no-veri" sprint/999').status, 2);
+  assert.equal(guard(root, 'git merge --no-\\verify sprint/999').status, 2, 'an escaped flag only the parse can see');
   assert.equal(guard(root, 'git merge --ff-only sprint/999').status, 0);
   assert.equal(guard(root, 'git -C $(pwd) commit -m "TASK-1: computed path"').status, 0, 'a computed value alone is fine');
   assert.equal(guard(root, "git commit -F - <<'EOF'\nTASK-1: docs\n\nExplain --no-verify and git commit -n.\nEOF").status, 0);
