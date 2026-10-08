@@ -43,7 +43,8 @@ from M2, not added at the end.
   (the genre's lesson: Civ V's one-unit-per-tile rule, which its lead designer later criticized partly because
   the AI could not maneuver armies under it).
 - **A system is not done until the AI plays it** at a basic level, from M2 on (ROADMAP).
-- AI decision time per turn is measured against the performance budgets (ADR-005, ADR-008).
+- AI decision time per turn is measured against the performance budgets (ADR-005, ADR-008). The AI stops on a
+  work budget, never on the clock, so its choices stay reproducible (ADR-010).
 
 ## Alternatives rejected
 

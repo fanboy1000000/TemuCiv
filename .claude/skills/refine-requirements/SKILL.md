@@ -70,7 +70,9 @@ Prompt (both lenses): *"Review the refinement at <path> for TemuCiv. Check: scop
 be deferred, anything deferred that is load-bearing); open questions (any genuine design fork not surfaced; is
 each lean defensible); assumptions (wrong against the design, the ADRs or docs/CONVENTIONS.md); rules (do they
 match the design exactly, can each be tested); acceptance criteria (do they verify done); risks (determinism,
-performance, scale, save compatibility). BLOCKER / WARNING / NOTE with citations; end with `verdict:`."*
+performance, scale, save compatibility). THE BAR: a BLOCKER is an invariant at risk, a design mismatch, a claim
+the documents don't support, or a gap an agent would plausibly hit by mistake; an edge case nobody would plausibly
+hit is a NOTE. BLOCKER / WARNING / NOTE with citations; end with `verdict:`."*
 
 Fix BLOCKERs in the refinement and re-run the lens that raised them (cycle cap 3, WORKFLOW.md). Show WARNINGs and
 NOTEs to the owner with a recommendation. Otherwise skip Step 4 and record a one-line reason. If Codex is
@@ -90,7 +92,8 @@ proceed, plan the sprint (WORKFLOW.md step 1).
 ## Calibration
 
 - **Simple fix or typo:** a 2–3 line refinement, no review, READY.
-- **One feature or one system design:** the full block plus Step 4.
-- **A new system or a multi-sprint feature:** the full block, Step 4, and several question rounds.
+- **One feature:** the full block, no Step 4 (the sprint's reviews cover it).
+- **A system design becoming its spec, or a multi-sprint feature:** the full block, Step 4, and as many question
+  rounds as it takes.
 
 Don't over-refine the obvious. The skill is for ambiguous or complex requests.

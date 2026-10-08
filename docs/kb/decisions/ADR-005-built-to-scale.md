@@ -16,15 +16,18 @@ design limits or hard caps: larger settings still work, they just aren't measure
 
 | Setting | Tested up to |
 |---|---|
-| Map | about 10,000 tiles (Civilization VI's largest map is about 7,000) |
+| Map | 128 × 80 = 10,240 tiles (Civilization VI's largest map is about 7,000) |
 | Players | 12 |
 | Game length | 500 turns |
 
-At the largest settings, late in a game, on the reference machine: a turn resolves (rules only) in under
-1 second; the player waits at most 2 seconds after End Turn, computer players included; the map pans and zooms at
-60 frames per second at 1080p. The **reference machine** is a mid-range laptop from about 2020 (4 cores, 8 GB of
-memory, integrated graphics, a 1080p screen), played with mouse and keyboard. Steam Deck and controllers are not a
-target for now (owner, 2026-10-08); supporting them later means reworking the interface and these budgets.
+**The workload:** that map and player count at turn 400 of a recorded headless AI-vs-AI game. On it, on the
+reference machine: a turn resolves (rules only) in under 1 second; the player waits at most 2 seconds after End
+Turn, computer players included; the map pans and zooms at 60 frames per second at 1080p. The **reference
+machine** is a 2020 mid-range laptop: a 4-core mobile processor of the Core i5-10210U class, 8 GB of memory,
+integrated graphics, a 1080p screen, played with mouse and keyboard. CI checks the rules-only time on its own
+runner as a regression guard; the full budgets are measured on a reference-class machine at M4 and M5. Steam Deck
+and controllers are not a target for now (owner, 2026-10-08); supporting them later means reworking the interface
+and these budgets.
 
 ## Why
 
@@ -45,4 +48,4 @@ late-game micromanagement) is the owner's, and engineering flags where a design 
 ## Consequences
 
 - CI gets performance-budget checks on large generated maps once the simulation exists.
-- Headless simulations regularly run at the largest supported settings.
+- Headless simulations regularly run at the tested envelope's settings.

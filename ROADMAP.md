@@ -11,7 +11,7 @@ Milestones are ordered by dependency. The sprints each one takes are projections
 | Milestone | Goal | Delivers |
 |---|---|---|
 | **M0: Design** (current) | Governance, architecture, the owner's vision and scope | Workflow and gates; `docs/architecture.md` (done, S2); `docs/design/vision.md` and `scope.md` |
-| **M1: Foundation** | Project skeleton, hex grid, map generation, rendering, camera; CI for types, lint, tests and determinism | A map you can scroll |
+| **M1: Foundation** | Project skeleton, hex grid, map generation, rendering, camera; CI for types, tests and determinism | A map you can scroll |
 | **M2: Core loop** | Units, movement, turns, cities, yields, production; a first AI player that plays them (ADR-009) | Found cities and grow, next to an AI rival |
 | **M3: Depth** | Progress (the leader web in rings), combat, borders, fog of war; the AI learns each system as it lands | Something close to a real game |
 | **M4: First complete game** | AI personalities and full strategy, victory conditions, save/load, headless soak games | **The first complete, playable game** |
@@ -27,13 +27,13 @@ Deferred work with an owner and a reason. Items leave the backlog when a sprint 
 |---|---|---|
 | Design brainstorm, carried over: which economy pays for units and buildings (lean: one coin plus a few physical goods hauled by logistics); the big shape of logistics (routes designed once, then automatic: proposed) and of cities (stability, sanitation) | The owner moved to the technical sprint first | M0 |
 | Design spec: owner writes `vision.md` and `scope.md` (templates in `docs/design/`) | Owner's work, at the owner's pace | M0 |
-| Design: route the 2026-10-04 brainstorm rulings (Sprint 1 log, "Owner design rulings") into `docs/design/`, with the owner's OK | Brainstorm still in progress | M0 |
+| Design: route the 2026-10-04 brainstorm rulings (Sprint 1 log, "Owner design rulings") into `docs/design/`, with the owner's OK; include renaming "research" to "progress" in `docs/design/README.md` | Brainstorm still in progress | M0 |
 | `run-game` skill: the verified recipe for launching the game and taking screenshots | Needs a runnable build | M1 |
 | M1 setup per ADR-011: Vite, TypeScript strict (`erasableSyntaxOnly`), one TypeScript project per part of `src/`, `node:test`, Playwright; CI steps for the type check, tests, data-schema validation, the `src/sim` search for `Math.random`/`Date.now`/`new Date(`, and the determinism replay | Needs code | M1 |
 | Headless AI-vs-AI soak games and performance budgets in CI | Needs the simulation and AI players | M3–M4 |
 | Read-only agents (reviewer, constraint-validator, trace) have unrestricted Bash; replace with an enforced read/test allowlist (Codex S1 cycle 1, warning) | No agent has run yet; needs a mechanism Claude Code supports | Before the first agent-built sprint |
 | Worktree sequence for parallel agents: compare via shared refs (HEAD vs main), and state who stages, commits and merges (Codex S1 cycle 1, warning) | Settled in the first sprint that runs parallel worktree agents | First parallel build sprint |
-| Guard leftovers from Sprint 1's last review (reviewer cycle 13, judged implausible as mistakes): also check the other shell's joined text; a bash comment ending in a backslash before a continued PR merge; list `gh api` PR merges as a known limit. Notes, not blockers: the receipt guards `main`; GitHub's ruleset can't stop PR merges by agents (shared account) | Declined at the S1 close to avoid reopening the review | S2 |
+| Guard leftovers from Sprint 1's last review (reviewer cycle 13, judged implausible as mistakes): also check the other shell's joined text; a bash comment ending in a backslash before a continued PR merge; Notes, not blockers: the receipt guards `main`; GitHub's ruleset can't stop PR merges by agents (shared account) | Declined at the S1 close to avoid reopening the review | When a guard gap is hit in practice (S2: kept as notes; `gh api` merges now listed as a known limit in WORKFLOW) |
 | A plain-language glossary (HEAD, worktree, hash, staging, CI run states) and a one-page close checklist for the owner (Codex S1 cycle 1, note) | Nice to have | Any docs sprint |
 
 ## Parking lot

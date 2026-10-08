@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| **Status** | accepted (owner rulings, 2026-09-30) |
+| **Status** | accepted (owner rulings, 2026-09-30); review and testing rules amended in Sprint 2 (2026-10-08) |
 | **Sprint** | S1 |
 | **Areas** | all |
 
@@ -24,6 +24,9 @@ including per-task review in high-risk areas). **Codex** is the external review 
 - The "brief challenge" instruction in every agent. In StatsTid, 14 of 14 agent contradictions in one sprint were
   correct.
 - Dual-lens review (reviewer agent on Fable + Codex) with severities and a 5-cycle cap.
+- *Amended (Sprint 2, owner, 2026-10-08):* RED evidence is required for high-risk changes only (CONVENTIONS,
+  invariant 7); both lenses review the plan and the sprint end, the reviewer alone reviews high-risk tasks; the
+  cap is 3 cycles; every review prompt states the bar (WORKFLOW, "Review cycles").
 - State in files (sprint logs, handoff blocks), a knowledge base (ADR/PAT/FAIL), a roadmap with a backlog.
 - Mechanical enforcement: a sprint-close guard, a model-routing guard, local CI and GitHub CI, with the lessons
   behind StatsTid's gates (untracked files, red CI nobody read, failures that were only warnings).

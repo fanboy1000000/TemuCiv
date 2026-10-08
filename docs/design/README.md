@@ -10,7 +10,7 @@ it, but never changes a design decision on its own.
 |---|---|
 | `vision.md` | What the game is, who it's for, its pillars, and the hook that makes it more than a small Civ clone |
 | `scope.md` | What's in the first version, and the explicit list of what's left out |
-| `systems/<system>.md` | One file per game system (map, cities, units, combat, progress, AI personalities…), written from [TEMPLATE-system.md](TEMPLATE-system.md) |
+| `systems/<system>.md` | One file per game system (map, cities, units, combat, research, AI personalities…), written from [TEMPLATE-system.md](TEMPLATE-system.md) |
 
 ## How a design becomes code
 

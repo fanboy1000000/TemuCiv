@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| **Status** | accepted (owner ruling, 2026-10-05); supersedes ADR-007 |
+| **Status** | accepted (owner ruling, 2026-10-05); supersedes ADR-007; game loop amended by ADR-010 (2026-10-08) |
 | **Sprint** | S1 |
 | **Areas** | simulation, ai-player, presentation, platform, test-qa |
 
@@ -32,7 +32,8 @@ TemuCiv is **turn-based**. The real-time-with-pause ruling (ADR-007) is reversed
 ## Rules this implies
 
 - **The simulation offers "resolve turn".** It takes every player's orders for the turn and produces the next
-  state: phase 1, then phase 2. It never reads a clock. A replay is the starting state plus each turn's orders
+  state: phase 1, then phase 2. It never reads a clock. *Amended by ADR-010:* resolution is a state machine
+  that pauses for battles fought by hand, not one function. A replay is the starting state plus each turn's orders
   from every player, plus the actions taken in battles.
 - **The result never depends on submission order.** Who clicked "end turn" first, or player numbering, must
   not change the outcome. Conflicts between simultaneous orders (two armies entering the same tile, armies
@@ -47,7 +48,7 @@ TemuCiv is **turn-based**. The real-time-with-pause ruling (ADR-007) is reversed
   then a battle started") are filtered by fog of war like the state itself (ADR-003).
 - **AI players** give orders for the same turn from their own view, with no knowledge of anyone's orders for
   that turn, through the same actions as a human.
-- **Performance budgets are per turn:** turn-resolution time and AI planning time on the largest supported map
+- **Performance budgets are per turn:** turn-resolution time and AI planning time on the largest tested map
   (ADR-005), because the player waits on them after ending a turn.
 
 ## Alternatives rejected

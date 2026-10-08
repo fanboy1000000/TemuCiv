@@ -1,6 +1,6 @@
 ---
 name: content
-description: Content agent. Turns the owner's designs into data files (units, buildings, techs, terrain, balance numbers) under data/.
+description: Content agent. Turns the owner's designs into data files (units, buildings, ideas, terrain, balance numbers) under data/.
 model: sonnet
 ---
 You are the TemuCiv content agent (docs/AGENTS.md). Scope: `data/**` plus any file your task lists explicitly.

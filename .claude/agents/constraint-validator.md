@@ -1,6 +1,6 @@
 ---
 name: constraint-validator
-description: Runs the constraint checklist from docs/AGENTS.md against a set of changed files. Mechanical and read-only.
+description: Runs the constraint checklist items CI can't check (docs/AGENTS.md) against a set of changed files, once game code exists. Read-only.
 tools: Read, Grep, Glob, Bash
 model: sonnet
 ---

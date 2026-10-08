@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| **Status** | accepted (owner ruling, 2026-09-30); hotseat ruled out by ADR-007 (2026-10-04), possible again under ADR-008 (2026-10-05) |
+| **Status** | accepted (owner ruling, 2026-09-30); hotseat ruled out by ADR-007 (2026-10-04), possible again under ADR-008 (2026-10-05); network format amended by ADR-010 (2026-10-08) |
 | **Sprint** | S1 |
 | **Areas** | simulation, ai-player, presentation, platform |
 
@@ -40,5 +40,6 @@ lobbies, reconnection, sync bugs and anti-cheat work, which is too much for the 
 
 ## Consequences
 
-- The save format and the network format can later be the same serialized state.
+- *Amended by ADR-010:* the network never carries the full state, only actions in and each player's views and
+  events out; saves are full snapshots.
 - Tests must check that a player's view never contains hidden information.

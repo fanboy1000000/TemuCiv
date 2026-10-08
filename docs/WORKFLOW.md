@@ -81,8 +81,8 @@ For each finished task:
 
 ### Step 5: Per-task review
 - The **reviewer** agent reviews each **high-risk** task (per-task scope: correctness of the change, edge cases,
-  design conformance). Other tasks are covered by the sprint-end review, where Codex joins. High-risk
-  categories:
+  design conformance). The Orchestrator may add Codex as a second lens on a high-risk task (AGENTS.md, "Codex").
+  Other tasks are covered by the sprint-end review, where Codex joins. High-risk categories:
   - simulation rules and their numbers (combat, yields, growth, progress, victory)
   - determinism: the RNG, turn-resolution order, iteration order, anything that could make two runs diverge
   - the action pipeline and per-player views (validation, visibility, fog of war)
@@ -94,7 +94,8 @@ For each finished task:
 ### Step 6: Accept and record
 1. Review any **PROPOSED KNOWLEDGE ENTRY** from agents. Approve valid ones as KB files and add them to
    `docs/kb/INDEX.md` (only the Orchestrator writes the KB).
-2. Record the task in the sprint log: status, agent, acceptance criteria with pass/fail, files changed, reviews.
+2. Record the task in the sprint log (TEMPLATE.md): status, agent, checklist result, review, commit, files
+   changed, and the acceptance criteria with pass/fail.
 3. Commit the task on the sprint branch (`TASK-N0x: <summary>`). A worktree agent leaves its changes
    uncommitted; the Orchestrator verifies them in that worktree, commits them there on the worktree's branch,
    merges that branch into `sprint/N`, re-runs `npm run ci` on the sprint branch, and removes the worktree.
@@ -141,10 +142,11 @@ The owner plays the sprint's build. Their notes are recorded at the top of the n
 
 - **The bar is stated in every review prompt.** Findings use three severities. **BLOCKER:** an invariant at
   risk, a design mismatch, a claim the code doesn't support, or a gap an agent would plausibly hit by mistake;
-  it must be fixed or escalated. An edge case nobody would plausibly hit is a NOTE. **WARNING:** a quality or simplicity concern; fixed at the
-  Orchestrator's discretion, and a declined WARNING gets a one-line reason in the log. **NOTE:** a suggestion.
+  it must be fixed or escalated. **WARNING:** a quality or simplicity concern; fixed at the Orchestrator's
+  discretion, and a declined WARNING gets a one-line reason in the log. **NOTE:** a suggestion, or an edge case
+  nobody would plausibly hit.
 - **Every fix gets a verification review.** Cycles are counted per lens and per scope (plan, task or sprint).
-- **Cap: 3 cycles.** If the third verification still finds new BLOCKERs, stop and ask the owner, with a firm
+- **Cap: 3 cycles.** Cycle 1 is a lens's first review. If cycle 3 still finds new BLOCKERs, stop and ask the owner, with a firm
   recommendation and each option's cost: (a) keep iterating, (b) accept the remaining findings, or (c) move them
   into a new task. When two cycles in a row find new edge cases of the same kind, propose a structural change
   instead of another patch. Passing the cap also triggers a rulebook review (see "Harness evolution").
@@ -157,7 +159,7 @@ The owner plays the sprint's build. Their notes are recorded at the top of the n
 Rules that matter are enforced by machines. Memory and good intentions are not enforcement.
 
 **`npm run ci`** (`tools/ci.mjs`) runs every check the project has: currently the docs check, a secret scan and
-the governance tests (hooks and tools). Type checks, lint, unit tests, the determinism check, headless games and
+the governance tests (hooks and tools). Type checks, unit tests, the determinism check, headless games and
 performance budgets are added as the code arrives. Each step's own exit code is checked. On success it records
 the HEAD commit and a hash of the content of every project file (tracked, plus untracked files that aren't
 ignored) in `.claude/ci/last-run.json`. Ignored files and file modes are outside the hash, so checks must not
@@ -176,7 +178,8 @@ a close but isn't exactly `S<N> close: <title>`, any other commit that marks a s
 neither a task commit nor a close made with its commit hooks skipped can reach the shared branch (CONVENTIONS
 invariant 7). On GitHub, the ruleset `protect-main` blocks deleting or force-pushing `main`. Known limits:
 pre-push is itself a hook, kept running by the guard's checks below; GitHub can't tell an agent from the owner
-(they share the owner's account), so a pull-request merge on GitHub is stopped only by the guard; git doesn't run
+(they share the owner's account), so a pull-request merge on GitHub is stopped only by the guard, which catches
+`gh pr merge` but not a merge through `gh api`; git doesn't run
 commit-msg for cherry-pick, revert, rebase or `git am`; the hooks run only on this computer; a hand-made receipt
 or a deliberately assembled skip flag is out of reach (the threat is mistakes, not a hostile author).
 
@@ -274,7 +277,8 @@ These cost StatsTid real time. We start with them instead of relearning them.
 - **A red CI nobody reads is not enforcement.** Hence the github-ci gate and one background `gh run watch` per push.
 - **A tool whose failures are warnings reports success.** Every failure path reaches a non-zero exit code, and
   results are checked against an independent source of truth, not the tool's own log.
-- **A test that can't fail proves nothing.** Tests derive expected values from the design and must be seen failing.
+- **A test that can't fail proves nothing.** Tests derive expected values from the design; for high-risk changes
+  they must be seen failing (CONVENTIONS, invariant 7).
 - **Agents' briefs are often wrong about the code.** Every agent verifies claims and reports contradictions
   (AGENTS.md, "Brief challenge"); every contradiction is read before output is accepted.
 - **Worktrees start from the remote branch,** which lags the local sprint branch for the whole sprint. Every

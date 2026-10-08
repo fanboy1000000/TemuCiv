@@ -5,7 +5,7 @@
   "description": "A turn-based 4X strategy game in the Civilization genre, built entirely by AI.",
   "type": "module",
   "engines": {
-    "node": ">=22"
+    "node": ">=24"
   },
   "scripts": {
     "setup": "git config core.hooksPath .githooks",

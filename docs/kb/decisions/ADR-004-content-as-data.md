@@ -8,7 +8,7 @@
 
 ## Decision (plain language)
 
-Units, buildings, technologies, terrain, and every balance number (costs, yields, strengths, growth rates)
+Units, buildings, ideas in the progress web, terrain, and every balance number (costs, yields, strengths, growth rates)
 are defined in **data files** under `data/`, not written into the code. The code defines *how* rules work, and
 the data defines *what* exists and *how much*.
 
@@ -22,7 +22,7 @@ the data defines *what* exists and *how much*.
 
 ## Rules this implies
 
-- No balance numbers or content definitions hard-coded in logic (checked by the constraint-validator).
+- No balance numbers or content definitions hard-coded in logic (the constraint checklist, WORKFLOW step 4).
 - Data files are validated against a schema in CI once they exist.
 - Every value in a data file traces back to a design doc line or an owner ruling.
 

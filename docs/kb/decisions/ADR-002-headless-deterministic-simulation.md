@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| **Status** | accepted (2026-09-30) |
+| **Status** | accepted (2026-09-30); records amended by ADR-010 (2026-10-08) |
 | **Sprint** | S1 |
 | **Areas** | simulation, ai-player, presentation, test-qa |
 
@@ -24,6 +24,8 @@ This is the single most important engineering decision, because nearly everythin
   balance statistics.
 - **Every bug can be reproduced.** A seed and an action list replay the exact game that failed.
 - **Save/load, replays and multiplayer come almost for free:** each is "the starting state plus the actions".
+  *Amended by ADR-010:* a save is a state snapshot, a replay is the action list with the game and data versions,
+  and the network carries only actions, views and events.
 - **Computer players are ordinary players.** They use the same actions as a human, so they can't cheat and
   don't need their own rule code.
 
@@ -44,5 +46,5 @@ This is the single most important engineering decision, because nearly everythin
 
 ## Consequences
 
-- The constraint-validator checklist (docs/AGENTS.md) enforces the import and randomness rules on every change.
+- The compiler and a CI search enforce the import and randomness rules (`docs/architecture.md`).
 - UI features that seem to need a rule result must get it from the simulation, never re-implement it.

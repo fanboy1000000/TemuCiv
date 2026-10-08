@@ -25,10 +25,10 @@ The file scopes follow the module layout in `docs/architecture.md` (ADR-011); th
 | `ai-player` | opus | `src/ai/**` | Computer opponents: read a player's view, choose actions. Never reads hidden state |
 | `presentation` | opus | `src/client/**` | Rendering, input, UI screens. Reads state and sends actions; never computes rules |
 | `platform` | opus | `src/app/**`, `tools/**` (except the governance tooling below), `.github/**`, build config | App shell, desktop packaging, save-file I/O, build and CI tooling |
-| `content` | sonnet | `data/**` | Turns the owner's designs into data files (units, techs, terrain, numbers) |
-| `test-qa` | opus | `tests/**` | Tests derived from the design; RED-first; determinism, soak and performance tests |
+| `content` | sonnet | `data/**` | Turns the owner's designs into data files (units, ideas, terrain, numbers) |
+| `test-qa` | opus | `tests/**` | Tests derived from the design; RED-first for high-risk changes; determinism, soak and performance tests |
 | `reviewer` | fable | none (read-only) | Internal review lens: plans, tasks, sprint-end |
-| `constraint-validator` | sonnet | none (read-only) | Mechanical checklist against changed files |
+| `constraint-validator` | sonnet | none (read-only) | The checklist items CI can't check, once game code exists (WORKFLOW step 4) |
 | `trace` | sonnet | none (read-only) | Diagnoses a specific failure by tracing code; proposes, never applies, a fix |
 | `sweep` | haiku | files listed in the task | One precisely specified, pattern-shaped edit across many files |
 <!-- roster:end -->
@@ -193,7 +193,6 @@ FOCUS:
         exist (a delete-list).
  [sprint] cross-task consistency; drift from the architecture and the design; gaps between goal and result;
         what didn't need to exist.
- [all]  an edge case nobody would plausibly hit is a NOTE, not a BLOCKER.
 THE BAR: a BLOCKER is an invariant at risk, a design mismatch, a claim the code doesn't support, or a gap an
 agent would plausibly hit by mistake; an edge case nobody would plausibly hit is a NOTE.
 OUTPUT: findings labelled BLOCKER / WARNING / NOTE, each with file:line, what is wrong, and the fix.
