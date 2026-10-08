@@ -83,7 +83,7 @@ For each finished task:
 - The **reviewer** agent reviews each **high-risk** task (per-task scope: correctness of the change, edge cases,
   design conformance). The Orchestrator may add Codex as a second lens on a high-risk task (AGENTS.md, "Codex").
   Other tasks are covered by the sprint-end review, where Codex joins. High-risk categories:
-  - simulation rules and their numbers (combat, yields, growth, progress, victory)
+  - how simulation rules compute (combat, yields, growth, progress, victory); number changes alone are data
   - determinism: the RNG, turn-resolution order, iteration order, anything that could make two runs diverge
   - the action pipeline and per-player views (validation, visibility, fog of war)
   - serialization and the save format

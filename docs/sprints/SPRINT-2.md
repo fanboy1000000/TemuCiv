@@ -135,6 +135,9 @@ first review as cycle 1; the old testing and checklist wording is gone from ADR-
 and the agent definitions. ADR-011 drops the Steam library choice and the linter (TypeScript's checks instead);
 `package.json` requires Node 24. Computer players share the simulation's thread until the End Turn budget fails
 (the reviewer's delete-list). The plan table and task lines now record the real files, commits and criteria.
+The owner ruled on the one CONVENTIONS finding (option A, 2026-10-08): number changes are data and need no new test
+(each value traces to the design and passes the format check); "how game rules compute" is high-risk. Invariant 7,
+invariant 5 ("techs" became "ideas") and WORKFLOW's high-risk list were reworded to match.
 
 ## Design conformance
 
@@ -165,8 +168,13 @@ _Exact output of the real runs, never numbers from memory._
 
 ## Handoff
 
-_Kept current at every wave boundary. A new session must be able to continue from this block alone._
-- **State:** _what's done, merged and committed_
-- **In flight:** _tasks, agents, worktrees_
-- **Waiting on:** _owner questions, reviews_
-- **Next action:** _the one next step_
+- **State:** TASK-201 to 206 committed on `sprint/2` (last: the TASK-206 follow-up with the owner's invariant 7
+  ruling). Sprint-end review cycle 1: both lenses BLOCKED; every finding fixed (TASK-206). Local CI PASS. Nothing
+  pushed: `main` is still the Sprint 1 close, and `sprint/2` exists only on this computer.
+- **In flight:** nothing. No agents, no worktrees.
+- **Waiting on:** nothing from the owner.
+- **Next action:** sprint-end review cycle 2 (cap 3): `node tools/review-stamp.mjs`, then Codex (prompt in the
+  scratchpad is gone; rebuild it from AGENTS.md's template with the sprint goal above and FOCUS on whether the
+  cycle-1 findings are fixed) and the reviewer (`model: "fable"`) in parallel, saved as
+  `.claude/reviews/SPRINT-2-codex.md` and `SPRINT-2-reviewer.md` with the stamp lines on top. Then close (WORKFLOW
+  step 8). After the close: the owner's design work (vision and scope, the carried-over economy question), then M1.

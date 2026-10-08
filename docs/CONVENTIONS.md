@@ -27,8 +27,7 @@ alpha**:
 
 ## The invariant model
 
-Work is governed by two different kinds of rules: **invariants**, which are never traded away, and
-**trade-offs**, which are balanced.
+Work is governed by two kinds of rules: **invariants**, never traded away, and **trade-offs**, which are balanced.
 
 **Invariants: co-equal, not ranked.** A solution that breaks ANY invariant is not a valid path. Find another
 one. If two invariants genuinely cannot both hold, escalate to the owner; an agent never trades one away.
@@ -43,15 +42,16 @@ one. If two invariants genuinely cannot both hold, escalate to the owner; an age
 4. **Multiplayer-ready state.** All game state is serializable. There is no hidden global state. Each player
    receives only their own view: fog of war is enforced in the simulation, not just hidden by the renderer.
    (ADR-003)
-5. **Content is data.** Units, buildings, techs, terrain and balance numbers live in data files, not in code.
+5. **Content is data.** Units, buildings, ideas, terrain and balance numbers live in data files, not in code.
    (ADR-004)
 6. **Built to scale.** No hard-coded limits on map size, player count or game length. Pacing values live in
    data. Performance is tested at large scale, not just with the default setup. (ADR-005)
 7. **Nothing unverified ships.** Verification matches the risk, and every change is reviewed before it reaches
-   `main`. High-risk changes (game rules and their numbers, determinism, actions and what each player may see,
-   saves, AI decisions, performance-critical code) get tests derived from the design, seen failing first. Other
-   logic gets at least one check that can fail. Trivial edits and data changes need no new test (data is checked
-   against its format); visuals get a screenshot and the owner's playtest. "Done" means verified, not assumed.
+   `main`. High-risk changes (how game rules compute, determinism, actions and what each player may see, saves,
+   AI decisions, performance-critical code) get tests derived from the design, seen failing first. Other logic
+   gets at least one check that can fail. Trivial edits and data changes need no new test: each value traces to
+   the design and is checked against its format. Visuals get a screenshot and the owner's playtest. "Done" means
+   verified, not assumed.
 
 **Trade-offs, ranked: balanced against effort, never above an invariant.**
 1. **Player experience in the build:** responsiveness, clarity and stability of what the owner plays.
