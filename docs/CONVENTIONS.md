@@ -1,8 +1,7 @@
 # TemuCiv Conventions
 
-This file applies to **every** contributor: the Orchestrator and every agent. It is included word for word in
-every agent prompt (see `docs/AGENTS.md`, "Agent prompt template"). Keep it short, because it is read on every
-task. Size budget: 100 lines (enforced by `tools/check-docs.mjs`).
+This file applies to **every** contributor, the Orchestrator and every agent, and is included word for word in
+every agent prompt (`docs/AGENTS.md`). It is read on every task, so it stays short: 100 lines (`check-docs`).
 
 ## Project status and intent
 
@@ -13,7 +12,7 @@ alpha**:
   AI-content disclosure and store setup. Don't spend effort on these, but don't paint us into a corner either.
 - **Not deferred:** how we build. Methods, code quality, testing and review meet a professional-studio standard
   from day one. "Alpha" means features are incomplete, not that the work is sloppy. Professional also means
-  proportionate: no over-engineering for hypothetical needs.
+  proportionate (see "Build the minimum").
 - The repository is **public**. Never commit secrets, keys, tokens or personal data.
 
 ## Roles
@@ -48,8 +47,11 @@ one. If two invariants genuinely cannot both hold, escalate to the owner; an age
    (ADR-004)
 6. **Built to scale.** No hard-coded limits on map size, player count or game length. Pacing values live in
    data. Performance is tested at large scale, not just with the default setup. (ADR-005)
-7. **Nothing unverified ships.** Every behavior change comes with a test that can fail, and every change is
-   reviewed before it is committed to `main`. A claim of "done" means verified, not assumed.
+7. **Nothing unverified ships.** Verification matches the risk, and every change is reviewed before it reaches
+   `main`. High-risk changes (game rules and their numbers, determinism, actions and what each player may see,
+   saves, AI decisions, performance-critical code) get tests derived from the design, seen failing first. Other
+   logic gets at least one check that can fail. Trivial edits and data changes need no new test (data is checked
+   against its format); visuals get a screenshot and the owner's playtest. "Done" means verified, not assumed.
 
 **Trade-offs, ranked: balanced against effort, never above an invariant.**
 1. **Player experience in the build:** responsiveness, clarity and stability of what the owner plays.
@@ -57,6 +59,21 @@ one. If two invariants genuinely cannot both hold, escalate to the owner; an age
 
 **Enforcement is not a priority, it is the machinery.** CI, the hooks and the close gates are how the
 invariants stay true from build to build. They protect the invariants; they are not goals being weighed.
+
+## Build the minimum
+
+Adapted from ponytail (github.com/DietrichGebert/ponytail, MIT). Understand the problem first: read the task and
+the code it touches, and trace the real flow. Then stop at the first step that holds:
+1. **Does it need to exist?** A speculative need is skipped, and the report says so in one line.
+2. **Is it already in the codebase?** Reuse it.
+3. **Does the standard library, the platform or an installed dependency do it?** Use that. A new dependency
+   only when a few lines can't do the job.
+4. **Only then, the minimum that works.** No abstraction, file, setting or scaffolding the task didn't ask for.
+   Delete before adding; boring before clever.
+
+Never cut to save code: the invariants, validation of outside input, handling that prevents data loss, security,
+accessibility, anything the owner asked for. A deliberate shortcut with a known limit gets a comment,
+`shortcut: <the limit>; upgrade when <condition>`, which the sprint-start scan collects into the backlog.
 
 ## Audience and explanation standard
 

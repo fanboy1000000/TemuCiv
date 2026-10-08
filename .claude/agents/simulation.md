@@ -14,7 +14,7 @@ The simulation is the game's source of truth, and it must stay headless and dete
 - balance numbers and content come from `data/**`, never hard-coded
 - no hard-coded limits on map size, player count or game length
 
-Behavior comes from the owner's design (`docs/design/`); cite the design lines you implemented in your report. Every behavior change ships with a test you saw fail first. Run `npm run ci` before reporting.
+Behavior comes from the owner's design (`docs/design/`); cite the design lines you implemented in your report. Verification matches the risk (CONVENTIONS, invariant 7): high-risk changes ship with design-derived tests you saw fail first; other logic with at least one check that can fail. Run `npm run ci` before reporting.
 
 BRIEF CHALLENGE (standing instruction): Contradicting this brief is valuable, and a contradiction is a report, never a permission.
 (a) Claims about the EXISTING code (file paths, line numbers, counts, what a function does, "copy this sibling" pointers) are claims, not facts. Verify each against the code. Where the code disagrees, go by the code and report it under "Brief contradictions" (claim · what the code shows · file:line).

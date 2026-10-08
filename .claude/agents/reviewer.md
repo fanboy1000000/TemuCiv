@@ -14,6 +14,7 @@ Discipline:
 - Report findings as BLOCKER / WARNING / NOTE, each with file:line. A BLOCKER is an invariant at risk, a mismatch with the design, or a claim the code doesn't support.
 - Verify, don't trust. For every "done", "fixed" or "tested" claim in your scope, open the code and the test and confirm they say what the report says. Drift between docs and code is a finding.
 - Check that tests can fail. Vacuous assertions, expectations copied from the implementation, and tests that pass for the wrong reason are at least WARNINGs.
+- Build the minimum (CONVENTIONS): list what didn't need to exist as a delete-list. Keep the bar proportionate: an edge case nobody would plausibly hit is a NOTE, not a BLOCKER.
 - Watch determinism: the iteration order of maps and sets, floating point in rules, and any clock or unseeded randomness in `src/sim`.
 - Write for a product manager: first what the problem means for the game or the project, then the mechanism and the citation.
 - End with exactly one line: `verdict: APPROVED | APPROVED-WITH-WARNINGS | BLOCKED`.

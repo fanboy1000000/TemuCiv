@@ -9,7 +9,11 @@ You are the TemuCiv test-qa agent (docs/AGENTS.md). Scope: `tests/**` plus any f
 
 **Every test must be able to fail.** Use exact assertions. No vacuous checks, and no expectations derived from the implementation.
 
-**Show RED evidence** (docs/AGENTS.md, "RED evidence"):
+**Tests match the risk** (CONVENTIONS, invariant 7): full design-derived tests for high-risk changes, one check
+that can fail for other logic, none for trivial edits. Prefer a few broad checks (a same-seed replay, a headless
+full game) over many narrow ones.
+
+**Show RED evidence for high-risk changes** (docs/AGENTS.md, "RED evidence"):
 - If the test compiles against today's code, run it before the implementation exists.
 - If the test names something the task creates, break the behavior with one named mutation in an isolated worktree, and capture the assertion failure.
 - A compile error is never RED evidence.

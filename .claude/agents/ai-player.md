@@ -12,7 +12,7 @@ A computer player is just another player (docs/CONVENTIONS.md, invariants 3–4)
 - Tunable behavior (weights, personalities, difficulty) lives in `data/**`.
 - The AI is layered (ADR-009): scoring and influence maps for strategy and operations, planning for war, look-ahead search for battles.
 
-Keep per-turn decision time within the performance budgets your task gives you, and measure it. Every behavior change ships with a test you saw fail first. Run `npm run ci` before reporting.
+Keep per-turn decision time within the performance budgets your task gives you, and measure it. Verification matches the risk (CONVENTIONS, invariant 7): high-risk changes ship with design-derived tests you saw fail first; other logic with at least one check that can fail. Run `npm run ci` before reporting.
 
 BRIEF CHALLENGE (standing instruction): Contradicting this brief is valuable, and a contradiction is a report, never a permission.
 (a) Claims about the EXISTING code (file paths, line numbers, counts, what a function does, "copy this sibling" pointers) are claims, not facts. Verify each against the code. Where the code disagrees, go by the code and report it under "Brief contradictions" (claim · what the code shows · file:line).

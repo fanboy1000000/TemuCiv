@@ -61,8 +61,9 @@ cycles"). Record findings and their resolution in the sprint log.
 - One agent per task, spawned by role name (`subagent_type`), with the prompt template from AGENTS.md: role,
   file scope, CONVENTIONS.md verbatim, relevant design and KB excerpts, acceptance criteria, brief challenge.
 - Run independent tasks in parallel. Agents that write files in parallel use `isolation: "worktree"`.
-- Tests come first where possible: test-qa writes the tests from the design, and they must fail before the
-  implementation exists (AGENTS.md, "RED evidence").
+- Verification matches the risk (CONVENTIONS, invariant 7). For a high-risk change, tests come first: test-qa
+  writes them from the design, and they must fail before the implementation exists (AGENTS.md, "RED
+  evidence"). Other logic needs at least one check that can fail; trivial edits and data changes need none.
 - **Small tasks exception:** a trivial change (one file, under about 10 lines, one area) may be made directly by
   the Orchestrator. It still goes through verification and the sprint-end review, and never replaces delegation
   for substantive work.

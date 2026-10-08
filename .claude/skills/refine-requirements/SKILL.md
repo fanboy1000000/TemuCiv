@@ -10,6 +10,8 @@ engineering answer, and surface the design decisions that only the owner can mak
 
 ## Step 1: Understand the real need
 
+- Does this need to exist at all (CONVENTIONS, "Build the minimum")? If not, say so and stop. If it does,
+  propose the minimum that works and name what was deliberately left out.
 - What problem does this solve for the player or for the project? Why now?
 - What would the owner wish they had asked for three months from now?
 - Cross-reference: the owner's design (`docs/design/`), `docs/architecture.md`, `docs/kb/INDEX.md` (ADRs and

@@ -33,6 +33,7 @@ Anti-pattern greps (extend with every FAIL entry):
 - `src/sim/**`: `Math.random`, `Date.now`, `new Date(`, imports from `src/client`, `src/ai`, `src/app`
 - `src/ai/**`: access to full game state instead of a player view
 - everything: secrets, tokens, hard-coded absolute paths
+- everything: `shortcut:` comments (CONVENTIONS, "Build the minimum"); each one becomes a ROADMAP backlog line
 
 ## Plan
 

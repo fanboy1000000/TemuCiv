@@ -95,7 +95,8 @@ needs a design decision, an invariant exception or a requirement change goes to 
 
 ## RED evidence: proving a test can fail
 
-A test that has never failed proves nothing.
+A test that has never failed proves nothing. RED evidence is required for high-risk changes (CONVENTIONS,
+invariant 7, and WORKFLOW step 5); for other logic, the check must still be able to fail, without the ritual.
 - **A test that compiles against today's code** is run before the implementation exists, and must fail for the
   right reason (an assertion, not a crash or a missing file).
 - **A test that names something the task creates** can't compile before the implementation, and after the merge
@@ -126,6 +127,9 @@ A test that has never failed proves nothing.
   problem means first, then the mechanism). It ends with `verdict: APPROVED | APPROVED-WITH-WARNINGS | BLOCKED`.
 - **Discipline:** verify, don't trust. Open the code behind every "fixed" or "tested" claim. Check that tests can
   fail (vacuous assertions, expectations copied from output). Doc-versus-code drift is a finding.
+- **Build the minimum:** list what didn't need to exist (CONVENTIONS, "Build the minimum") as a delete-list: an
+  abstraction, dependency, file, setting or test nobody needed. Proportionate review: a finding about an edge case
+  nobody would plausibly hit is a NOTE, not a BLOCKER.
 
 When to run it: WORKFLOW.md steps 2, 5 and 7.
 
@@ -142,8 +146,11 @@ list grows: every FAIL entry and every new PAT entry may add an item.
 5. No balance numbers or content definitions are hard-coded in logic; they come from `data/**`.
 6. No hard-coded limits on map size, player count or game length.
 7. New game state is serializable (plain data; no class instances with hidden fields, functions or cycles).
-8. Every behavior change has a test, and the report shows it failing before it passed.
+8. Verification matches the risk (CONVENTIONS, invariant 7): a high-risk change has design-derived tests and the
+   report shows them failing before they passed; other logic has a check that can fail.
 9. No secrets, tokens or personal data; no leftover debug output, dead code or unused imports.
+10. Nothing the task didn't need: no unrequested abstraction, dependency, file, setting or scaffolding. A
+    deliberate shortcut carries a `shortcut:` comment naming its limit and when to upgrade.
 
 ## Codex (external lens)
 
@@ -179,9 +186,13 @@ Read docs/CONVENTIONS.md first: its invariants are the standard. The owner's des
 GOAL: [sprint goal or task acceptance criteria]
 FOCUS:
  [plan] scope tightness; does each criterion test the real behavior; the right agent and file scope;
-        dependencies; high-risk tasks flagged; anything that encodes an invariant violation as a feature.
- [task] correctness against the design; edge cases; determinism; tests that can't fail.
- [sprint] cross-task consistency; drift from the architecture and the design; gaps between goal and result.
+        dependencies; high-risk tasks flagged; anything that encodes an invariant violation as a feature;
+        anything planned that doesn't need to exist.
+ [task] correctness against the design; edge cases; determinism; tests that can't fail; what didn't need to
+        exist (a delete-list).
+ [sprint] cross-task consistency; drift from the architecture and the design; gaps between goal and result;
+        what didn't need to exist.
+ [all]  an edge case nobody would plausibly hit is a NOTE, not a BLOCKER.
 OUTPUT: findings labelled BLOCKER / WARNING / NOTE, each with file:line, what is wrong, and the fix.
 Write for a product manager: what the problem means before the mechanism.
 End with exactly one line: verdict: APPROVED | APPROVED-WITH-WARNINGS | BLOCKED
