@@ -10,7 +10,7 @@ Milestones are ordered by dependency. The sprints each one takes are projections
 
 | Milestone | Goal | Delivers |
 |---|---|---|
-| **M0: Design** (current) | Governance, architecture, the owner's vision and scope | Workflow and gates; `docs/architecture.md`; `docs/design/vision.md` and `scope.md` |
+| **M0: Design** (current) | Governance, architecture, the owner's vision and scope | Workflow and gates; `docs/architecture.md` (done, S2); `docs/design/vision.md` and `scope.md` |
 | **M1: Foundation** | Project skeleton, hex grid, map generation, rendering, camera; CI for types, lint, tests and determinism | A map you can scroll |
 | **M2: Core loop** | Units, movement, turns, cities, yields, production; a first AI player that plays them (ADR-009) | Found cities and grow, next to an AI rival |
 | **M3: Depth** | Progress (the leader web in rings), combat, borders, fog of war; the AI learns each system as it lands | Something close to a real game |
@@ -25,18 +25,14 @@ Deferred work with an owner and a reason. Items leave the backlog when a sprint 
 
 | Item | Why deferred | Picked up by |
 |---|---|---|
-| Architecture decision: game loop (order collection, simultaneous turn resolution, battles inside the turn, turn replay; ADR-008), rendering library, UI approach, desktop wrapper (Electron vs Tauri), data format and schema, module layout, test framework | Sprint 2: the owner asked for a sprint that analyzes the technical design choices (2026-10-07) | S2 |
-| ADR-005's supported envelopes: configurable map size, player count and game length limits with performance targets, so "built to scale" can be tested (Codex S1 cycle 1, warning) | Belongs to the architecture decision | S2 |
 | Design brainstorm, carried over: which economy pays for units and buildings (lean: one coin plus a few physical goods hauled by logistics); the big shape of logistics (routes designed once, then automatic: proposed) and of cities (stability, sanitation) | The owner moved to the technical sprint first | M0 |
 | Design spec: owner writes `vision.md` and `scope.md` (templates in `docs/design/`) | Owner's work, at the owner's pace | M0 |
 | Design: route the 2026-10-04 brainstorm rulings (Sprint 1 log, "Owner design rulings") into `docs/design/`, with the owner's OK | Brainstorm still in progress | M0 |
 | `run-game` skill: the verified recipe for launching the game and taking screenshots | Needs a runnable build | M1 |
-| CI steps for type check, lint, unit tests, data-schema validation and the determinism replay check | Needs code | M1 |
+| M1 setup per ADR-011: Vite, TypeScript strict (`erasableSyntaxOnly`), one TypeScript project per part of `src/`, `node:test`, Playwright; CI steps for the type check, tests, data-schema validation, the `src/sim` search for `Math.random`/`Date.now`/`new Date(`, and the determinism replay | Needs code | M1 |
 | Headless AI-vs-AI soak games and performance budgets in CI | Needs the simulation and AI players | M3–M4 |
-| First harness review (docs/WORKFLOW.md, "Harness evolution"); include whether refinement-level dual review pays for itself, whether sprint logs should stay outside the review hash, and a review bar stated in the prompts from the start (Sprint 1 took 14 Codex cycles) | Moved forward by the owner's plan (2026-10-08) | S2 |
 | Read-only agents (reviewer, constraint-validator, trace) have unrestricted Bash; replace with an enforced read/test allowlist (Codex S1 cycle 1, warning) | No agent has run yet; needs a mechanism Claude Code supports | Before the first agent-built sprint |
 | Worktree sequence for parallel agents: compare via shared refs (HEAD vs main), and state who stages, commits and merges (Codex S1 cycle 1, warning) | Settled in the first sprint that runs parallel worktree agents | First parallel build sprint |
-| Rename "research" as a system (WORKFLOW, AGENTS, the simulation agent, the design README, ADR-002's `SetResearch` example): progress is the leader web in rings (Sprint 1 review note) | Renamed with the module layout | S2 |
 | Guard leftovers from Sprint 1's last review (reviewer cycle 13, judged implausible as mistakes): also check the other shell's joined text; a bash comment ending in a backslash before a continued PR merge; list `gh api` PR merges as a known limit. Notes, not blockers: the receipt guards `main`; GitHub's ruleset can't stop PR merges by agents (shared account) | Declined at the S1 close to avoid reopening the review | S2 |
 | A plain-language glossary (HEAD, worktree, hash, staging, CI run states) and a one-page close checklist for the owner (Codex S1 cycle 1, note) | Nice to have | Any docs sprint |
 
@@ -44,6 +40,8 @@ Deferred work with an owner and a reason. Items leave the backlog when a sprint 
 
 Loose ideas. Nothing here is committed; the owner decides what gets promoted.
 
+- Steam Deck and controller support: not a target for now (owner, 2026-10-08); it would mean reworking the
+  interface and the performance budgets (ADR-005).
 - LLM-voiced leader personalities for diplomacy dialogue (decisions stay rule-based; flavor only).
 - A comedic "cheap knockoff" tone that plays on the working name (the owner's call, and the name itself is
   deferred to pre-release).

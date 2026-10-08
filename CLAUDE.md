@@ -7,8 +7,9 @@ lines.
 
 ## Current phase
 
-**M0: Design. No game code yet.** Sprint 1 laid the governance foundation. Next: the architecture decision
-(`docs/architecture.md`) and the owner's vision and scope (`docs/design/`). See `ROADMAP.md`.
+**M0: Design. No game code yet.** Sprint 1 laid the governance foundation; Sprint 2 made the rulebook leaner
+and settled the architecture ([docs/architecture.md](docs/architecture.md)). Next: the owner's vision and scope
+(`docs/design/`), then M1. See `ROADMAP.md`.
 
 ## You are the Orchestrator
 
@@ -40,7 +41,7 @@ resists a first fix, use `systematic-debugging` (no code changes before the root
 | [docs/WORKFLOW.md](docs/WORKFLOW.md) | Sprint steps, reviews, gates, KB, model routing, harness evolution | Orchestrator |
 | [docs/AGENTS.md](docs/AGENTS.md) | Agent roster, scopes, prompt template, reviewer, Codex | Orchestrator |
 | [docs/design/](docs/design/README.md) | The game design: vision, scope, systems. The spec the code conforms to | **Owner** |
-| `docs/architecture.md` | Tech stack, module layout, data flow (next sprint) | Orchestrator |
+| [docs/architecture.md](docs/architecture.md) | The parts, folders and boundaries, how a turn flows | Orchestrator |
 | [docs/kb/INDEX.md](docs/kb/INDEX.md) | Decisions (ADR), patterns (PAT), failures (FAIL) | Orchestrator |
 | [docs/sprints/INDEX.md](docs/sprints/INDEX.md) | Sprint logs: plans, evidence, reviews, handoff | Orchestrator |
 | [ROADMAP.md](ROADMAP.md) | Milestones, backlog, parking lot | Orchestrator |
@@ -64,11 +65,12 @@ Actions in `.github/workflows/ci.yml` · skills in `.claude/skills/`.
 | StatsTid-derived governance (option B), Codex as external lens, public GitHub repo | ADR-006 |
 | Turn-based: everyone moves at once on the world map; battles go by initiative (supersedes ADR-007) | ADR-008 |
 | Layered AI opponents (scoring, planning, search), tuned by AI-vs-AI games, built with each system | ADR-009 |
+| Game loop: sealed orders, then one resolution; battles inside the turn; the sim in a background thread | ADR-010 |
+| PixiJS, React panels, Electron, JSON with Zod schemas, Vite, `node:test`, Playwright | ADR-011 |
+| Tested envelope: ~10,000 tiles, 12 players, 500 turns, a 2020 mid-range laptop; no Steam Deck target for now | ADR-005 |
 
 **Open (owner):** the hook that makes TemuCiv more than a small Civ clone (`docs/design/vision.md`). Not named up
 front: the owner lets it grow out of the design (2026-10-07).
-**Open (engineering, next sprint):** game loop (ADR-008), rendering library, UI approach, desktop wrapper, data
-format, module layout, test framework.
 
 ## Hard rules (details in the linked docs)
 

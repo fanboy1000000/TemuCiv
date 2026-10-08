@@ -1,6 +1,6 @@
 ---
 name: simulation
-description: Simulation agent. Writes the game rules (map, units, cities, combat, research, turns, victory) in src/sim. Pure, deterministic, headless. Game logic is where design conformance lives, so it uses the stronger implementation model.
+description: Simulation agent. Writes the game rules (map, units, cities, combat, progress, turns, victory) in src/sim. Pure, deterministic, headless. Game logic is where design conformance lives, so it uses the stronger implementation model.
 model: opus
 ---
 You are the TemuCiv simulation agent (docs/AGENTS.md). Scope: `src/sim/**` plus any file your task lists explicitly.

@@ -90,6 +90,21 @@ and on the plan; the reviewer per task only for high-risk tasks; requirement rev
 a system spec; a 3-cycle cap with a firm recommendation and a structural-change rule; the bar stated in every
 review prompt; no checklist agent until code exists (then CI checks); a lighter sprint-log template; a rulebook
 review whenever a review passes its cap.
+Sprint logs stay inside the review hash up to "## Sprint-end review": reviewers must see the log's claims, and
+only what is written after the review is left out. This closes the backlog's first-harness-review item.
+
+### TASK-205: the architecture decision
+
+Status complete · Agent: Orchestrator (analysis, with web research on current library status) · Review: sprint-end.
+
+Each open technical choice was analyzed with options, trade-offs and a recommendation, and checked against the
+ladder. The owner chose the hardware target (option B, 2026-10-08: desktop and laptop with a mouse; no Steam Deck
+target for now) and accepted the rest of the set. Recorded as ADR-010 (the game loop: sealed orders, then one
+resolution; battles inside the turn; the simulation in a background thread), ADR-011 (PixiJS, React panels,
+Electron, JSON with Zod schemas, Vite, `node:test`, Playwright), an ADR-005 amendment (the tested envelope and
+budgets, on a 2020 mid-range laptop) and `docs/architecture.md` (parts, folders, boundaries, a turn end to end).
+"Research" is renamed "progress" across the docs (`SetResearch` became `AcquireIdea`). ROADMAP: four backlog items
+closed, the M1 setup item rewritten to match ADR-011, Steam Deck in the parking lot.
 
 ## Design conformance
 

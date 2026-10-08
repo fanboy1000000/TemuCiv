@@ -16,13 +16,12 @@ definition exists that isn't listed here, or the listed model differs from the d
 
 ## Roster
 
-The file scopes follow the planned module layout; the architecture decision (`docs/architecture.md`, next
-sprint) confirms or adjusts them, and this table changes with it.
+The file scopes follow the module layout in `docs/architecture.md` (ADR-011); this table changes with it.
 
 <!-- roster:start -->
 | Role | Model | May write | Purpose |
 |---|---|---|---|
-| `simulation` | opus | `src/sim/**` | Game rules: map, units, cities, combat, research, turns, victory. Pure and deterministic |
+| `simulation` | opus | `src/sim/**` | Game rules: map, units, cities, combat, progress (the leader web), turns, victory. Pure and deterministic |
 | `ai-player` | opus | `src/ai/**` | Computer opponents: read a player's view, choose actions. Never reads hidden state |
 | `presentation` | opus | `src/client/**` | Rendering, input, UI screens. Reads state and sends actions; never computes rules |
 | `platform` | opus | `src/app/**`, `tools/**` (except the governance tooling below), `.github/**`, build config | App shell, desktop packaging, save-file I/O, build and CI tooling |

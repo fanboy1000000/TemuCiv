@@ -68,5 +68,5 @@ TemuCiv is **turn-based**. The real-time-with-pause ruling (ADR-007) is reversed
 - The movement and combat specs must include **collision rules** for simultaneous movement.
 - The client needs a clear **turn replay** that shows what happened during resolution.
 - The architecture work must cover the game loop: order collection, turn resolution, battles inside the turn,
-  and the turn replay.
+  and the turn replay. Settled by ADR-010 (2026-10-08).
 - Open, in the combat spec: whether the player commands battles by hand, and what initiative is made of.

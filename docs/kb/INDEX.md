@@ -17,6 +17,8 @@
 | [ADR-007](decisions/ADR-007-real-time-with-pause.md) | Real time with pause, on a fixed-step simulation clock | superseded by ADR-008 | simulation, ai-player, presentation, platform, test-qa |
 | [ADR-008](decisions/ADR-008-simultaneous-turns.md) | Turn-based, with simultaneous turns on the world map | accepted | simulation, ai-player, presentation, platform, test-qa |
 | [ADR-009](decisions/ADR-009-layered-ai-opponents.md) | Layered AI opponents, built alongside each system | accepted | ai-player, simulation, content, test-qa |
+| [ADR-010](decisions/ADR-010-game-loop-sealed-orders.md) | The game loop: sealed orders, then one resolution for everyone | accepted | simulation, ai-player, presentation, platform, test-qa |
+| [ADR-011](decisions/ADR-011-tech-stack.md) | The tech stack: PixiJS, React panels, Electron, JSON data, Node's test runner | accepted | presentation, platform, content, simulation, test-qa |
 
 ## Patterns (PAT): how we do X
 

@@ -10,7 +10,7 @@
 
 All game rules live in one **simulation** layer that runs **without graphics** (headless). The screen only
 displays the simulation's state and sends the player's choices back as **actions** (e.g. `MoveUnit`,
-`FoundCity`, `SetResearch`). The simulation checks every action against the rules before applying it.
+`FoundCity`, `AcquireIdea`). The simulation checks every action against the rules before applying it.
 
 The simulation is **deterministic**: the same starting seed plus the same list of actions always produces
 exactly the same game. The only source of randomness is a seeded random-number generator that is part of the
