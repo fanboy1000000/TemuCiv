@@ -34,11 +34,12 @@ Deferred work with an owner and a reason. Items leave the backlog when a sprint 
 | `run-game` skill: the verified recipe for launching the game and taking screenshots | Needs a runnable build | M1 |
 | CI steps for type check, lint, unit tests, data-schema validation and the determinism replay check | Needs code | M1 |
 | Headless AI-vs-AI soak games and performance budgets in CI | Needs the simulation and AI players | M3–M4 |
-| First harness review (docs/WORKFLOW.md, "Harness evolution"); include whether refinement-level dual review pays for itself and whether sprint logs should stay outside the review hash (Codex S1 notes) | Due at sprint 5 | S5 |
+| First harness review (docs/WORKFLOW.md, "Harness evolution"); include whether refinement-level dual review pays for itself, whether sprint logs should stay outside the review hash, and a review bar stated in the prompts from the start (Sprint 1 took 14 Codex cycles) | Moved forward by the owner's plan (2026-10-08) | S2 |
 | Read-only agents (reviewer, constraint-validator, trace) have unrestricted Bash; replace with an enforced read/test allowlist (Codex S1 cycle 1, warning) | No agent has run yet; needs a mechanism Claude Code supports | Before the first agent-built sprint |
 | Worktree sequence for parallel agents: compare via shared refs (HEAD vs main), and state who stages, commits and merges (Codex S1 cycle 1, warning) | Settled in the first sprint that runs parallel worktree agents | First parallel build sprint |
 | Rename "research" as a system (WORKFLOW, AGENTS, the simulation agent, the design README, ADR-002's `SetResearch` example): progress is the leader web in rings (Sprint 1 review note) | Renamed with the module layout | S2 |
 | A GitHub branch rule for `main` (only reviewed closes: no force-push, no merges on GitHub); the local hooks can't see cherry-pick, rebase or GitHub-side changes (Sprint 1 review note) | Changes the owner's GitHub settings; ask first | Before the first agent-built sprint |
+| Guard leftovers from Sprint 1's last review (reviewer cycle 13, judged implausible as mistakes): also check the other shell's joined text; a bash comment ending in a backslash before a continued PR merge; list `gh api` PR merges as a known limit. The GitHub rule for `main` closes the class | Declined at the S1 close to avoid reopening the review | S2 |
 | A plain-language glossary (HEAD, worktree, hash, staging, CI run states) and a one-page close checklist for the owner (Codex S1 cycle 1, note) | Nice to have | Any docs sprint |
 
 ## Parking lot

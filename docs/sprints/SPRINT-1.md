@@ -3,12 +3,12 @@
 | Field | Value |
 |---|---|
 | **Sprint** | 1 |
-| **Status** | in-progress |
-| **Dates** | 2026-09-30 → |
+| **Status** | complete |
+| **Dates** | 2026-09-30 → 2026-10-08 |
 | **Base commit** | the empty tree (`4b825dc`): first sprint, so the sprint-end review covers every file |
 | **Previous close on GitHub** | n/a (first sprint; `main` never pushed) |
 | **Orchestrator model** | `claude-opus-5-5` (Claude Code 2.1.286, later 2.1.292) |
-| **CI verified** | pending |
+| **CI verified** | local `npm run ci` PASS on the close state (the GitHub run is recorded by Sprint 2) |
 
 ## Playtest input
 
@@ -357,21 +357,39 @@ Not applicable: no game design implemented this sprint.
 
 ## Sprint-end review (step 7)
 
-_Pending._
+| Lens | Cycles | BLOCKERs found | Final verdict | Stamp |
+|---|---|---|---|---|
+| Codex | 14 | 24 (13 real holes in cycles 1-3; then shell spellings, the receipt) | APPROVED, no findings | `f779dc5` / `6c0d8ddd` |
+| Reviewer (`claude-fable-5-1`) | 13 | 4 (the stale economy ruling; three regressions of mine) | APPROVED-WITH-WARNINGS | same |
+
+Resolutions are in the task log. Declined: the blank line in the owner's `docs/design/notes.md`; `ROADMAP.md`
+outside the review hash; renaming "research" (backlog). Reviewer cycle 13's warning and notes (all judged
+implausible as mistakes) go to the backlog rather than reopen the review: T3 is not an equivalent mutation (also
+checking the other shell's joined text would catch a continued PR merge inside a command for the other shell); a
+bash comment ending in `\` before a continued PR merge; `gh api` merges unlisted as a known limit; mutations named
+by letter. The GitHub rule for `main` closes the class. The owner chose to pass the cycle cap twice, then
+approved the structural fix (TASK-116).
 
 ## Test summary
 
-_Pending the final CI run._
+Final `npm run ci` on the close state: docs consistency PASS, secret scan PASS, governance tests 53/53 PASS
+(26 at sprint start, +27).
 
 ## Retrospective
 
-_Pending._
+- **Went well:** one research page per big design question, rulings recorded the same day; the push receipt
+  ended the review loop by protecting the outcome, not every spelling; mutation runs exposed weak tests.
+- **To improve:** about nine Codex cycles went to one guard before the approach changed (FAIL-001, second
+  lesson); a week of work sat uncommitted; tooling and a design brainstorm shared one sprint; my slips: a broken
+  test file (`a68a33f`), a commit with CI red (`4180cff`), Windows line endings from Python edits.
+- **Knowledge:** ADR-007 (superseded), ADR-008, ADR-009, FAIL-001.
+- **Harness:** both lenses caught real problems, but without a stated bar the review chased edge cases. The
+  rulebook review (now Sprint 2) sets the layering and the bar.
 
 ## Handoff
 
-- **State:** TASK-101 to 120 committed on `sprint/1`; no `main` yet; nothing pushed. 53 governance tests pass.
-- **In flight:** the sprint-end review of TASK-120 (Codex cycle 14, reviewer cycle 13).
-- **Next action:** if both lenses pass, finish this log, run `npm run ci`, commit `S1 close: Governance foundation`
-  on `sprint/1`, create `main` there, push, watch GitHub CI. Sprint 2: adopt the ladder and proportional testing
-  in CONVENTIONS (owner approved the plan), the GitHub rule for `main`, the rulebook review, then the technical
-  design analysis.
+- **State:** closed by `S1 close: Governance foundation` on `sprint/1`; `main` created there and pushed. The push's
+  GitHub CI run is recorded in Sprint 2's header.
+- **Waiting on:** the owner's go for the GitHub rule on `main` (a repository setting).
+- **Next (Sprint 2):** ponytail's ladder and proportional testing in CONVENTIONS (approved 2026-10-08), the GitHub
+  rule for `main`, the rulebook review, then the owner's technical design analysis. Design carry-overs: ROADMAP.

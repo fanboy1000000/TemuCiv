@@ -5,4 +5,4 @@
 
 | Sprint | Title | Status | Dates | Tests | Reviews (Codex / reviewer) |
 |---|---|---|---|---|---|
-| [Sprint 1](SPRINT-1.md) | Governance foundation | in-progress | 2026-09-30 → | 26 hook tests | pending |
+| [Sprint 1](SPRINT-1.md) | Governance foundation | complete | 2026-09-30 → 2026-10-08 | 53 governance tests | 14 cycles: APPROVED / 13 cycles: APPROVED-WITH-WARNINGS |
