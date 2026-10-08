@@ -69,6 +69,16 @@ treat implausible edge cases as notes. The checklist (items 8 and 10), RED evide
 simulation, ai-player and test-qa definitions follow the risk tiers. The requirements skill asks "does this need
 to exist?" first. The sprint template collects `shortcut:` comments.
 
+### TASK-203: GitHub protects `main`
+
+Status complete · Agent: Orchestrator · Review: sprint-end.
+
+With the owner's OK (option A, 2026-10-08), the repository has a ruleset `protect-main` (id 24708143, active) that
+blocks deleting or force-pushing `main`; GitHub's read-back confirms `deletion` and `non_fast_forward` apply to
+`main`. These were two real gaps: pre-push skips deletions, and a force-push to an older close would pass it.
+Pull-request merges stay with the local guard, because agents use the owner's account and GitHub can't tell them
+apart; WORKFLOW, FAIL-001 and the hook comments say so.
+
 ## Design conformance
 
 | Design rule (source) | Implemented in | Verified by | Status |

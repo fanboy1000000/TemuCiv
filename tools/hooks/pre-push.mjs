@@ -5,7 +5,7 @@
 // is refused unless the commit it sends is a close ("S<N> close: <title>") whose content passed the close gates
 // here: commit-msg leaves a receipt for the exact tree when every gate passes. A task commit, or a close made
 // with its commit hooks skipped, can't reach the shared branch this way. This hook is itself skipped by a push
-// with the skip flag; the Claude guard blocks that, until GitHub protects `main` itself (backlog).
+// with the skip flag; the Claude guard blocks that. GitHub's ruleset blocks deleting or force-pushing `main`.
 //
 // Usage (by git): node tools/hooks/pre-push.mjs <remote> <url>, with "<local ref> <local sha> <remote ref>
 // <remote sha>" lines on stdin.

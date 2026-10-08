@@ -32,8 +32,8 @@ because everyone believes it holds.
   `commit-msg` hook (`.githooks/`, `npm run setup`), on the real message, whatever the command looked like.
 - **Protect the outcome, not the spelling.** A close that passes the gates leaves a receipt for its exact
   content; pre-push lets `main` advance only to a close with its receipt. Skipping a commit's hooks therefore
-  can't put unreviewed work on GitHub. pre-push is a hook too: the guard's push checks keep it running until
-  GitHub protects `main` itself.
+  can't put unreviewed work on GitHub. pre-push is a hook too: the guard's push checks keep it running. On
+  GitHub, a ruleset blocks deleting or force-pushing `main`.
 - **Fail closed.** The GitHub gate requires a finished, successful run for the last pushed commit; any error
   blocks. A commit that marks a sprint complete is treated as a close, whatever its subject.
 - **Prove each guard can fail.** Every fix has a test, and one-line mutations in a throwaway worktree showed each

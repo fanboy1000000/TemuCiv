@@ -172,10 +172,11 @@ a close but isn't exactly `S<N> close: <title>`, any other commit that marks a s
 `main`. When every gate passes for a close, it leaves a **receipt** for the exact content committed
 (`.claude/ci/close-receipts/`). **pre-push** lets `main` advance only to a close commit that has its receipt, so
 neither a task commit nor a close made with its commit hooks skipped can reach the shared branch (CONVENTIONS
-invariant 7). Known limits: pre-push is itself a hook, kept running by the guard's checks below until GitHub
-protects `main` itself (backlog); git doesn't run commit-msg for cherry-pick, revert, rebase or `git am`; the hooks
-run only on this computer; a hand-made receipt or a deliberately assembled skip flag is out of reach (the threat
-is mistakes, not a hostile author).
+invariant 7). On GitHub, the ruleset `protect-main` blocks deleting or force-pushing `main`. Known limits:
+pre-push is itself a hook, kept running by the guard's checks below; GitHub can't tell an agent from the owner
+(they share the owner's account), so a pull-request merge on GitHub is stopped only by the guard; git doesn't run
+commit-msg for cherry-pick, revert, rebase or `git am`; the hooks run only on this computer; a hand-made receipt
+or a deliberately assembled skip flag is out of reach (the threat is mistakes, not a hostile author).
 
 **The sprint-close guard** (`.claude/hooks/sprint-close-guard.mjs`, run before every Bash/PowerShell command) is a
 cheap early warning, deliberately blunt (about 70 lines, no shell parsing). For a command that mentions git with

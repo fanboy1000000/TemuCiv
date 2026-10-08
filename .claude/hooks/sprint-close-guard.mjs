@@ -4,7 +4,8 @@
 // pre-push lets `main` advance only to a close commit that left a receipt by passing those gates
 // (.githooks, tools/hooks). A commit made with its hooks skipped still can't reach GitHub that way. But pre-push
 // is itself a hook: what keeps it running is this guard's check for the skip flag and core.hooksPath on a push,
-// so those two checks stay essential until GitHub itself protects `main` (backlog).
+// so those two checks stay essential. (GitHub's ruleset blocks deleting or force-pushing `main`, but it can't
+// tell an agent from the owner, so it can't stop a pull-request merge: that check stays here too.)
 //
 // This guard is a cheap early warning against an agent switching the git hooks off by mistake. It reads the
 // command as plain text, with no attempt to parse shells, and blocks a command that mentions git together with
