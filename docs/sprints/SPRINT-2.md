@@ -108,8 +108,7 @@ closed, the M1 setup item rewritten to match ADR-011, Steam Deck in the parking 
 
 ## Design conformance
 
-| Design rule (source) | Implemented in | Verified by | Status |
-|---|---|---|---|
+Not applicable: no game rules this sprint (rulebook and architecture documents only).
 
 ## Sprint-end review (step 7)
 
