@@ -57,18 +57,14 @@ Findings and resolution: _each BLOCKER and how the plan changed; declined WARNIN
 
 ### TASK-N01: [title]
 
-| Field | Value |
-|---|---|
-| **Status** | complete \| partial \| blocked |
-| **Agent** | |
-| **Constraint validator** | pass \| violations (summary) |
-| **Review** | reviewer: verdict, NB/NW/NN · Codex (if high-risk): verdict, cycles |
-| **Commit** | `<sha>` |
+Status complete \| partial \| blocked · Agent · Checklist pass \| violations · Review (high-risk only): verdict · Commit `<sha>`
 
-_What was done and why, in two to four sentences. Acceptance criteria with pass/fail. Files changed. Brief
-contradictions and how they were settled._
+_What was done and why, in two to four sentences. Acceptance criteria with pass/fail. Brief contradictions and
+how they were settled._
 
 ## Design conformance
+
+_Once game rules exist; until then, "Not applicable"._
 
 | Design rule (source) | Implemented in | Verified by | Status |
 |---|---|---|---|

@@ -58,10 +58,11 @@ the design and the architecture answer everything."
 unknowns).
 ---
 
-## Step 4: Review the refinement (substantive tasks)
+## Step 4: Review the refinement (when an owner design becomes a system spec)
 
-A refinement that bakes in a wrong assumption poisons everything downstream, and fixing it here is cheapest.
-Run both lenses in parallel on the refinement file:
+A refinement that bakes in a wrong assumption poisons everything downstream. Review it when the owner's design
+for a game system becomes its spec (`docs/design/systems/`); everything else is covered by the sprint's plan and
+sprint-end reviews (WORKFLOW). Run both lenses in parallel on the refinement file:
 - **Codex:** `codex exec -s read-only -o .claude/reviews/REFINEMENT-<topic>-codex.md "<prompt>" < /dev/null`
 - **Reviewer agent:** spawn `reviewer` with the refinement file as its scope.
 
@@ -71,9 +72,9 @@ each lean defensible); assumptions (wrong against the design, the ADRs or docs/C
 match the design exactly, can each be tested); acceptance criteria (do they verify done); risks (determinism,
 performance, scale, save compatibility). BLOCKER / WARNING / NOTE with citations; end with `verdict:`."*
 
-Fix BLOCKERs in the refinement and re-run the lens that raised them (cycle cap 5, WORKFLOW.md). Show WARNINGs and
-NOTEs to the owner with a recommendation. **Skip Step 4** only for the "simple fix" tier below, a mechanical task,
-or when the owner says to skip it; record a one-line reason. If Codex is unavailable, stop and tell the owner.
+Fix BLOCKERs in the refinement and re-run the lens that raised them (cycle cap 3, WORKFLOW.md). Show WARNINGs and
+NOTEs to the owner with a recommendation. Otherwise skip Step 4 and record a one-line reason. If Codex is
+unavailable, stop and tell the owner.
 
 ## Step 5: Suggest the next question
 

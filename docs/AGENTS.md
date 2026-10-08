@@ -135,8 +135,9 @@ When to run it: WORKFLOW.md steps 2, 5 and 7.
 
 ## Constraint validator checklist
 
-The constraint-validator checks every changed file against this list and reports PASS/FAIL with file:line. The
-list grows: every FAIL entry and every new PAT entry may add an item.
+Every changed file is checked against this list (WORKFLOW step 4): by the Orchestrator until game code exists,
+then by CI for the mechanical items and the constraint-validator for the rest, reporting PASS/FAIL with file:line.
+The list grows: every FAIL entry and every new PAT entry may add an item.
 
 1. Files changed are within the task's declared scope.
 2. `src/sim/**` imports nothing from `src/client/**`, `src/ai/**`, `src/app/**`, browser/DOM APIs, timers, the
@@ -170,7 +171,8 @@ are advisory; the Orchestrator decides, and Codex output is never itself a KB en
 
 **Invocation**
 - Plan review: `codex exec -s read-only -o .claude/reviews/SPRINT-N-plan-codex-cK.md "<plan prompt>" < /dev/null`
-- Per-task review: `codex exec -s read-only -o <file> "<task prompt naming the diff: git diff HEAD, or the
+- Per-task review (only when the Orchestrator asks for a second lens on a high-risk task): `codex exec -s
+  read-only -o <file> "<task prompt naming the diff: git diff HEAD, or the
   task commit>" < /dev/null`
 - Sprint-end review: `codex exec -s read-only -o <file> "<sprint prompt naming git diff <base>..HEAD>" < /dev/null`
 
@@ -193,6 +195,8 @@ FOCUS:
  [sprint] cross-task consistency; drift from the architecture and the design; gaps between goal and result;
         what didn't need to exist.
  [all]  an edge case nobody would plausibly hit is a NOTE, not a BLOCKER.
+THE BAR: a BLOCKER is an invariant at risk, a design mismatch, a claim the code doesn't support, or a gap an
+agent would plausibly hit by mistake; an edge case nobody would plausibly hit is a NOTE.
 OUTPUT: findings labelled BLOCKER / WARNING / NOTE, each with file:line, what is wrong, and the fix.
 Write for a product manager: what the problem means before the mechanism.
 End with exactly one line: verdict: APPROVED | APPROVED-WITH-WARNINGS | BLOCKED

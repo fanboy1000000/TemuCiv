@@ -75,14 +75,14 @@ For each finished task:
 2. Run `npm run ci` (all checks, from the repo root). If it fails, re-dispatch the responsible agent with the
    exact failure output. Never accept on a partial or assumed pass.
 3. When the change is visual, run the game and look at a screenshot. Don't assume it looks right.
-4. Run the **constraint-validator** agent on the changed files (skip for docs-only changes; for small tasks the
-   Orchestrator self-checks against the same checklist).
+4. Check the changed files against the constraint checklist (AGENTS.md). Until game code exists, the
+   Orchestrator self-checks; once it exists, the checklist's mechanical items become CI checks, and the
+   constraint-validator agent covers only what a machine can't check.
 
 ### Step 5: Per-task review
-- The **reviewer** agent reviews every task that touches an invariant, spans several agents, or introduces a new
-  pattern or abstraction. SKIP for small tasks, docs-only changes and trivial data edits with no logic change.
-- **High-risk tasks also get Codex**, in addition to the reviewer (per-task scope: correctness of the change,
-  edge cases, design conformance). High-risk categories:
+- The **reviewer** agent reviews each **high-risk** task (per-task scope: correctness of the change, edge cases,
+  design conformance). Other tasks are covered by the sprint-end review, where Codex joins. High-risk
+  categories:
   - simulation rules and their numbers (combat, yields, growth, research, victory)
   - determinism: the RNG, turn-resolution order, iteration order, anything that could make two runs diverge
   - the action pipeline and per-player views (validation, visibility, fog of war)
@@ -139,13 +139,15 @@ The owner plays the sprint's build. Their notes are recorded at the top of the n
 
 ## Review cycles and the cycle cap
 
-- Findings use three severities. **BLOCKER:** an invariant at risk, a design mismatch, or a claim the code
-  doesn't support; it must be fixed or escalated. **WARNING:** a quality or simplicity concern; fixed at the
+- **The bar is stated in every review prompt.** Findings use three severities. **BLOCKER:** an invariant at
+  risk, a design mismatch, a claim the code doesn't support, or a gap an agent would plausibly hit by mistake;
+  it must be fixed or escalated. An edge case nobody would plausibly hit is a NOTE. **WARNING:** a quality or simplicity concern; fixed at the
   Orchestrator's discretion, and a declined WARNING gets a one-line reason in the log. **NOTE:** a suggestion.
 - **Every fix gets a verification review.** Cycles are counted per lens and per scope (plan, task or sprint).
-- **Cap: 5 cycles.** If the fifth verification still finds new BLOCKERs, stop and ask the owner: (a) keep
-  iterating, (b) accept the remaining findings, or (c) move them into a new task. Reaching cycle 4 or 5 is a
-  signal the batch was too big; say so in the retrospective.
+- **Cap: 3 cycles.** If the third verification still finds new BLOCKERs, stop and ask the owner, with a firm
+  recommendation and each option's cost: (a) keep iterating, (b) accept the remaining findings, or (c) move them
+  into a new task. When two cycles in a row find new edge cases of the same kind, propose a structural change
+  instead of another patch. Passing the cap also triggers a rulebook review (see "Harness evolution").
 - If Codex is unavailable, stop and tell the owner. Never skip a lens silently.
 - A lens that could not read the code (e.g. a sandbox refusal) has produced an **environment failure, not a
   verdict**. Re-run it with inlined source (AGENTS.md, "Codex").
@@ -258,6 +260,8 @@ FAIL entry that names the new guard. That's how the rules stay tied to reality.
 This governance is a harness around AI agents. It should be the **minimum that works**, not the maximum possible.
 - **Every fifth sprint**, review each mechanism: did it catch anything in the last five sprints? If a rule caught
   nothing and costs effort, propose relaxing or removing it (an owner decision for anything in CONVENTIONS.md).
+- **When a review passes its cycle cap**, review the rulebook in that sprint's retrospective (Sprint 1 took 14
+  Codex cycles before anyone stepped back).
 - **On a model upgrade**, reconsider rules that compensated for older model weaknesses.
 - **Size budgets are enforced** by `tools/check-docs.mjs`. When a doc hits its budget, shorten or split it; don't
   raise the budget without saying why in the sprint log.

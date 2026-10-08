@@ -79,6 +79,18 @@ blocks deleting or force-pushing `main`; GitHub's read-back confirms `deletion` 
 Pull-request merges stay with the local guard, because agents use the owner's account and GitHub can't tell them
 apart; WORKFLOW, FAIL-001 and the hook comments say so.
 
+### TASK-204: the rulebook review
+
+Status complete · Agent: Orchestrator · Review: sprint-end.
+
+Each mechanism was judged by the ladder and by Sprint 1's record. Kept: the git checks and receipts, GitHub CI,
+push protection and the ruleset, sprint branches, the docs checker, the knowledge base, the reviewer on Fable.
+The owner approved six simplifications with one change (option B, 2026-10-08): both lenses at the sprint end
+and on the plan; the reviewer per task only for high-risk tasks; requirement reviews only when a design becomes
+a system spec; a 3-cycle cap with a firm recommendation and a structural-change rule; the bar stated in every
+review prompt; no checklist agent until code exists (then CI checks); a lighter sprint-log template; a rulebook
+review whenever a review passes its cap.
+
 ## Design conformance
 
 | Design rule (source) | Implemented in | Verified by | Status |
