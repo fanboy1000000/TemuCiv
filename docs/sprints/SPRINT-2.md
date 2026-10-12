@@ -64,6 +64,15 @@ grow, so the budget is the empire-level snowball brake. Flagged: what runs the p
 (last orders, governors, reforms that trade control for a bonus) is the other half of the piece and still
 open. Working notes: `.claude/refinements/REFINEMENT-empire-control.md`.
 
+**Challenges, round one (2026-10-13).** The owner asked engineering to challenge the idea; six problems, taken one
+at a time. Decided by the owner: the budget is mainly for choices: parts nobody spends a move on run normally on
+their last orders, attention earns a bonus (an attended city gets a boost for a while), and neglect earns no
+penalty (K4). So engineering's "empire-level snowball brake" proposal is withdrawn: that brake stays with
+stability, sanitation and logistics. One pool, not two: army orders and empire decisions draw on the same moves,
+so every turn is a choice between guns and butter (K5, replaces K2; K3 now applies to the one pool). Paused by
+the owner at problem 3 (whether investing buys more moves or bigger moves; lean: bigger moves); problems 4 to 6
+(free defense through stances, what the budget replaces, alerts) follow.
+
 ## Task log
 
 ### TASK-201: the ladder and risk-based testing in CONVENTIONS
@@ -187,7 +196,8 @@ _Exact output of the real runs, never numbers from memory._
   ruling). Sprint-end review cycle 1: both lenses BLOCKED; every finding fixed (TASK-206). Local CI PASS. Nothing
   pushed: `main` is still the Sprint 1 close, and `sprint/2` exists only on this computer.
 - **In flight:** nothing. No agents, no worktrees.
-- **Waiting on:** nothing from the owner.
+- **Waiting on:** the owner, to resume the "ruling a large empire" brainstorm at challenge 3 of 6 (Owner design
+  rulings above; working notes `.claude/refinements/REFINEMENT-empire-control.md`). Offer it first next session.
 - **Next action:** sprint-end review cycle 2 (cap 3): `node tools/review-stamp.mjs`, then Codex (prompt in the
   scratchpad is gone; rebuild it from AGENTS.md's template with the sprint goal above and FOCUS on whether the
   cycle-1 findings are fixed) and the reviewer (`model: "fable"`) in parallel, saved as
