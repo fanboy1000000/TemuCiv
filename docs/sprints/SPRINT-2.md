@@ -49,6 +49,21 @@ at the sprint-end review to match what each task really touched (all Orchestrato
 |---|---|
 | **Trigger** | SKIP: no code. The sprint touched invariant 7, so WORKFLOW requires a plan review; the owner's approval of the exact wording before it went in stands in for it, and the sprint-end review covers the rest |
 
+## Owner design rulings (brainstorm, 2026-10-13)
+
+Recorded here so they are not left in a conversation, like the Sprint 1 brainstorm rulings; routed into
+`docs/design/` with the owner's OK (ROADMAP backlog). Not part of this sprint's tasks: no game rules are built.
+
+**Ruling a large empire (2026-10-13).** Source: the r/civ thread "The bigger my empire gets, the less control I
+actually have" (Civ IV upkeep, Old World's orders). The owner made it a big piece of the brainstorm. Decided by
+the owner: each turn a player has a limited number of moves (K1), in two pools, army moves and empire moves (K2),
+and both can be raised by investing (K3). Proposed by engineering, not yet confirmed: acting costs a move and
+anything left alone follows its last orders; seeing is free; one army move commands a whole army; moves never
+grow just because the empire has more cities, and investment raises them more slowly than an empire's needs
+grow, so the budget is the empire-level snowball brake. Flagged: what runs the parts nobody spends a move on
+(last orders, governors, reforms that trade control for a bonus) is the other half of the piece and still
+open. Working notes: `.claude/refinements/REFINEMENT-empire-control.md`.
+
 ## Task log
 
 ### TASK-201: the ladder and risk-based testing in CONVENTIONS

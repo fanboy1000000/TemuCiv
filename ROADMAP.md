@@ -25,9 +25,9 @@ Deferred work with an owner and a reason. Items leave the backlog when a sprint 
 
 | Item | Why deferred | Picked up by |
 |---|---|---|
-| Design brainstorm, carried over: which economy pays for units and buildings (lean: one coin plus a few physical goods hauled by logistics); the big shape of logistics (routes designed once, then automatic: proposed) and of cities (stability, sanitation) | The owner moved to the technical sprint first | M0 |
+| Design brainstorm, carried over: which economy pays for units and buildings (lean: one coin plus a few physical goods hauled by logistics); the big shape of logistics (routes designed once, then automatic: proposed) and of cities (stability, sanitation); ruling a large empire (moves budget K1–K3 ruled 2026-10-13, Sprint 2 log; open: what runs the parts nobody spends a move on) | The owner moved to the technical sprint first | M0 |
 | Design spec: owner writes `vision.md` and `scope.md` (templates in `docs/design/`) | Owner's work, at the owner's pace | M0 |
-| Design: route the 2026-10-04 brainstorm rulings (Sprint 1 log, "Owner design rulings") into `docs/design/`, with the owner's OK; include renaming "research" to "progress" in `docs/design/README.md` | Brainstorm still in progress | M0 |
+| Design: route the brainstorm rulings (Sprint 1 and Sprint 2 logs, "Owner design rulings") into `docs/design/`, with the owner's OK; include renaming "research" to "progress" in `docs/design/README.md` | Brainstorm still in progress | M0 |
 | `run-game` skill: the verified recipe for launching the game and taking screenshots | Needs a runnable build | M1 |
 | M1 setup per ADR-011: Vite, TypeScript strict (`erasableSyntaxOnly`), one TypeScript project per part of `src/`, `node:test`, Playwright; CI steps for the type check, tests, data-schema validation, the `src/sim` search for `Math.random`/`Date.now`/`new Date(`, and the determinism replay | Needs code | M1 |
 | Headless AI-vs-AI soak games and performance budgets in CI | Needs the simulation and AI players | M3–M4 |
