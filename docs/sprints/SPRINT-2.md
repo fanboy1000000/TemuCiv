@@ -81,7 +81,9 @@ recommendation, against the snowball) or also with the empire's size. Problem 4,
 attacked army always defends and never needs a move (K6). Engineering's challenge had spoken of "stances"; the
 design has no army stances, and none are assumed. Problem 5, decided by the owner: nothing else gets simpler
 because of the budget; it earns its place on its own. Flagged: the design grows with nothing trimmed to balance
-it.
+it. Problem 6, decided by the owner: how the player finds where a move is worth spending (alerts) is left to
+the interface design, not decided now. Flagged: the budget's feel depends on it, so it must not come too late.
+All six challenges are done; the moves budget stands at K1, K3 to K6 (K2 replaced), with problem 3 as a lean.
 
 ## Task log
 
