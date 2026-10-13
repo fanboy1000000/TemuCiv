@@ -77,7 +77,9 @@ the owner at problem 3 (whether investing buys more moves or bigger moves; lean:
 buys more moves, slowly (diminishing returns and a cap), because a bigger empire also has more things that need
 attention. Engineering's lean (bigger moves: one move reaches a front or a region) is recorded as the
 alternative. Open for the system spec: whether moves grow only through investment (engineering's
-recommendation, against the snowball) or also with the empire's size.
+recommendation, against the snowball) or also with the empire's size. Problem 4, decided by the owner: defending is free; an
+attacked army always defends and never needs a move (K6). Engineering's challenge had spoken of "stances"; the
+design has no army stances, and none are assumed.
 
 ## Task log
 
