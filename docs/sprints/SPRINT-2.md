@@ -73,6 +73,12 @@ so every turn is a choice between guns and butter (K5, replaces K2; K3 now appli
 the owner at problem 3 (whether investing buys more moves or bigger moves; lean: bigger moves); problems 4 to 6
 (free defense through stances, what the budget replaces, alerts) follow.
 
+**Challenges, round one, continued (2026-10-13).** Problem 3 is left as an owner lean, not a ruling: investing
+buys more moves, slowly (diminishing returns and a cap), because a bigger empire also has more things that need
+attention. Engineering's lean (bigger moves: one move reaches a front or a region) is recorded as the
+alternative. Open for the system spec: whether moves grow only through investment (engineering's
+recommendation, against the snowball) or also with the empire's size.
+
 ## Task log
 
 ### TASK-201: the ladder and risk-based testing in CONVENTIONS
