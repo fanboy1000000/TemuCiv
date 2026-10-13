@@ -79,7 +79,9 @@ attention. Engineering's lean (bigger moves: one move reaches a front or a regio
 alternative. Open for the system spec: whether moves grow only through investment (engineering's
 recommendation, against the snowball) or also with the empire's size. Problem 4, decided by the owner: defending is free; an
 attacked army always defends and never needs a move (K6). Engineering's challenge had spoken of "stances"; the
-design has no army stances, and none are assumed.
+design has no army stances, and none are assumed. Problem 5, decided by the owner: nothing else gets simpler
+because of the budget; it earns its place on its own. Flagged: the design grows with nothing trimmed to balance
+it.
 
 ## Task log
 
