@@ -48,7 +48,7 @@ shared tree, and the read-only agents' risk is the same as in Sprints 1 and 2.
 
 | Field | Value |
 |---|---|
-| **Trigger** | pending: depends on the owner's approval of the prototype exception (TASK-301) |
+| **Trigger** | SKIP. TASK-301 is the only invariant change, and the owner approved its exact wording (2026-10-15); TASK-302 to 304 are prototype work, which that rule exempts from plan review. The sprint-end review covers TASK-301 and TASK-304 at the normal bar |
 
 ## Owner design rulings
 
@@ -57,7 +57,25 @@ earns coin" apply beyond the prototype?): "Neither". Production only sets build 
 game; the 2026-10-04 ruling stands. A city with nothing to build simply waits. Coin in slice 1 comes from people
 and from trade along routes; war adds coin in slice 2.
 
+**The prototype exception (2026-10-15).** Approved as written: the CONVENTIONS sentence ("The one exception is the
+throwaway prototype in `prototype/`, which follows lighter rules (WORKFLOW, "Prototype phase")."), the workflow
+section it points to, and the rule that a decision record for a system not yet built records only the decision,
+its details being settled by the sprint that builds it (a missing detail is a NOTE until then). Sprint 3 skips its
+plan review on this approval.
+
 ## Task log
+
+### TASK-301: the prototype exception and the decision-record rule
+
+Status complete · Agent: Orchestrator · Checklist pass (self-check) · Review: sprint-end · Files:
+`docs/CONVENTIONS.md`, `docs/WORKFLOW.md`, `docs/AGENTS.md`, `docs/architecture.md`, `.claude/agents/simulation.md`,
+ADR-002, ADR-009, `ROADMAP.md`. Criteria: owner OK on the wording PASS; `check-docs` PASS.
+
+CONVENTIONS gains the approved sentence (one other line rewrapped, no words changed, to stay within 100 lines).
+WORKFLOW gains "Prototype phase (M0.5)" and the decision-record rule under "Review cycles". AGENTS says who writes
+`prototype/` and that only checklist items 1 and 9 apply there; the architecture's folder table has the row. Carried
+from the Sprint 2 review: the simulation definition names the rulings in sprint logs; ADR-002 says "content
+versions"; ADR-009's status line lists its Sprint 2 amendments. The ROADMAP Bash-allowlist item moves to M1.
 
 ## Design conformance
 

@@ -138,6 +138,28 @@ complete and committed (the review covers them):
 The owner plays the sprint's build. Their notes are recorded at the top of the next sprint log under
 **Playtest input** and feed its refinement. The owner's experience is the only test of "fun" we have.
 
+## Prototype phase (M0.5)
+
+Before production, a throwaway prototype lets the owner feel how the design's ideas play together, so playtests
+rather than paper decide which ideas stay (owner rulings D1, 2026-10-15, and the exception's wording, approved
+2026-10-15; Sprint 2 and 3 logs). It is a tool, not the game.
+- **Where:** only `prototype/`. Nothing outside it uses it, none of its code is ever moved into the game, and the
+  folder is deleted when production (M1) starts fresh in `src/`.
+- **Its rules:** the owner's rulings and the slice's placeholders, written out by the Orchestrator in
+  `prototype/RULES.md`. Conforming to the design means matching that file. Its numbers sit in one file the owner
+  can edit.
+- **Relaxed:** invariants 2 to 7 (determinism, the action pipeline, multiplayer-ready state, scale, tests written
+  first), the plan review, the per-task review, `shortcut:` comments, and the constraint checklist except items 1
+  (scope) and 9 (no secrets, no leftover debug output).
+- **Kept:** roles, honesty in reporting, no secrets or personal data (the repository is public), the sprint log, a
+  commit per task, CI and the close gates. CI also runs a smoke check: a scripted game plays many turns without
+  an error.
+- **A light sprint-end review:** both lenses, with this bar for `prototype/`: a BLOCKER is only a secret or
+  personal data, a risk to the owner's computer, prototype code used from outside `prototype/`, or behavior that
+  contradicts `prototype/RULES.md`; everything else is a NOTE. Changes outside `prototype/` get the normal bar.
+- **Each slice ends with the owner's playtest;** the notes go to `docs/design/notes.md` and feed the next slice and
+  the design.
+
 ## Review cycles and the cycle cap
 
 - **The bar is stated in every review prompt.** Findings use three severities. **BLOCKER:** an invariant at
@@ -146,6 +168,10 @@ The owner plays the sprint's build. Their notes are recorded at the top of the n
   discretion, and a declined WARNING gets a one-line reason in the log. **NOTE:** a suggestion, or an edge case
   nobody would plausibly hit.
 - **Every fix gets a verification review.** Cycles are counted per lens and per scope (plan, task or sprint).
+- **A decision record for a system not yet built** records the decision. Its details (formats, thresholds, exact
+  sequences) are settled by the sprint that builds the system; until then a review treats a missing detail as a
+  NOTE, unless an agent would act on it in the sprint under review (owner, 2026-10-15, after Sprint 2's review
+  loop).
 - **Cap: 3 cycles.** Cycle 1 is a lens's first review. If cycle 3 still finds new BLOCKERs, stop and ask the owner, with a firm
   recommendation and each option's cost: (a) keep iterating, (b) accept the remaining findings, or (c) move them
   into a new task. When two cycles in a row find new edge cases of the same kind, propose a structural change

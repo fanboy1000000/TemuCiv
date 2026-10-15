@@ -12,7 +12,8 @@ alpha**:
   AI-content disclosure and store setup. Don't spend effort on these, but don't paint us into a corner either.
 - **Not deferred:** how we build. Methods, code quality, testing and review meet a professional-studio standard
   from day one. "Alpha" means features are incomplete, not that the work is sloppy. Professional also means
-  proportionate (see "Build the minimum").
+  proportionate (see "Build the minimum"). The one exception is the throwaway prototype in `prototype/`, which
+  follows lighter rules (WORKFLOW, "Prototype phase").
 - The repository is **public**. Never commit secrets, keys, tokens or personal data.
 
 ## Roles
@@ -90,8 +91,7 @@ understand the decision **and learn from it**.
 
 ## Honesty in reporting
 
-- Report outcomes as they are. Failing tests are reported with their output. A skipped step is reported as
-  skipped.
+- Report outcomes as they are. Failing tests are reported with their output. A skipped step is reported as skipped.
 - Never estimate or carry forward numbers (test counts, timings) from memory. Run the command and report what
   it printed.
 - Never read an exit status through a pipe (`cmd | tail` reports the pipe's status, not the command's).

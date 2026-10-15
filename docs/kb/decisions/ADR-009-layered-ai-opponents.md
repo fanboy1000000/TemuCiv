@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| **Status** | accepted (engineering proposal, agreed by the owner 2026-10-05) |
+| **Status** | accepted (engineering proposal, agreed by the owner 2026-10-05); amended by ADR-010 (S2: the AI stops on a work budget, never the clock; each computer player has its own seeded random generator) |
 | **Sprint** | S1 |
 | **Areas** | ai-player, simulation, content, test-qa |
 

@@ -39,6 +39,9 @@ every file the architecture doc marks as shared, and the **governance tooling** 
 **Reserved by default:** `package.json` and the lockfile belong to the Orchestrator unless a task's scope explicitly
 hands them to `platform`.
 
+**The prototype (M0.5):** `prototype/**` is written by the agent its task names, under WORKFLOW's "Prototype
+phase"; `prototype/RULES.md` is Orchestrator-only. For prototype work only checklist items 1 and 9 apply.
+
 **A new role** is added only when an area is big enough that a specialist pays for itself. It gets a definition,
 a roster row and a line in the sprint log. Until then, the task's explicit file list in the sprint plan decides
 what an agent may touch, not the agent's label.
