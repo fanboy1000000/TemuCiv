@@ -106,7 +106,8 @@ CONVENTIONS' professional-methods rule still needs the owner's OK on exact wordi
 (D2): the moves budget plus coin and goods with hauling, no rival; slice 2 adds a rival and armies, slice 3 a few
 web nodes and the category scores. Flagged: logistics and cities are not designed yet, so the prototype uses crude
 stand-ins, each listed for the owner's OK and turned into a design question; the army-or-empire side of the budget
-(K5) is felt only from slice 2. Working notes: `.claude/refinements/REFINEMENT-first-playable.md`.
+(K5) is felt only from slice 2. Also decided (D3): terrain is shown by colour alone, and buildings are simple
+shapes. Working notes: `.claude/refinements/REFINEMENT-first-playable.md`.
 
 ## Task log
 
