@@ -77,6 +77,16 @@ WORKFLOW gains "Prototype phase (M0.5)" and the decision-record rule under "Revi
 from the Sprint 2 review: the simulation definition names the rulings in sprint logs; ADR-002 says "content
 versions"; ADR-009's status line lists its Sprint 2 amendments. The ROADMAP Bash-allowlist item moves to M1.
 
+### TASK-302: slice 1's rules
+
+Status complete · Agent: Orchestrator · Checklist pass (self-check) · Review: sprint-end · Files: `prototype/RULES.md`.
+Criteria: every rule traces to an owner ruling, a placeholder or is marked "(eng.)" PASS; the owner may flag any.
+
+Written from P1 to P12, the P6 answer (a city with nothing to build waits) and engineering's proposals. Settled
+here (all "(eng.)"): undo takes back this turn's orders one at a time and returns their move and costs (the
+Sprint 2 reviewer's note on misclicks); distances are counted in hexes; a settler takes its person when finished;
+people not at a site still eat, pay coin and add production. Starting numbers live in `numbers.js` for the owner.
+
 ## Design conformance
 
 Not applicable: the prototype conforms to `prototype/RULES.md` (WORKFLOW, "Prototype phase"), checked by the
