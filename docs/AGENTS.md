@@ -183,7 +183,8 @@ prompt.)
 ```
 You are reviewing [a sprint plan at docs/sprints/SPRINT-N.md | the diff of TASK-N0x | the whole sprint:
 git diff <base>..HEAD] for TemuCiv, a turn-based 4X strategy game built entirely by AI.
-Read docs/CONVENTIONS.md first: its invariants are the standard. The owner's design is in docs/design/.
+Read docs/CONVENTIONS.md first: its invariants are the standard. The owner's design is in docs/design/, and
+the owner's rulings not yet routed there are in the sprint logs ("Owner design rulings").
 GOAL: [sprint goal or task acceptance criteria]
 FOCUS:
  [plan] scope tightness; does each criterion test the real behavior; the right agent and file scope;

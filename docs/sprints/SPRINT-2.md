@@ -39,15 +39,17 @@ rulebook. Then analyze the technical design choices (the architecture decision),
 | TASK-203 | Orchestrator | GitHub repository settings; the docs and hook comments that describe them | A ruleset on `main`: no force-push, no deletion (owner OK first; "changes only by push" was dropped under option A, because GitHub can't tell agents from the owner) → `gh api` read-back | no |
 | TASK-204 | Orchestrator | `docs/**`, `ROADMAP.md`, `.claude/skills/**` | The rulebook reviewed with the ladder; proposals to the owner; approved changes applied → owner decisions recorded | no |
 | TASK-205 | Orchestrator + research | `docs/**` except `docs/design/`, `CLAUDE.md`, `ROADMAP.md`, `.claude/agents/**` | Each open technical choice analyzed with options and a recommendation; owner decisions recorded as ADRs → owner OK | no |
+| TASK-206 | Orchestrator | the files the cycle-1 findings named (task log) | Every cycle-1 BLOCKER fixed or ruled by the owner → sprint-end review cycle 2 | no |
+| TASK-207 | Orchestrator | the files the cycle-2 findings named (task log) | Every cycle-2 BLOCKER fixed → sprint-end review cycle 3 | no |
 
-Waves: 201 → 202; 203 any time after the owner's OK; 204 after 202; 205 last. The "May write" lists were widened
+Waves: 201 → 202; 203 any time after the owner's OK; 204 after 202; 205 last; 206 and 207 follow the reviews. The "May write" lists were widened
 at the sprint-end review to match what each task really touched (all Orchestrator-only files).
 
 ## Plan review (step 2)
 
 | Field | Value |
 |---|---|
-| **Trigger** | SKIP: no code. The sprint touched invariant 7, so WORKFLOW requires a plan review; the owner's approval of the exact wording before it went in stands in for it, and the sprint-end review covers the rest |
+| **Trigger** | SKIP: a docs-only sprint, which WORKFLOW step 2 exempts. It touched invariant 7, whose exact wording the owner approved before it went in; the sprint-end review covers the rest |
 
 ## Owner design rulings (brainstorm, 2026-10-13)
 
@@ -87,7 +89,8 @@ All six challenges are done; the moves budget stands at K1, K3 to K6 (K2 replace
 
 **Economy (2026-10-15).** The question carried over from Sprint 1: what pays for units and buildings (artifact
 "TemuCiv Currency Options"). Decided by the owner: coin and goods (C2). One empire-wide coin pays for everything
-abstract (for example upkeep, buying speed, topping up web nodes under C1); beside food, a few physical goods
+abstract (for example upkeep, buying speed, and topping up web nodes, which the web-pricing ruling of 2026-10-07
+in the Sprint 1 log calls C1: nodes are bought with branch experience, coin makes up a shortfall); beside food, a few physical goods
 (examples: stone, bronze) are made where the resource is, stored there and hauled by logistics; buildings and
 units cost coin plus goods; web nodes need no goods. Production still only sets build speed. The demo starts with
 food plus one or two materials. Two things changed since the research and favored it: C1 already prices the web
@@ -116,11 +119,12 @@ move, and looking is free (P3); the budget is easy early and tight later (P4); a
 in a city also gives it the attention boost, with no separate order for it (P5); coin comes from population,
 trade and production, and war in slice 2 (P6); food is the only limit on growth for now (P7); sites claim land
 (P8); distance costs only time for now (P9); four buildings: Hall (+1 move), Granary, Market, Workshop (P10);
-unused moves all carry over (P11); play freely, with no end (P12). Owner design statements beyond the
-prototype, to route into `docs/design/`: every activity can earn coin, since there is one currency; with full
-stability and control distance costs only time, and without them a share is lost on the way. Flagged: P6's
-"production earns coin" loosens the 2026-10-04 ruling that production only sets build speed; P11 lets a
-player save up for one huge turn. Engineering's own proposals for the map, stone, sites, settlers, routes and
+unused moves all carry over (P11); play freely, with no end (P12). P6 in the owner's words, answering where coin
+comes from in the prototype: "Population, trade, production, war. All can earn coin, as we just have one
+currency." Whether production earning coin also applies beyond the prototype, replacing C2's "production still
+only sets build speed", is an open owner question. Owner design intent beyond the prototype, to route into
+`docs/design/`: with full stability and control distance costs only time, and without them a share is lost on
+the way. Flagged: P11 lets a player save up for one huge turn. Engineering's own proposals for the map, stone, sites, settlers, routes and
 screens are in the working notes for the owner to flag.
 
 ## Task log
@@ -196,7 +200,12 @@ closed, the M1 setup item rewritten to match ADR-011, Steam Deck in the parking 
 
 ### TASK-206: sprint-end review fixes (cycle 1)
 
-Status complete · Agent: Orchestrator · Checklist pass (self-check) · Review: sprint-end cycle 2.
+Status complete · Agent: Orchestrator · Checklist pass (self-check) · Review: sprint-end cycle 2 · Commits
+`e00ea55`, `818d22d` · Files: the ADRs 002 to 011, `docs/AGENTS.md`, `docs/WORKFLOW.md`, `docs/architecture.md`,
+`docs/CONVENTIONS.md`, `ROADMAP.md`, four agent definitions, the refinement skill, `package.json`, this log (and a
+`docs/design/README.md` edit, since reverted). Criteria: every cycle-1 BLOCKER fixed PASS (both lenses confirmed
+in cycle 2, except ADR-005's performance contract, finished in TASK-207); the invariant-7 finding ruled by the
+owner PASS.
 
 Both lenses returned BLOCKED in cycle 1 (Codex 10 blockers, 1 warning; reviewer 2 blockers, 6 warnings, 9 notes);
 all were cheap and fixed in one batch. ADR-010 now says own-empire orders apply once and are not pending, that
@@ -212,6 +221,28 @@ and the agent definitions. ADR-011 drops the Steam library choice and the linter
 The owner ruled on the one CONVENTIONS finding (option A, 2026-10-08): number changes are data and need no new test
 (each value traces to the design and passes the format check); "how game rules compute" is high-risk. Invariant 7,
 invariant 5 ("techs" became "ideas") and WORKFLOW's high-risk list were reworded to match.
+
+### TASK-207: sprint-end review fixes (cycle 2)
+
+Status complete · Agent: Orchestrator · Checklist pass (self-check) · Review: sprint-end cycle 3 · Files: ADR-005,
+ADR-010, ADR-011, `docs/architecture.md`, `docs/AGENTS.md`, `docs/kb/INDEX.md`, `docs/sprints/TEMPLATE.md`, the
+reviewer and ai-player definitions, `tools/ci.mjs` (a comment), `CLAUDE.md`, `ROADMAP.md`, this log. Criteria:
+every cycle-2 BLOCKER fixed → cycle 3.
+
+Codex returned BLOCKED (6 blockers, 4 warnings), the reviewer APPROVED-WITH-WARNINGS (6 warnings, 7 notes). Fixed:
+ADR-005 now says the exact reference setup and CI's threshold are fixed when the performance tests are built, and
+adds a 100-millisecond answer for each order; ADR-010 and the architecture no longer place upkeep and call its
+place open at once; computer players get their own decision seed and views never carry the game seed; saves
+record their game and content versions, and a mismatch is refused during the alpha; computer players think in
+slices so orders are answered between them; buying an idea applies at once (others' prices read the
+start-of-turn picture); the two shortcuts use the scanned marker and sit in the backlog; ADR-011 no longer says
+Electron makes operating systems identical. Records: TASK-206's evidence, the plan rows, the plan-review reason,
+C1 defined, P6 in the owner's exact words with its scope as an open question, the stale ROADMAP lines, the KB
+index, the template's "Files changed", the reviewer's standard now naming the rulings in sprint logs, one
+CLAUDE.md row for ADR-005. Declined: removing the constraint-validator definition (Codex warning): it is never
+spawned before game code exists, which is what the owner approved in TASK-204; revisit at M1. Moved to Sprint 3:
+a `prototype/` row in the architecture's folder table and an agent scope for it, which wait for the owner's
+wording of the prototype exception; slice 1's rules settle taking back an order (reviewer note 7).
 
 ## Design conformance
 
@@ -246,10 +277,10 @@ _Exact output of the real runs, never numbers from memory._
   ruling). Sprint-end review cycle 1: both lenses BLOCKED; every finding fixed (TASK-206). Local CI PASS. Nothing
   pushed: `main` is still the Sprint 1 close, and `sprint/2` exists only on this computer.
 - **In flight:** nothing. No agents, no worktrees.
-- **Waiting on:** nothing from the owner. The brainstorm moved to a throwaway prototype (D1 to D3, 2026-10-15;
-  Owner design rulings above), and slice 1's placeholders P1 to P12 are settled: Sprint 3 builds slice 1 after
-  this sprint closes. Logistics, cities and what runs the parts nobody spends a move on stay open, to be answered
-  partly through play.
+- **Waiting on:** the owner, for one question (reviewer cycle 2, warning 4): does production earning coin (P6)
+  apply beyond the prototype, replacing C2's "production still only sets build speed"? Record the answer in the
+  Sprint 3 log, not this one (this log is frozen by the review stamp). Slice 1's placeholders P1 to P12 are
+  settled; logistics, cities and anything beyond last orders stay open, partly answered through play.
 - **Next action:** sprint-end review cycle 2 (cap 3): `node tools/review-stamp.mjs`, then Codex (prompt in the
   scratchpad is gone; rebuild it from AGENTS.md's template with the sprint goal above and FOCUS on whether the
   cycle-1 findings are fixed) and the reviewer (`model: "fable"`) in parallel, saved as

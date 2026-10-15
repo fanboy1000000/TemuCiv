@@ -22,12 +22,15 @@ design limits or hard caps: larger settings still work, they just aren't measure
 
 **The workload:** that map and player count at turn 400 of a recorded headless AI-vs-AI game. On it, on the
 reference machine: a turn resolves (rules only) in under 1 second; the player waits at most 2 seconds after End
-Turn, computer players included; the map pans and zooms at 60 frames per second at 1080p. The **reference
+Turn, computer players included; an order gets its answer (accepted, or why not) within 100 milliseconds, also
+while computer players think; the map pans and zooms at 60 frames per second at 1080p. The **reference
 machine** is a 2020 mid-range laptop: a 4-core mobile processor of the Core i5-10210U class, 8 GB of memory,
 integrated graphics, a 1080p screen, played with mouse and keyboard. CI checks the rules-only time on its own
-runner as a regression guard; the full budgets are measured on a reference-class machine at M4 and M5. Steam Deck
-and controllers are not a target for now (owner, 2026-10-08); supporting them later means reworking the interface
-and these budgets.
+runner as a regression guard; the full budgets are measured on a reference-class machine at M4 and M5. The exact
+reference setup (machine, operating system, power settings, the scene drawn) and CI's regression threshold are
+fixed when the performance tests are built (ROADMAP backlog, M3–M4); until then these numbers are targets, not a
+test. Steam Deck and controllers are not a target for now (owner, 2026-10-08); supporting them later means
+reworking the interface and these budgets.
 
 ## Why
 

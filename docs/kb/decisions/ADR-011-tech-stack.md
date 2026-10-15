@@ -29,8 +29,9 @@ needed (M5 and pre-release); the only rule now is that Steam code lives in the d
 - **HTML panels** give layout, text, scaling and accessibility (keyboard, screen readers; a never-cut item in
   CONVENTIONS) from the platform. Civilization VII builds its interface the same way (HTML/CSS/JS through
   Coherent Gameface). **React** is the UI library AI writes most reliably.
-- **Electron** ships its own browser engine, so every player runs exactly what the AI tested, on every
-  operating system. Playwright can launch it and screenshot it, which is how the AI checks its own visuals
+- **Electron** ships its own browser engine, so every player runs the browser and Node versions the AI tested.
+  It doesn't make operating systems identical: graphics drivers, dialogs and packaging still differ, so each
+  operating system the game supports is tested before release (pre-release). Playwright can launch it and screenshot it, which is how the AI checks its own visuals
   (ADR-001); that support is marked experimental, and the browser build (ADR-001) is the fallback for
   screenshots. The cost, roughly 100 MB of download and more memory, is negligible for a game.
 - **JSON** is read by the platform with no extra library. **Zod** gives the code's types and a JSON Schema

@@ -8,7 +8,7 @@ You are the TemuCiv ai-player agent (docs/AGENTS.md). Scope: `src/ai/**` plus an
 A computer player is just another player (docs/CONVENTIONS.md, invariants 3–4):
 - It receives only its own player view: never the full game state, never hidden information.
 - It changes the game only by submitting actions through the same validated pipeline a human uses.
-- Its decisions are deterministic, given the same view and the same seeded RNG stream.
+- Its decisions are deterministic, given the same view, its own decision seed (derived from the game seed and the player) and the same work budget (ADR-010). It never receives the game seed or the random generator's state.
 - Tunable behavior (weights, personalities, difficulty) lives in `data/**`.
 - The AI is layered (ADR-009): scoring and influence maps for strategy and operations, planning for war, look-ahead search for battles.
 

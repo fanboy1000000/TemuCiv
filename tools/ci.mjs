@@ -5,7 +5,7 @@
 // close gates require. If files change while CI runs, the run fails: it proved nothing about
 // the files that exist now.
 //
-// New checks (type check, lint, unit tests, determinism, headless games, performance budgets) are added
+// New checks (type check, unit tests, determinism, headless games, performance budgets) are added
 // to STEPS as the code arrives. See docs/WORKFLOW.md, "Mechanical gates".
 
 import { spawnSync } from 'node:child_process';

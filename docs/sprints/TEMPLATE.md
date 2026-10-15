@@ -57,7 +57,7 @@ Findings and resolution: _each BLOCKER and how the plan changed; declined WARNIN
 
 ### TASK-N01: [title]
 
-Status complete \| partial \| blocked · Agent · Checklist pass \| violations · Review (high-risk only): verdict · Commit `<sha>`
+Status complete \| partial \| blocked · Agent · Checklist pass \| violations · Review (high-risk only): verdict · Commit `<sha>` · Files changed
 
 _What was done and why, in two to four sentences. Acceptance criteria with pass/fail. Brief contradictions and
 how they were settled._

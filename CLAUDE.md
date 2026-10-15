@@ -61,13 +61,12 @@ Actions in `.github/workflows/ci.yml` · skills in `.claude/skills/`.
 | Headless deterministic simulation driven by actions | ADR-002 |
 | Single-player first, multiplayer-ready state, per-player views | ADR-003 |
 | Content and balance numbers as data | ADR-004 |
-| Game length is design; the code supports any size or length | ADR-005 |
 | StatsTid-derived governance (option B), Codex as external lens, public GitHub repo | ADR-006 |
 | Turn-based: everyone moves at once on the world map; battles go by initiative (supersedes ADR-007) | ADR-008 |
 | Layered AI opponents (scoring, planning, search), tuned by AI-vs-AI games, built with each system | ADR-009 |
 | Game loop: sealed orders, then one resolution; battles inside the turn; the sim in a background thread | ADR-010 |
 | PixiJS, React panels, Electron, JSON with Zod schemas, Vite, `node:test`, Playwright | ADR-011 |
-| Tested envelope: ~10,000 tiles, 12 players, 500 turns, a 2020 mid-range laptop; no Steam Deck target for now | ADR-005 |
+| Game length is design; the code supports any size; tested envelope ~10,000 tiles, 12 players, 500 turns, a 2020 mid-range laptop; no Steam Deck target for now | ADR-005 |
 
 **Open (owner):** the hook that makes TemuCiv more than a small Civ clone (`docs/design/vision.md`). Not named up
 front: the owner lets it grow out of the design (2026-10-07).

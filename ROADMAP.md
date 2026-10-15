@@ -10,7 +10,7 @@ Milestones are ordered by dependency. The sprints each one takes are projections
 
 | Milestone | Goal | Delivers |
 |---|---|---|
-| **M0: Design** (current) | Governance, architecture, the owner's vision and scope | Workflow and gates; `docs/architecture.md` (done, S2); `docs/design/vision.md` and `scope.md` |
+| **M0: Design** (current) | Governance, architecture, the owner's vision and scope | Workflow and gates; `docs/architecture.md` (done, S2); `docs/design/vision.md` and `scope.md` (the owner's, alongside M0.5) |
 | **M0.5: Prototype** (owner, 2026-10-15) | Feel how the untested ideas play together before production: a rough, throwaway build in slices, one sprint each. 1: solo sandbox (moves budget, coin and goods, hauling); 2: a rival and armies; 3: progress and the category scores | Builds the owner plays; the lessons go into `docs/design/`. The code is thrown away, and production (M1) starts fresh |
 | **M1: Foundation** | Project skeleton, hex grid, map generation, rendering, camera; CI for types, tests and determinism | A map you can scroll |
 | **M2: Core loop** | Units, movement, turns, cities, yields, production; a first AI player that plays them (ADR-009) | Found cities and grow, next to an AI rival |
@@ -26,15 +26,17 @@ Deferred work with an owner and a reason. Items leave the backlog when a sprint 
 
 | Item | Why deferred | Picked up by |
 |---|---|---|
-| Design brainstorm, carried over: the economy (coin and goods, C2, ruled 2026-10-15, Sprint 2 log; details parked for the economy spec); the big shape of logistics (routes designed once, then automatic: proposed) and of cities (stability, sanitation); ruling a large empire (moves budget K1–K6 ruled 2026-10-13, Sprint 2 log; all six challenges done; next: what runs the parts nobody spends a move on; showing where a move pays off is left to the interface design) | The owner moved to the technical sprint first | M0 |
+| Design brainstorm, carried over: the economy (coin and goods, ruled 2026-10-15 as C2, Sprint 2 log; details parked for the economy spec); the big shape of logistics (routes designed once, then automatic: proposed) and of cities (stability, sanitation); ruling a large empire (moves budget: K1 and K3–K6 ruled 2026-10-13, K2 replaced by K5, investing still a lean; open: anything beyond last orders for the parts nobody spends a move on; showing where a move pays off is left to the interface design) | Paused for the prototype: some answers will come from play (owner, 2026-10-15) | M0–M0.5 |
 | Design spec: owner writes `vision.md` and `scope.md` (templates in `docs/design/`) | Owner's work, at the owner's pace | M0 |
 | Design: route the brainstorm rulings (Sprint 1 and Sprint 2 logs, "Owner design rulings") into `docs/design/`, with the owner's OK; include renaming "research" to "progress" in `docs/design/README.md` | Brainstorm still in progress | M0 |
 | `run-game` skill: the verified recipe for launching the game and taking screenshots | Needs a runnable build | M1 |
 | M1 setup per ADR-011: Vite, TypeScript strict (`erasableSyntaxOnly`), one TypeScript project per part of `src/`, `node:test`, Playwright; CI steps for the type check, tests, data-schema validation, the `src/sim` search for `Math.random`/`Date.now`/`new Date(`, and the determinism replay | Needs code | M1 |
 | Headless AI-vs-AI soak games and performance budgets in CI | Needs the simulation and AI players | M3–M4 |
-| Read-only agents (reviewer, constraint-validator, trace) have unrestricted Bash; replace with an enforced read/test allowlist (Codex S1 cycle 1, warning) | No agent has run yet; needs a mechanism Claude Code supports | Before the first agent-built sprint |
+| Read-only agents (reviewer, constraint-validator, trace) have unrestricted Bash; replace with an enforced read/test allowlist (Codex S1 cycle 1, warning) | No building agent has run yet (only the read-only reviewer); needs a mechanism Claude Code supports | Before the first agent-built sprint: Sprint 3 if an agent builds the prototype |
 | Worktree sequence for parallel agents: compare via shared refs (HEAD vs main), and state who stages, commits and merges (Codex S1 cycle 1, warning) | Settled in the first sprint that runs parallel worktree agents | First parallel build sprint |
 | Guard leftovers from Sprint 1's last review (reviewer cycle 13, judged implausible as mistakes): also check the other shell's joined text; a bash comment ending in a backslash before a continued PR merge; Notes, not blockers: the receipt guards `main`; GitHub's ruleset can't stop PR merges by agents (shared account) | Declined at the S1 close to avoid reopening the review | When a guard gap is hit in practice (S2: kept as notes; `gh api` merges now listed as a known limit in WORKFLOW) |
+| ADR-010 shortcut: computer players share the simulation's thread | Upgrade when the 2-second End Turn wait or the 100-millisecond order answer (ADR-005) fails | M3–M4 measurements |
+| ADR-010 shortcut: during the alpha, a save from another format, game or content version is refused, not migrated | Upgrade when outside players have saves worth keeping | M5 |
 | A plain-language glossary (HEAD, worktree, hash, staging, CI run states) and a one-page close checklist for the owner (Codex S1 cycle 1, note) | Nice to have | Any docs sprint |
 
 ## Parking lot

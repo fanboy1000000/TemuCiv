@@ -29,21 +29,23 @@ step, which could not pause for a battle the player fights by hand.
    the general whose initiative is highest. A human general's action comes from the player; a computer
    general's from the AI (ADR-009). If the combat spec decides battles resolve automatically, the human's
    generals are driven the same way, and nothing else changes.
-4. **End of turn:** upkeep (yields, growth, borders, victory checks), then the next orders phase. Whether upkeep
-   comes before or after the battles (does a city attacked this turn still grow?) is open: the cities and combat
-   specs decide it, and the state machine supports either.
+4. **Upkeep, then the next turn:** upkeep (yields, growth, borders, victory checks) runs once per resolution, at
+   the point the cities and combat specs choose, before or after the battles (does a city attacked this turn
+   still grow?); the state machine supports either. Then the next orders phase begins.
 
 Each player sees the resolution as a list of **events** filtered by their own view (ADR-003), which the client
 plays back as the turn replay.
 
-**Three different records.** A **save** is a snapshot of the state plus a format version: fast to load. A
+**Three different records.** A **save** is a snapshot of the state plus its format version and the game and
+content versions it was made with: fast to load. A
 **replay or bug report** is the settings, the seed, the action list, and the game and data versions: it
 reproduces the game exactly; CI replays one and compares a hash of the final state (ADR-002). **Network play**,
 if it comes, carries actions in and each player's own views and events out, never the full state (ADR-003).
 
 **Where it runs.** The simulation runs in a **background thread** (a Web Worker), and the screen talks to it only
 by messages, so the screen never freezes while a turn resolves. Computer players run in the same background
-thread and think while the human plans; they receive only their views. Tests and headless AI-vs-AI games run the
+thread and think while the human plans, in small slices of their work budget, so an order the human gives is
+answered between slices; they receive only their views. Tests and headless AI-vs-AI games run the
 same code directly in Node.
 
 **Determinism in practice.** Rule arithmetic uses whole numbers (fractions as fixed-point, for example
@@ -75,13 +77,15 @@ are processed in id order.
 
 - Every order is an action, validated when given. Pending orders and the start-of-turn picture are part of the
   serializable state (ADR-003).
-- An order that another player could observe, or that changes what another player pays or sees, waits for
-  resolution. Own-empire orders apply once, when given.
+- An order that another player could observe, or that changes what another player pays or sees this turn, waits
+  for resolution. Own-empire orders apply once, when given (others' prices read the start-of-turn picture).
 - Nothing applied during the orders phase draws from the shared random stream. Randomness waits for resolution,
   or comes from a stream derived from the seed, the turn and the player.
-- A computer player's choices depend only on its view, the seed and a **work budget** (for example a number of
-  search steps), never on the clock or on when other actions arrived. Its thinking time is measured against the
-  budgets (ADR-005), not used to stop it.
+- A computer player's choices depend only on its view, its own decision seed (derived from the game seed and the
+  player) and a **work budget** (for example a number of search steps), never on the clock or on when other
+  actions arrived. Its thinking time is measured against the budgets (ADR-005), not used to stop it.
+- Views never carry the game seed or the random generator's state, so no player can rebuild what fog of war
+  hides (ADR-003).
 - For look-ahead (ADR-009), the AI may run the simulation's pure rule functions on hypothetical states it builds
   from its own view. It never receives the real state.
 - Battles are processed in a deterministic order; the next actor is chosen by initiative, with ties defined by
@@ -94,7 +98,7 @@ are processed in id order.
 - Amends ADR-008 (resolution is a state machine, not one function), ADR-002 (saves are snapshots; replays are
   the action list) and ADR-003 (the network never carries the full state). The client needs a pending-orders
   display and a turn replay built from events.
-- Shortcut: computer players share the simulation's thread; upgrade to their own threads when the 2-second wait
-  after End Turn (ADR-005) fails.
-- Shortcut: during the alpha, a save from an older format version is refused with a clear message and left
-  untouched on disk, not migrated; upgrade when outside players have saves worth keeping (M5).
+- shortcut: computer players share the simulation's thread; upgrade to their own threads when the 2-second wait
+  after End Turn or the 100-millisecond order answer (ADR-005) fails.
+- shortcut: during the alpha, a save from another format, game or content version is refused with a clear
+  message and left untouched on disk, not migrated; upgrade when outside players have saves worth keeping (M5).
