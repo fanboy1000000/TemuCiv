@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TemuCiv prototype: slice 1</title>
+<style>
+  :root {
+    --bg: #12171d; --bar: #0c1015; --panel: #1b222b; --card: #232c37; --line: #36424f;
+    --text: #eef2f6; --muted: #aab7c5; --accent: #5ec8f2; --gold: #ffc94d; --bad: #ff9a8f; --good: #9be09f;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+    font: 15px/1.4 "Segoe UI", system-ui, sans-serif; }
+  body { display: grid; grid-template-rows: auto 1fr; overflow: hidden; }
+  button { font: inherit; color: var(--text); background: #2d3a48; border: 1px solid #4a5a6b; border-radius: 6px;
+    padding: 5px 10px; cursor: pointer; }
+  button:hover:not(:disabled) { background: #3a4b5d; border-color: var(--accent); }
+  button:disabled { cursor: default; pointer-events: none; background: #1d242c; border-color: #303a45; color: #93a0ad; }
+  input { font: inherit; color: var(--text); background: #1b222b; border: 1px solid #4a5a6b; border-radius: 6px;
+    padding: 4px 6px; width: 90px; }
+
+  /* Top bar */
+  #top { display: flex; align-items: center; gap: 16px; padding: 8px 14px; background: var(--bar);
+    border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  #top .title { font-weight: 600; color: var(--muted); }
+  .stat { display: flex; align-items: baseline; gap: 6px; }
+  .stat .label { color: var(--muted); }
+  .stat .big { font-size: 22px; font-weight: 700; }
+  .pips { display: inline-flex; gap: 3px; margin-left: 4px; align-self: center; }
+  .pip { width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--accent); }
+  .pip.on { background: var(--accent); }
+  .pip.saved { background: var(--gold); border-color: var(--gold); }
+  #endturn { background: #2f6f4f; border-color: #4caf7d; font-weight: 600; padding: 7px 16px; }
+  #endturn:hover { background: #3a8a62; }
+  .spacer { flex: 1; }
+
+  /* Main area */
+  main { display: grid; grid-template-columns: 1fr 420px; grid-template-rows: 1fr clamp(150px, 24vh, 230px); min-height: 0; }
+  #mapwrap { position: relative; min-height: 0; min-width: 0; overflow: hidden; }
+  #map { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: grab; }
+  #banner { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); max-width: 90%;
+    background: rgba(12, 16, 21, 0.92); border: 1px solid var(--accent); border-radius: 8px; padding: 8px 14px;
+    display: none; align-items: center; gap: 12px; }
+  #banner.show { display: flex; }
+  #banner.error { border-color: var(--bad); }
+  #hint { position: absolute; left: 10px; bottom: 8px; color: #dfe7ef; background: rgba(12, 16, 21, 0.75);
+    padding: 3px 8px; border-radius: 6px; font-size: 13px; }
+  #side { grid-row: 1 / 3; grid-column: 2; overflow-y: auto; border-left: 1px solid var(--line); background: var(--panel);
+    padding: 12px 14px 24px; }
+  #bottom { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--line); min-height: 0; }
+  #waiting, #log { overflow-y: auto; padding: 8px 14px; }
+  #waiting { border-right: 1px solid var(--line); }
+
+  /* Panels */
+  h2 { font-size: 19px; margin: 0 0 6px; display: flex; align-items: center; gap: 8px; }
+  h3 { font-size: 14px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin: 14px 0 6px; }
+  h3 .sub, h2 .sub { text-transform: none; letter-spacing: 0; font-weight: 400; color: var(--muted); font-size: 14px; }
+  .swatch { width: 14px; height: 14px; border-radius: 50%; border: 2px solid #000; display: inline-block; }
+  .num { border-bottom: 1px dotted #8597a8; cursor: help; font-weight: 600; }
+  .muted { color: var(--muted); }
+  .bad { color: var(--bad); }
+  .good { color: var(--good); }
+  .gold { color: var(--gold); }
+  table.stats { border-collapse: collapse; width: 100%; }
+  table.stats th { text-align: left; font-weight: 500; color: var(--muted); padding: 2px 10px 2px 0; width: 92px; vertical-align: top; }
+  table.stats td { padding: 2px 0; }
+  .orders { display: flex; flex-direction: column; gap: 5px; }
+  .order { text-align: left; display: block; padding: 5px 9px; width: 100%; }
+  .order .oname { font-weight: 600; margin-right: 6px; }
+  .order .ocost { font-size: 13px; }
+  .order .oeffect { display: block; font-size: 13px; color: var(--muted); }
+  .order .why { display: block; font-size: 13px; color: var(--bad); }
+  .ow { display: block; }
+  .item { padding: 5px 8px; border-radius: 6px; background: var(--card); margin-bottom: 5px; }
+  .item .acts { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; }
+  .item .acts button { font-size: 13px; padding: 3px 8px; }
+  .link { cursor: pointer; }
+  .link:hover { background: #2c3846; }
+  .row-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+  .bar { height: 8px; background: #33404d; border-radius: 4px; overflow: hidden; margin-top: 3px; }
+  .bar > div { height: 100%; background: var(--accent); }
+  #bottom h3 { margin-top: 2px; }
+  .logturn { color: var(--muted); font-size: 13px; margin-top: 6px; }
+  .old { opacity: 0.6; }
+
+  /* Hover text */
+  #tip { position: fixed; z-index: 10; pointer-events: none; max-width: 340px; background: #0b0f14; color: var(--text);
+    border: 1px solid var(--accent); border-radius: 6px; padding: 7px 10px; font-size: 14px; white-space: pre-line;
+    display: none; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5); }
+</style>
+</head>
+<body>
+  <header id="top"></header>
+  <main>
+    <section id="mapwrap">
+      <canvas id="map"></canvas>
+      <div id="banner"></div>
+      <div id="hint">Drag to scroll · wheel to zoom · click to look (free) · Enter or Space: end turn · Ctrl+Z: undo · Esc: cancel</div>
+    </section>
+    <aside id="side"></aside>
+    <section id="bottom">
+      <div id="waiting"></div>
+      <div id="log"></div>
+    </section>
+  </main>
+  <div id="tip"></div>
+  <script src="numbers.js"></script>
+  <script src="game.js"></script>
+  <script src="ui.js"></script>
+  <script>
+    // If numbers.js has a typo, nothing else can run: say so instead of showing a blank page.
+    if (typeof NUMBERS === 'undefined' || typeof Game === 'undefined') {
+      document.body.innerHTML = '<p style="padding:24px;font-size:18px;max-width:760px">The prototype could not start. ' +
+        'If you just edited numbers.js, a comma, colon or bracket is probably missing or extra: undo the edit in ' +
+        'Notepad (Ctrl+Z), save, and reload this page (F5).</p>';
+    }
+  </script>
+</body>
+</html>

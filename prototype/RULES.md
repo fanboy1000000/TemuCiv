@@ -43,8 +43,8 @@ proposal, which the owner may flag.
 ## Production and building
 - A city's production is 2 + 1 per person (eng.). The Workshop raises it by half.
 - A city builds one thing at a time. Giving it something to build costs one move; the coin (from your purse) and
-  stone (from that city's store) are paid when you order it. Changing the order refunds the coin and stone and
-  loses the progress (eng.).
+  stone (from that city's store) are paid when you order it. Changing the order refunds the coin, stone and food
+  paid and loses the progress (eng.).
 - When a build finishes and you haven't ordered another, the city waits: its production is unused (P6, owner
   2026-10-15) and it is listed under "Waiting for you".
 
