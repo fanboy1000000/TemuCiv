@@ -51,8 +51,8 @@ state; that stays a checklist item (AGENTS.md, item 3).
 1. The client shows the player's view. Each order is sent as an action; the simulation checks it at once and
    either applies it (own empire only) or stores it as pending (ADR-010).
 2. Computer players do the same while the human plans.
-3. When every player has ended the turn, the simulation resolves movement and then the battles one at a time;
-   upkeep runs once, before or after the battles, as the cities and combat specs choose (ADR-010).
+3. When every player has ended the turn, the simulation resolves movement first, then the battles (one at a time)
+   and upkeep, in the order the cities and combat specs choose (ADR-010).
 4. Each player receives the new view and the turn's events, filtered by what they could see; the client plays the
    events back as the turn replay.
 

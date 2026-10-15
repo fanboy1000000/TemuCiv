@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| **Status** | accepted (2026-09-30); tick wording from ADR-007 reverted to turns (ADR-008, 2026-10-05); tested envelope added (S2, 2026-10-08) |
+| **Status** | accepted (2026-09-30); tick wording from ADR-007 reverted to turns (ADR-008, 2026-10-05); tested envelope added (S2, 2026-10-08); order answer time and the test-setup deferral added (S2, 2026-10-15) |
 | **Sprint** | S1 |
 | **Areas** | simulation, ai-player, presentation, test-qa |
 
@@ -50,5 +50,5 @@ late-game micromanagement) is the owner's, and engineering flags where a design 
 
 ## Consequences
 
-- CI gets performance-budget checks on large generated maps once the simulation exists.
+- CI gets performance-budget checks on large generated maps when the performance tests are built (M3–M4).
 - Headless simulations regularly run at the tested envelope's settings.

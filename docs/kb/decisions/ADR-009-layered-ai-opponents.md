@@ -27,7 +27,7 @@ from M2, not added at the end.
   small, contained problems. Shipped 4X AIs are mixtures for this reason (Civilization's scored "flavors",
   Total War: Rome II's goal-and-resource planner using tree search).
 - **It stays readable, testable and cheap to run.** Scores and plans can be printed and explained; decisions are
-  deterministic with the seeded RNG; nothing needs a server or a GPU.
+  deterministic with each computer player's own seeded random generator (ADR-010); nothing needs a server or a GPU.
 - **It survives design changes.** The design will change often; weights live in data (ADR-004) and the methods
   read the real rules, so a change means re-tuning, not retraining.
 - **Our architecture makes it cheap.** The headless simulation (ADR-002) lets search play "what if" games with

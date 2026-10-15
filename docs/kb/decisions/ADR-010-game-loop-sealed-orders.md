@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| **Status** | accepted (owner, 2026-10-08); amends ADR-002, ADR-003 and ADR-008 where noted |
+| **Status** | accepted (owner, 2026-10-08); amends ADR-002, ADR-003 and ADR-008 where noted; review fixes 2026-10-15 (order answer time, save versions, computer players' seeds and memory) |
 | **Sprint** | S2 |
 | **Areas** | simulation, ai-player, presentation, platform, test-qa |
 
@@ -29,16 +29,17 @@ step, which could not pause for a battle the player fights by hand.
    the general whose initiative is highest. A human general's action comes from the player; a computer
    general's from the AI (ADR-009). If the combat spec decides battles resolve automatically, the human's
    generals are driven the same way, and nothing else changes.
-4. **Upkeep, then the next turn:** upkeep (yields, growth, borders, victory checks) runs once per resolution, at
-   the point the cities and combat specs choose, before or after the battles (does a city attacked this turn
-   still grow?); the state machine supports either. Then the next orders phase begins.
+
+**Upkeep** (yields, growth, borders, victory checks) runs once during resolution, either before or after the
+battles: which one is for the cities and combat specs to choose (does a city attacked this turn still grow?), and
+the state machine supports both. Then the next orders phase begins.
 
 Each player sees the resolution as a list of **events** filtered by their own view (ADR-003), which the client
 plays back as the turn replay.
 
 **Three different records.** A **save** is a snapshot of the state plus its format version and the game and
 content versions it was made with: fast to load. A
-**replay or bug report** is the settings, the seed, the action list, and the game and data versions: it
+**replay or bug report** is the settings, the seed, the action list, and the game and content versions: it
 reproduces the game exactly; CI replays one and compares a hash of the final state (ADR-002). **Network play**,
 if it comes, carries actions in and each player's own views and events out, never the full state (ADR-003).
 
@@ -81,11 +82,14 @@ are processed in id order.
   for resolution. Own-empire orders apply once, when given (others' prices read the start-of-turn picture).
 - Nothing applied during the orders phase draws from the shared random stream. Randomness waits for resolution,
   or comes from a stream derived from the seed, the turn and the player.
-- A computer player's choices depend only on its view, its own decision seed (derived from the game seed and the
-  player) and a **work budget** (for example a number of search steps), never on the clock or on when other
+- A computer player's choices depend only on its view (which includes its own memory, below), its own random
+  generator and a **work budget** (for example a number of search steps), never on the clock or on when other
   actions arrived. Its thinking time is measured against the budgets (ADR-005), not used to stop it.
-- Views never carry the game seed or the random generator's state, so no player can rebuild what fog of war
-  hides (ADR-003).
+- Each computer player's random generator is seeded one way from the game seed and the player, by a hash that
+  can't be worked back, so neither its seed nor its numbers reveal the game seed. Views never carry the game
+  seed or the game's random generator state, so no player can rebuild what fog of war hides (ADR-003).
+- Anything a computer player carries between turns (its plans, its random generator's position) lives in the
+  game state as that player's private data and comes back only in its own view, so a save restores it.
 - For look-ahead (ADR-009), the AI may run the simulation's pure rule functions on hypothetical states it builds
   from its own view. It never receives the real state.
 - Battles are processed in a deterministic order; the next actor is chosen by initiative, with ties defined by
