@@ -35,7 +35,7 @@ does.
 | `data/` | Content and balance numbers as JSON | content | — |
 | `tests/` | Rule, determinism, replay, soak, performance and screenshot tests | test-qa | everything |
 | `tools/` | CI, soak and replay scripts, governance tooling | platform, Orchestrator | everything |
-| `prototype/` | The throwaway prototype (M0.5, WORKFLOW "Prototype phase"); deleted when production starts | the agent its task names; `RULES.md` by the Orchestrator | nothing; nothing depends on it |
+| `prototype/` | The throwaway prototype (M0.5, WORKFLOW "Prototype phase"); deleted when production starts | the agent its task names; `RULES.md` by the Orchestrator | nothing; nothing uses its code (CI runs its smoke check) |
 
 **How content reaches the rules.** `src/sim` never reads files. It receives the content as a value when a game
 starts and checks it against its schemas. The client bundles `data/*.json` at build time; tests and tools read

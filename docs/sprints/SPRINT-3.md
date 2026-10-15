@@ -36,9 +36,10 @@ order sites and buildings, haul food and stone between cities, and feel the move
 | TASK-301 | Orchestrator | `docs/CONVENTIONS.md`, `docs/WORKFLOW.md`, `docs/AGENTS.md`, `docs/architecture.md`, `.claude/agents/simulation.md`, ADR-002, ADR-009, `ROADMAP.md` | The prototype exception in wording the owner approved; the rule on decision records for unbuilt systems; a `prototype/` folder row and who writes it; the two one-word ADR fixes → owner OK, `check-docs` | no |
 | TASK-302 | Orchestrator | `prototype/RULES.md` | Slice 1's rules: every rule traces to an owner ruling, a placeholder (P1 to P12) or is marked as engineering's proposal → owner may flag; review | no |
 | TASK-303 | general-purpose agent (Opus) | `prototype/**` except `RULES.md` | Opens by double-click in Edge or Chrome with nothing installed; plays as `RULES.md` says; every number in `numbers.js`; a smoke run plays 300 turns of random valid orders with no error, no NaN and no negative store → `node prototype/smoke.js`, a screenshot, the owner's playtest | no (prototype) |
+| TASK-305 | Orchestrator | `prototype/ui.js`, `prototype/README.md`, `prototype/RULES.md`, `docs/WORKFLOW.md`, `docs/AGENTS.md`, `docs/architecture.md`, `.claude/agents/reviewer.md`, `.github/workflows/ci.yml`, `CLAUDE.md`, `ROADMAP.md`, this log | Every sprint-end cycle-1 BLOCKER fixed → sprint-end review cycle 2 | no |
 | TASK-304 | Orchestrator | `tools/ci.mjs` | CI runs the prototype's smoke check, and a broken prototype fails CI → `npm run ci`, one deliberate break seen failing | no |
 
-Waves: 301 (owner OK first) → 302 → 303 → 304. TASK-303 uses a generic agent with the model named: the
+Waves: 301 (owner OK first) → 302 → 303 → 304; 305 follows the review. TASK-303 uses a generic agent with the model named: the
 simulation and presentation definitions carry standing instructions (determinism; never computing rules) that the
 prototype exception sets aside. The ROADMAP item "Bash allowlist for read-only agents before the first agent-built
 sprint" moves to the first sprint that builds in parallel worktrees (M1): one agent builds the prototype in the
@@ -61,7 +62,10 @@ and from trade along routes; war adds coin in slice 2.
 throwaway prototype in `prototype/`, which follows lighter rules (WORKFLOW, "Prototype phase")."), the workflow
 section it points to, and the rule that a decision record for a system not yet built records only the decision,
 its details being settled by the sprint that builds it (a missing detail is a NOTE until then). Sprint 3 skips its
-plan review on this approval.
+plan review on this approval. The text shown to the owner included the CONVENTIONS sentence exactly as committed,
+the checklist clause (only "stay inside your files" and "no secrets or leftover debug code" remain) and the
+decision-record rule; TASK-305 clarified the WORKFLOW "Where" line to say CI runs the smoke check, which the same
+approved text required.
 
 ## Task log
 
@@ -86,15 +90,18 @@ Written from P1 to P12, the P6 answer (a city with nothing to build waits) and e
 here (all "(eng.)"): undo takes back this turn's orders one at a time and returns their move and costs (the
 Sprint 2 reviewer's note on misclicks); distances are counted in hexes; a settler takes its person when finished;
 people not at a site still eat, pay coin and add production. Starting numbers live in `numbers.js` for the owner.
+Follow-up during TASK-303's verification (Orchestrator, recorded here because TASK-303's scope excludes this file):
+changing a build now refunds the food paid as well (a settler's 15); the screen text followed in TASK-305.
 
 ### TASK-303: build slice 1
 
 Status complete · Agent: general-purpose (Opus, model named at spawn) · Checklist items 1 and 9 pass · Review:
-sprint-end (light bar) · Files: `prototype/index.html`, `numbers.js`, `game.js`, `ui.js`, `smoke.js`, `README.md`;
-`prototype/RULES.md` and `game.js` touched by the Orchestrator (food refund, below). Criteria: opens by double-click
-PASS (headless Edge screenshot, checked by the Orchestrator); plays as `RULES.md` says PASS on the agent's
-section-by-section table and 34 scratch checks, owner playtest pending; every number in `numbers.js` PASS (only the
-random generator's constants remain in `game.js`); smoke 300 turns PASS, and fails on a deliberate break (negative
+sprint-end (light bar) · Files: `prototype/index.html`, `numbers.js`, `game.js`, `ui.js`, `smoke.js`, `README.md`
+(the agent's); `game.js` also by the Orchestrator (the food refund, below). Criteria: opens by double-click PASS
+(headless Edge screenshot, checked by the Orchestrator); plays as `RULES.md` says PASS on the agent's
+section-by-section table (Design conformance below) and 34 scratch checks, the owner's playtest still pending;
+every number in `numbers.js` PASS (only structural constants remain in `game.js`: the random generator's, the map
+generator's loop limits, the start search radius); smoke 300 turns PASS, and fails on a deliberate break (negative
 food; undo returning only the move) PASS.
 
 The rules (`game.js`) are kept apart from the screen (`ui.js`), so Node can play them; undo saves a copy of the
@@ -102,8 +109,8 @@ game before each order. The agent's readings of unclear rules, all left as engin
 playtest: changing or cancelling a route also gives attention; Halls being built count toward the next Hall's
 price and the cap; fractions are kept and shown to one decimal; goods sent at the end of a turn land at the end of
 the next; a city grows at most one person per turn; this turn's moves are spent before saved ones. One oversight
-in my rules fixed under the small-tasks exception: changing a build now refunds the food paid (a settler's 15),
-checked by a scratch script (food 20 → 5 → 20). Observed by the agent for the playtest: the start city loses 2
+in my rules fixed: changing a build now refunds the food paid (a settler's 15), checked by a scratch script (food
+20 → 5 → 20). It touched two files and missed the screen text, which both review lenses caught (TASK-305). Observed by the agent for the playtest: the start city loses 2
 food a turn until its first farm. Declined knowledge entry (undo by saving a copy before each order): prototype
 only; production gets undo from the action pipeline (ADR-002).
 
@@ -114,10 +121,39 @@ Status complete · Agent: Orchestrator (small task) · Checklist pass (self-chec
 made negative on purpose: "smoke: FAIL at turn 1 · after a build order: Ashford has negative food (-990)", CI
 3/4, exit 1; restored, `cmp` identical, smoke exit 0). The step is marked for removal with the folder at M1.
 
+### TASK-305: sprint-end review fixes (cycle 1)
+
+Status complete · Agent: Orchestrator · Checklist pass (self-check) · Review: sprint-end cycle 2 · Files: as in the
+plan row. Criteria: every cycle-1 BLOCKER fixed → cycle 2.
+
+Codex BLOCKED (6 blockers, 1 note), the reviewer BLOCKED (1 blocker, 6 warnings, 4 notes). Fixed: the screen now says
+a changed build refunds coin, stone and food (both lenses' blocker); RULES.md says Halls being built count toward
+the next Hall's price, and marks engineering's own rules "(eng.)" (the Granary, Market and Workshop effects, what a
+person eats, one build at a time, the settler's costs, the Hall's price growth and cap); the reviewer definition and
+the Codex template name the prototype's lighter bar; WORKFLOW says CI runs the prototype's smoke check (its "Where"
+line, the CI list, checklist item 9 in full) and how playtest notes in the owner's `notes.md` reach the log; AGENTS
+says prototype prompts include the WORKFLOW section word for word; the architecture row, the GitHub job name and
+CLAUDE.md's phase are current; the log records the approved wording, TASK-302's follow-up, a section-to-code table
+and a fresh handoff; the README no longer promises click-outside; an unused field is gone. ROADMAP: the M1
+clean-up of everything the prototype added, and Sprint 3's production ruling in the routing item. Left as notes
+(light bar, none contradicts RULES): founding beside a site under construction, a cancelled Hall keeping another's
+price, a site order without a tile (the screen never sends one).
+
 ## Design conformance
 
-Not applicable: the prototype conforms to `prototype/RULES.md` (WORKFLOW, "Prototype phase"), checked by the
-owner's playtest; no game rules in `src/` yet.
+For the prototype, conforming means matching `prototype/RULES.md` (WORKFLOW, "Prototype phase"). Checked by the
+builder's table and scratch checks, the reviewer's section-by-section comparison (cycle 1, rechecked in cycle 2
+after TASK-305), and the owner's playtest (pending). No game rules in `src/` yet.
+
+| RULES.md section | Implemented in (`prototype/`) | Verified by | Status |
+|---|---|---|---|
+| The map, the start | `game.js` `makeMap`, `passable`, `newGame`, `chooseStart` | screenshot; reviewer | PASS |
+| Moves, undo, last orders, attention, the Hall | `game.js` `movesPerTurn`, `movesSaved`, `begin`, `undo`, `attend`, `hallsCounted`, `buildCost` | smoke (undo exact); scratch checks; reviewer | PASS |
+| Cities, food and growth; production and building | `game.js` `eats`, `growthNeed`, `production`, `checkBuild`, `orderBuild`, `endTurn` | smoke; scratch checks (growth at 20, 15 with a Granary); refund script | PASS |
+| Sites, borders | `game.js` `siteProblem`, `claim`, `staffing`, `travelTurns`, `foundCity` | scratch checks; reviewer | PASS |
+| Coin, routes, settlers | `game.js` `coinNext`, `marketFactor`, `checkRoute`, `orderRoute`, `reserve`, `findPath`, `orderFound` | smoke; scratch checks | PASS |
+| A turn | `game.js` `endTurn`, steps 1 to 9 in the order RULES gives | reviewer | PASS |
+| The screen | `ui.js` `draw`, `renderTop`, `cityPanel`, `renderWaiting`, `renderLog`, `tileTip` | screenshot; owner's playtest | pending playtest |
 
 ## Sprint-end review (step 7)
 
@@ -144,9 +180,9 @@ _Exact output of the real runs, never numbers from memory._
 
 ## Handoff
 
-- **State:** Sprint 3 opened on `sprint/3` from the Sprint 2 close (`ed7e65d`). Nothing built yet.
-- **In flight:** nothing.
-- **Waiting on:** the owner's approval of the prototype exception's wording (TASK-301; draft in
-  `.claude/refinements/PROTOTYPE-exception-draft.md`).
-- **Next action:** after the OK, apply TASK-301, write `prototype/RULES.md` from
-  `.claude/refinements/PROTOTYPE-slice1-RULES-draft.md` (TASK-302), then spawn the prototype builder (TASK-303).
+- **State:** TASK-301 to 305 committed on `sprint/3`; the prototype is playable (`prototype/index.html`). Sprint-end
+  review cycle 1: both lenses BLOCKED, all fixed in TASK-305; cycle 2 next.
+- **In flight:** nothing between reviews. No worktrees.
+- **Waiting on:** the owner's playtest of slice 1 (notes into the next sprint's "Playtest input").
+- **Next action:** sprint-end review cycle 2 (stamp, Codex and the Fable reviewer in parallel, saved per cycle in
+  `.claude/reviews/SPRINT-3-*-c2.md`), then close (WORKFLOW step 8), push, watch GitHub CI.

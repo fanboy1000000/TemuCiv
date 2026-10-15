@@ -4,7 +4,7 @@ The rules the throwaway prototype follows (WORKFLOW, "Prototype phase"). Written
 owner's rulings and the slice 1 placeholders P1 to P12 (Sprint 2 and 3 logs, "Owner design rulings"); the builder
 may not change it, and reports any rule that can't work as written. Every number here is a starting value that lives in `numbers.js`, where the owner can change it and
 reload. "(P3)" and similar point to the placeholder or ruling a rule comes from; "(eng.)" marks engineering's own
-proposal, which the owner may flag.
+proposal, which the owner may flag. Every number is engineering's starting value, even in a rule a ruling names.
 
 ## The map
 - A hex grid, 24 × 18 tiles, one landmass surrounded by water, made from a seed number: the same seed always
@@ -30,19 +30,20 @@ proposal, which the owner may flag.
 - Attention (P5): an order given in a city (a build, a route that starts there, founding it) gives that city
   attention for 5 turns: its sites produce a quarter more. A new order restarts the 5 turns. Orders to a settler
   give no attention.
-- The Hall (P10) adds one move per turn. Each further Hall costs half as much again as the one before; one per
-  city; moves per turn never exceed 8 (P4).
+- The Hall (P10) adds one move per turn. Each further Hall costs half as much again as the one before, counting
+  Halls finished or being built, so ordering several at once doesn't get the first price; one per city; moves per
+  turn never exceed 8 (P4 asks for a slow rise with a cap; the price growth and the 8 are eng.).
 
 ## Cities, food and growth (P7)
 - A city's own tile makes 2 food per turn with nobody working it (eng.).
-- Each person eats 2 food per turn from the city's store.
+- Each person eats 2 food per turn from the city's store (eng.).
 - A city grows by one person when its food store reaches 10 + 5 × its size; that much food is used up. Food is
-  the only limit on growth (P7). The Granary lowers the amount by a quarter.
+  the only limit on growth (P7). The Granary lowers the amount by a quarter (P10 names it; the effect is eng.).
 - If the store can't feed everyone, the city loses one person (never below 1) and the store drops to 0 (eng.).
 
 ## Production and building
-- A city's production is 2 + 1 per person (eng.). The Workshop raises it by half.
-- A city builds one thing at a time. Giving it something to build costs one move; the coin (from your purse) and
+- A city's production is 2 + 1 per person (eng.). The Workshop raises it by half (P10 names it; the effect is eng.).
+- A city builds one thing at a time (eng.). Giving it something to build costs one move; the coin (from your purse) and
   stone (from that city's store) are paid when you order it. Changing the order refunds the coin, stone and food
   paid and loses the progress (eng.).
 - When a build finishes and you haven't ordered another, the city waits: its production is unused (P6, owner
@@ -52,8 +53,8 @@ proposal, which the owner may flag.
 |---|---|---|---|---|---|
 | Farm (site) | 10 | 0 | 15 | grassland only; needs 1 person | 4 food per turn |
 | Quarry (site) | 10 | 0 | 20 | hills only; needs 2 people | 2 stone per turn |
-| Settler | 0 | 0 | 20 | 15 food when ordered; 1 person when finished (the build waits while the city is size 1) | founds a city |
-| Hall | 40 | 20 | 40 | one per city; coin and stone × 1.5 for each Hall you already have | +1 move per turn |
+| Settler | 0 | 0 | 20 | 15 food when ordered; 1 person when finished (the build waits while the city is size 1) (eng.) | founds a city (settlers are in the map ruling) |
+| Hall | 40 | 20 | 40 | one per city; coin and stone × 1.5 for each Hall finished or being built | +1 move per turn |
 | Granary | 20 | 10 | 25 | one per city | growth needs a quarter less food |
 | Market | 25 | 10 | 30 | one per city | coin from people and arriving trade +50% |
 | Workshop | 20 | 15 | 30 | one per city | production +50% |
@@ -73,8 +74,8 @@ proposal, which the owner may flag.
 - A new city holds its own tile and the six around it, except tiles another city already holds (P8).
 
 ## Coin (P6)
-- One purse for the whole empire. Each turn every person pays 1 coin. The Market adds half to that city's people
-  coin and to the trade coin of goods arriving there.
+- One purse for the whole empire. Each turn every person pays 1 coin. The Market (P10 names it; the effect is eng.)
+  adds half to that city's people coin and to the trade coin of goods arriving there.
 - Trade: every unit of goods a route delivers earns 0.5 coin on arrival (eng.).
 - War earns coin from slice 2.
 

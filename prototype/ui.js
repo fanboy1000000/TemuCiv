@@ -20,7 +20,7 @@
 
   var game = null, history = [];
   var ui = { sel: -1, shownSel: null, pick: null, msg: null, hover: -1, cam: { x: 0, y: 0, zoom: 1 }, down: null,
-    labels: [], fitted: false };
+    labels: [] };
   var $ = function (id) { return document.getElementById(id); };
   var canvas = $('map'), ctx = canvas.getContext('2d'), tip = $('tip');
 
@@ -216,8 +216,7 @@
         (waits ? ' · <span class="gold">ready, waits until the city has a person to spare</span>' : ' · done in ' + count(left, 'turn', 'turns')) +
         '<div class="bar"><div style="width:' + Math.min(100, b.progress / b.cost * 100) + '%"></div></div>' +
         '<div class="muted" style="font-size:13px;margin-top:3px">Paid ' + fmt(b.paidCoin) + ' coin and ' + fmt(b.paidStone) + ' stone' +
-        (b.paidFood ? ' and ' + fmt(b.paidFood) + ' food' : '') + '. Ordering something else refunds the coin and stone' +
-        (b.paidFood ? ' (not the food)' : '') + '; the progress is lost.</div></div>';
+        (b.paidFood ? ' and ' + fmt(b.paidFood) + ' food' : '') + '. Ordering something else refunds what was paid; the progress is lost.</div></div>';
     } else {
       html += '<div class="item gold">Nothing. The city waits and its production goes unused.</div>';
     }
@@ -234,7 +233,7 @@
           G.hallsCounted(s, city) + '). One per city.' : '') +
         (spec.onePerCity && kind !== 'hall' ? '\nOne per city.' : '') +
         (kind === 'settler' ? '\nThe food is paid when ordered; the person when it is finished (it waits while the city is size ' + N.minCitySize + ').' : '') +
-        (city.build ? '\nThis replaces the current build: its coin and stone come back, its progress is lost.' : '') +
+        (city.build ? '\nThis replaces the current build: what it cost comes back (coin, stone and any food), its progress is lost.' : '') +
         '\nAbout ' + count(turns, 'turn', 'turns') + ' at ' + fmt(prod.total) + ' production per turn.' +
         (why ? '\n\nCan\'t now: ' + why : '');
       html += '<div class="ow" data-tip="' + attr(text) + '"><button class="order" data-act="build" data-city="' + city.id +

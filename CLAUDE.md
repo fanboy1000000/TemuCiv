@@ -7,9 +7,10 @@ lines.
 
 ## Current phase
 
-**M0: Design. No game code yet.** Sprint 1 laid the governance foundation; Sprint 2 made the rulebook leaner
-and settled the architecture ([docs/architecture.md](docs/architecture.md)). Next: a throwaway prototype to feel
-the ideas (M0.5, from Sprint 3), the owner's vision and scope (`docs/design/`), then M1. See `ROADMAP.md`.
+**M0: Design, with the M0.5 prototype under way.** No game code in `src/` yet. Sprint 1 laid the governance
+foundation; Sprint 2 made the rulebook leaner and settled the architecture ([docs/architecture.md](docs/architecture.md)).
+Sprint 3 builds slice 1 of a throwaway prototype (`prototype/`, M0.5) to feel the ideas; then the owner's vision
+and scope (`docs/design/`), then M1. See `ROADMAP.md`.
 
 ## You are the Orchestrator
 

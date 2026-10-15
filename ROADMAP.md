@@ -28,7 +28,7 @@ Deferred work with an owner and a reason. Items leave the backlog when a sprint 
 |---|---|---|
 | Design brainstorm, carried over: the economy (coin and goods, ruled 2026-10-15 as C2, Sprint 2 log; details parked for the economy spec); the big shape of logistics (routes designed once, then automatic: proposed) and of cities (stability, sanitation); ruling a large empire (moves budget: K1 and K3–K6 ruled 2026-10-13, K2 replaced by K5, investing still a lean; open: anything beyond last orders for the parts nobody spends a move on; showing where a move pays off is left to the interface design) | Paused for the prototype: some answers will come from play (owner, 2026-10-15) | M0–M0.5 |
 | Design spec: owner writes `vision.md` and `scope.md` (templates in `docs/design/`) | Owner's work, at the owner's pace | M0 |
-| Design: route the brainstorm rulings (Sprint 1 and Sprint 2 logs, "Owner design rulings") into `docs/design/`, with the owner's OK; include renaming "research" to "progress" in `docs/design/README.md` | Brainstorm still in progress | M0 |
+| Design: route the brainstorm rulings (Sprint 1, 2 and 3 logs, "Owner design rulings") into `docs/design/`, with the owner's OK; include renaming "research" to "progress" in `docs/design/README.md` | Brainstorm still in progress | M0 |
 | `run-game` skill: the verified recipe for launching the game and taking screenshots | Needs a runnable build | M1 |
 | M1 setup per ADR-011: Vite, TypeScript strict (`erasableSyntaxOnly`), one TypeScript project per part of `src/`, `node:test`, Playwright; CI steps for the type check, tests, data-schema validation, the `src/sim` search for `Math.random`/`Date.now`/`new Date(`, and the determinism replay | Needs code | M1 |
 | Headless AI-vs-AI soak games and performance budgets in CI | Needs the simulation and AI players | M3–M4 |
@@ -38,6 +38,7 @@ Deferred work with an owner and a reason. Items leave the backlog when a sprint 
 | ADR-010 shortcut: computer players share the simulation's thread | Upgrade when the 2-second End Turn wait or the 100-millisecond order answer (ADR-005) fails | M3–M4 measurements |
 | ADR-010 shortcut: during the alpha, a save from another format, game or content version is refused, not migrated | Upgrade when outside players have saves worth keeping | M5 |
 | Computer players' randomness and memory (Sprint 2 review, waived 2026-10-15): every derived random source one-way with its own label (computer players, the orders-phase stream, battle maps), a seed too big to guess, the choice of generator, a separate source for map generation; how a computer player's memory between turns enters the game state through an action and comes back in its own view | Details of systems not yet built; each fix in review raised the next | M1 (the random generator), M2 (the first computer player), before those agents start |
+| Remove the prototype when production starts: the `prototype/` folder, its CI step (`tools/ci.mjs`) and GitHub job name, the AGENTS paragraph, the architecture row, the CONVENTIONS sentence and WORKFLOW's "Prototype phase" | The prototype is throwaway (owner, D1) | M1, first sprint |
 | A plain-language glossary (HEAD, worktree, hash, staging, CI run states) and a one-page close checklist for the owner (Codex S1 cycle 1, note) | Nice to have | Any docs sprint |
 
 ## Parking lot

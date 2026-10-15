@@ -13,8 +13,8 @@ is sent anywhere. There is no saving: reloading the page starts a new game.
 
 ## Controls
 
-- **Look (free):** click a tile, a city or a settler. The panel on the right shows it; press Esc (or click
-  outside the map) to see the whole empire.
+- **Look (free):** click a tile, a city or a settler. The panel on the right shows it; press Esc to see the
+  whole empire.
 - **Map:** drag to scroll, mouse wheel to zoom. Hover over a tile to see its terrain and who holds it.
 - **Orders (one move each):** buttons in the right panel. A button you can't use right now is greyed out and
   says why. Farms, quarries, sending a settler and routes ask you to pick a tile or a city on the map

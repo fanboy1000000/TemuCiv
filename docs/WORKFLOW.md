@@ -136,21 +136,23 @@ complete and committed (the review covers them):
 
 ### Step 9: Playtest (once a playable build exists)
 The owner plays the sprint's build. Their notes are recorded at the top of the next sprint log under
-**Playtest input** and feed its refinement. The owner's experience is the only test of "fun" we have.
+**Playtest input** and feed its refinement. The owner's experience is the only test of "fun" we have. When the
+owner writes notes in `docs/design/notes.md` (their file), the Orchestrator copies them into "Playtest input" and
+only adds a routing marker there.
 
 ## Prototype phase (M0.5)
 
 Before production, a throwaway prototype lets the owner feel how the design's ideas play together, so playtests
 rather than paper decide which ideas stay (owner rulings D1, 2026-10-15, and the exception's wording, approved
 2026-10-15; Sprint 2 and 3 logs). It is a tool, not the game.
-- **Where:** only `prototype/`. Nothing outside it uses it, none of its code is ever moved into the game, and the
-  folder is deleted when production (M1) starts fresh in `src/`.
+- **Where:** only `prototype/`. Nothing outside it uses its code (CI only runs its smoke check, below), none of its
+  code is ever moved into the game, and the folder is deleted when production (M1) starts fresh in `src/`.
 - **Its rules:** the owner's rulings and the slice's placeholders, written out by the Orchestrator in
   `prototype/RULES.md`. Conforming to the design means matching that file. Its numbers sit in one file the owner
   can edit.
 - **Relaxed:** invariants 2 to 7 (determinism, the action pipeline, multiplayer-ready state, scale, tests written
   first), the plan review, the per-task review, `shortcut:` comments, and the constraint checklist except items 1
-  (scope) and 9 (no secrets, no leftover debug output).
+  (scope) and 9 (no secrets; no leftover debug output, dead code or unused imports).
 - **Kept:** roles, honesty in reporting, no secrets or personal data (the repository is public), the sprint log, a
   commit per task, CI and the close gates. CI also runs a smoke check: a scripted game plays many turns without
   an error.
@@ -184,8 +186,8 @@ rather than paper decide which ideas stay (owner rulings D1, 2026-10-15, and the
 
 Rules that matter are enforced by machines. Memory and good intentions are not enforcement.
 
-**`npm run ci`** (`tools/ci.mjs`) runs every check the project has: currently the docs check, a secret scan and
-the governance tests (hooks and tools). Type checks, unit tests, the determinism check, headless games and
+**`npm run ci`** (`tools/ci.mjs`) runs every check the project has: currently the docs check, a secret scan,
+the governance tests (hooks and tools) and the prototype's smoke game (until M1). Type checks, unit tests, the determinism check, headless games and
 performance budgets are added as the code arrives. Each step's own exit code is checked. On success it records
 the HEAD commit and a hash of the content of every project file (tracked, plus untracked files that aren't
 ignored) in `.claude/ci/last-run.json`. Ignored files and file modes are outside the hash, so checks must not
