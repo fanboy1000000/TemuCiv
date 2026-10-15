@@ -109,6 +109,20 @@ stand-ins, each listed for the owner's OK and turned into a design question; the
 (K5) is felt only from slice 2. Also decided (D3): terrain is shown by colour alone, and buildings are simple
 shapes. Working notes: `.claude/refinements/REFINEMENT-first-playable.md`.
 
+**Slice 1 placeholders (2026-10-15).** Asked one at a time at the owner's request; throwaway, revisited after
+playtests. Decided by the owner: cities get output from built sites with workers (P1); a site's output reaches
+its own city on its own, and routes the player sets up move goods between cities (P2); every order costs one
+move, and looking is free (P3); the budget is easy early and tight later (P4); a move is a move: any real order
+in a city also gives it the attention boost, with no separate order for it (P5); coin comes from population,
+trade and production, and war in slice 2 (P6); food is the only limit on growth for now (P7); sites claim land
+(P8); distance costs only time for now (P9); four buildings: Hall (+1 move), Granary, Market, Workshop (P10);
+unused moves all carry over (P11); play freely, with no end (P12). Owner design statements beyond the
+prototype, to route into `docs/design/`: every activity can earn coin, since there is one currency; with full
+stability and control distance costs only time, and without them a share is lost on the way. Flagged: P6's
+"production earns coin" loosens the 2026-10-04 ruling that production only sets build speed; P11 lets a
+player save up for one huge turn. Engineering's own proposals for the map, stone, sites, settlers, routes and
+screens are in the working notes for the owner to flag.
+
 ## Task log
 
 ### TASK-201: the ladder and risk-based testing in CONVENTIONS
@@ -232,12 +246,13 @@ _Exact output of the real runs, never numbers from memory._
   ruling). Sprint-end review cycle 1: both lenses BLOCKED; every finding fixed (TASK-206). Local CI PASS. Nothing
   pushed: `main` is still the Sprint 1 close, and `sprint/2` exists only on this computer.
 - **In flight:** nothing. No agents, no worktrees.
-- **Waiting on:** nothing from the owner. The brainstorm moved to a throwaway prototype (D1, D2, 2026-10-15; Owner
-  design rulings above): Sprint 3 builds slice 1 after this sprint closes. Logistics, cities and what runs the
-  parts nobody spends a move on stay open, to be answered partly through play.
+- **Waiting on:** nothing from the owner. The brainstorm moved to a throwaway prototype (D1 to D3, 2026-10-15;
+  Owner design rulings above), and slice 1's placeholders P1 to P12 are settled: Sprint 3 builds slice 1 after
+  this sprint closes. Logistics, cities and what runs the parts nobody spends a move on stay open, to be answered
+  partly through play.
 - **Next action:** sprint-end review cycle 2 (cap 3): `node tools/review-stamp.mjs`, then Codex (prompt in the
   scratchpad is gone; rebuild it from AGENTS.md's template with the sprint goal above and FOCUS on whether the
   cycle-1 findings are fixed) and the reviewer (`model: "fable"`) in parallel, saved as
   `.claude/reviews/SPRINT-2-codex.md` and `SPRINT-2-reviewer.md` with the stamp lines on top. Then close (WORKFLOW
   step 8). After the close: Sprint 3, the prototype's slice 1 (M0.5), starting with the CONVENTIONS prototype
-  exception for the owner to approve and slice 1's stand-ins listed in the plan.
+  exception for the owner to approve, then slice 1's exact rules restated from P1 to P12 and engineering's proposals.
