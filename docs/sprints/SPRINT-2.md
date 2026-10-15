@@ -3,12 +3,12 @@
 | Field | Value |
 |---|---|
 | **Sprint** | 2 |
-| **Status** | in-progress |
-| **Dates** | 2026-10-08 → |
+| **Status** | complete |
+| **Dates** | 2026-10-08 → 2026-10-15 |
 | **Base commit** | `845fc35` (the Sprint 1 close) |
 | **Previous close on GitHub** | run `37748785202`: success (both jobs) |
 | **Orchestrator model** | `claude-opus-5-5` (Claude Code 2.1.293) |
-| **CI verified** | pending |
+| **CI verified** | local `npm run ci` PASS on the close state (the GitHub run is recorded by Sprint 3) |
 
 ## Playtest input
 
@@ -270,38 +270,49 @@ Not applicable: no game rules this sprint (rulebook and architecture documents o
 
 ## Sprint-end review (step 7)
 
-| Lens | Cycles | Findings | Final verdict | Stamp |
+| Lens | Cycles | Findings (per cycle) | Final verdict | Stamp |
 |---|---|---|---|---|
-| Codex | | NB/NW/NN | | `<commit>` / `<hash prefix>` |
-| Reviewer (`<model id>`) | | NB/NW/NN | | |
+| Codex | 4 | 10/1/0, 6/4/0, 3/0/0, 2/0/0 (B/W/N) | BLOCKED, waived by the owner | `bd71a97` / `031e222b` |
+| Reviewer (`claude-fable-5-1`) | 4 | 2/6/9, 0/6/7, 0/2/3, 0/1/2 | APPROVED-WITH-WARNINGS | same |
 
-Findings and resolution: _one line each._
+Fixes are in TASK-206 to 208. The owner chose a fourth cycle past the cap of three, then closed with a waiver of the
+reviews gate (`.claude/reviews/SPRINT-2-reviews-WAIVED.md`, 2026-10-15). Codex's last two blockers (a
+purpose-labelled seed for each computer player; how a computer player's memory enters the state through actions)
+and the reviewer's cycle-4 warning (every derived random source one-way, a seed too big to guess) go to the ROADMAP
+backlog for M1/M2. Declined: removing the constraint-validator definition (TASK-207). Carried to Sprint 3: ADR-002's
+"data versions" and ADR-009's status line (one-word fixes, left alone so the stamp stays true).
 
 ## Test summary
 
-_Exact output of the real runs, never numbers from memory._
-
-| Suite | Previous | Now | Change |
-|---|---|---|---|
+Final `npm run ci` on the close state: docs consistency PASS (64 files), secret scan PASS, governance tests 53/53
+PASS (53 at sprint start, no change: no tooling was added).
 
 ## Retrospective
 
-- **Went well:**
-- **To improve:**
-- **Knowledge produced:** _new ADR/PAT/FAIL entries_
-- **Harness notes:** _did any mechanism catch something? did any cost effort and catch nothing?_
+- **Went well:** the owner approved every rulebook word before it went in; the architecture questions each got
+  options and a recommendation, decided in one sitting; design rulings were recorded the same day; the brainstorm
+  turned into a prototype plan with twelve placeholders settled one question at a time.
+- **To improve:** the review passed its cap again (four Codex cycles). From cycle 2 the findings were details of
+  forward-looking decision records for systems not yet built (saves, seeds, AI memory, performance thresholds),
+  and each fix raised the next one. Design brainstorming and rulebook work shared a sprint again, so every new
+  ruling changed the reviewed log. Two of my own slips: an invented "attend" order offered as an option, and a
+  coin answer recorded more broadly than the owner said it.
+- **Knowledge produced:** ADR-010, ADR-011; amendments to ADR-002, 003, 005, 006, 008 and 009; `docs/architecture.md`.
+- **Harness notes (rulebook review, triggered by passing the cap):** both lenses caught real gaps in cycle 1. After
+  that, Codex kept finding missing detail in decision records for unbuilt systems. Proposal for Sprint 3: a decision
+  record for a system not yet built records the decision only; contract details are settled by the sprint that
+  builds it, and reviewers treat their absence as a NOTE. Also: record new owner rulings in the next sprint's log
+  once a review has started, and keep one review file per cycle per lens.
 
 ## Handoff
 
-- **State:** TASK-201 to 208 committed on `sprint/2`. Sprint-end review: cycles 1 to 3 done, each fix batch in
-  TASK-206 to 208; cycle 4 (past the cap, the owner's choice) runs on TASK-208. Local CI passes before each
-  stamp; the close re-runs it. Nothing pushed: `main` is still the Sprint 1 close, `sprint/2` only on this computer.
-- **In flight:** the cycle-4 reviews (Codex and the Fable reviewer). No agents build anything; no worktrees.
-- **Waiting on:** nothing. The owner answered the P6 question on 2026-10-15 ("Neither": production only sets
-  build speed, also in the prototype; a city with nothing to build waits); record it in the Sprint 3 log, not
-  this one (frozen by the review stamp).
-- **Next action:** if cycle 4 passes, close (WORKFLOW step 8), push `main`, watch GitHub CI. Then Sprint 3, the
-  prototype's slice 1 (M0.5): the prototype exception for the owner to approve (CONVENTIONS line, WORKFLOW
-  section, a `prototype/` folder row and agent scope, whether the code checklist applies); slice 1's rules from P1
-  to P12, the P6 answer and engineering's proposals (drafts: `.claude/refinements/PROTOTYPE-slice1-RULES-draft.md` and `PROTOTYPE-exception-draft.md`), settling
-  taking back an order; the Bash allowlist for read-only agents before any building agent runs (ROADMAP).
+- **State:** Sprint 2 closed (`S2 close`), `main` fast-forwarded and pushed; `sprint/2` deleted.
+- **In flight:** the GitHub CI run for the push (Sprint 3 records it).
+- **Waiting on:** nothing. The owner's P6 answer of 2026-10-15 ("Neither": production only sets build speed, also
+  in the prototype; a city with nothing to build waits) goes into the Sprint 3 log.
+- **Next action:** Sprint 3, the prototype's slice 1 (M0.5). First the prototype exception for the owner's OK
+  (CONVENTIONS line, WORKFLOW section, a `prototype/` folder row and agent scope, whether the code checklist
+  applies), with the proposed rule on decision records for unbuilt systems and the two one-word ADR fixes. Then
+  slice 1's rules from P1 to P12, the P6 answer and engineering's proposals (drafts:
+  `.claude/refinements/PROTOTYPE-slice1-RULES-draft.md`, `PROTOTYPE-exception-draft.md`), including taking back an
+  order; the Bash allowlist for read-only agents before any building agent runs (ROADMAP).
