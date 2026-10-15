@@ -15,6 +15,9 @@ const STEPS = [
   { name: 'docs consistency', cmd: process.execPath, args: ['tools/check-docs.mjs'] },
   { name: 'secret scan', cmd: process.execPath, args: ['tools/check-secrets.mjs'] },
   { name: 'governance tests (hooks and tools)', cmd: process.execPath, args: ['--test', '.claude/hooks/tests/*.test.mjs'] },
+  // The throwaway prototype (WORKFLOW, "Prototype phase"): a scripted game must play without an error.
+  // Remove this step with the prototype/ folder when production starts (M1).
+  { name: 'prototype smoke game', cmd: process.execPath, args: ['prototype/smoke.js'] },
 ];
 
 const root = process.cwd();

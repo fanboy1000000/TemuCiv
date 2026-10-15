@@ -87,6 +87,33 @@ here (all "(eng.)"): undo takes back this turn's orders one at a time and return
 Sprint 2 reviewer's note on misclicks); distances are counted in hexes; a settler takes its person when finished;
 people not at a site still eat, pay coin and add production. Starting numbers live in `numbers.js` for the owner.
 
+### TASK-303: build slice 1
+
+Status complete · Agent: general-purpose (Opus, model named at spawn) · Checklist items 1 and 9 pass · Review:
+sprint-end (light bar) · Files: `prototype/index.html`, `numbers.js`, `game.js`, `ui.js`, `smoke.js`, `README.md`;
+`prototype/RULES.md` and `game.js` touched by the Orchestrator (food refund, below). Criteria: opens by double-click
+PASS (headless Edge screenshot, checked by the Orchestrator); plays as `RULES.md` says PASS on the agent's
+section-by-section table and 34 scratch checks, owner playtest pending; every number in `numbers.js` PASS (only the
+random generator's constants remain in `game.js`); smoke 300 turns PASS, and fails on a deliberate break (negative
+food; undo returning only the move) PASS.
+
+The rules (`game.js`) are kept apart from the screen (`ui.js`), so Node can play them; undo saves a copy of the
+game before each order. The agent's readings of unclear rules, all left as engineering's choices for the owner's
+playtest: changing or cancelling a route also gives attention; Halls being built count toward the next Hall's
+price and the cap; fractions are kept and shown to one decimal; goods sent at the end of a turn land at the end of
+the next; a city grows at most one person per turn; this turn's moves are spent before saved ones. One oversight
+in my rules fixed under the small-tasks exception: changing a build now refunds the food paid (a settler's 15),
+checked by a scratch script (food 20 → 5 → 20). Observed by the agent for the playtest: the start city loses 2
+food a turn until its first farm. Declined knowledge entry (undo by saving a copy before each order): prototype
+only; production gets undo from the action pipeline (ADR-002).
+
+### TASK-304: CI plays the prototype
+
+Status complete · Agent: Orchestrator (small task) · Checklist pass (self-check) · Review: sprint-end · Files:
+`tools/ci.mjs`. Criteria: CI runs the smoke game PASS (`npm run ci`: 4/4); a broken prototype fails CI PASS (food
+made negative on purpose: "smoke: FAIL at turn 1 · after a build order: Ashford has negative food (-990)", CI
+3/4, exit 1; restored, `cmp` identical, smoke exit 0). The step is marked for removal with the folder at M1.
+
 ## Design conformance
 
 Not applicable: the prototype conforms to `prototype/RULES.md` (WORKFLOW, "Prototype phase"), checked by the
