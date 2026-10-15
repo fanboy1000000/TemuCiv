@@ -37,9 +37,10 @@ order sites and buildings, haul food and stone between cities, and feel the move
 | TASK-302 | Orchestrator | `prototype/RULES.md` | Slice 1's rules: every rule traces to an owner ruling, a placeholder (P1 to P12) or is marked as engineering's proposal → owner may flag; review | no |
 | TASK-303 | general-purpose agent (Opus) | `prototype/**` except `RULES.md` | Opens by double-click in Edge or Chrome with nothing installed; plays as `RULES.md` says; every number in `numbers.js`; a smoke run plays 300 turns of random valid orders with no error, no NaN and no negative store → `node prototype/smoke.js`, a screenshot, the owner's playtest | no (prototype) |
 | TASK-305 | Orchestrator | `prototype/ui.js`, `prototype/README.md`, `prototype/RULES.md`, `docs/WORKFLOW.md`, `docs/AGENTS.md`, `docs/architecture.md`, `.claude/agents/reviewer.md`, `.github/workflows/ci.yml`, `CLAUDE.md`, `ROADMAP.md`, this log | Every sprint-end cycle-1 BLOCKER fixed → sprint-end review cycle 2 | no |
+| TASK-306 | Orchestrator | `prototype/RULES.md`, `ROADMAP.md`, this log | Every sprint-end cycle-2 BLOCKER fixed → sprint-end review cycle 3 | no |
 | TASK-304 | Orchestrator | `tools/ci.mjs` | CI runs the prototype's smoke check, and a broken prototype fails CI → `npm run ci`, one deliberate break seen failing | no |
 
-Waves: 301 (owner OK first) → 302 → 303 → 304; 305 follows the review. TASK-303 uses a generic agent with the model named: the
+Waves: 301 (owner OK first) → 302 → 303 → 304; 305 and 306 follow the reviews. TASK-303 uses a generic agent with the model named: the
 simulation and presentation definitions carry standing instructions (determinism; never computing rules) that the
 prototype exception sets aside. The ROADMAP item "Bash allowlist for read-only agents before the first agent-built
 sprint" moves to the first sprint that builds in parallel worktrees (M1): one agent builds the prototype in the
@@ -64,8 +65,9 @@ section it points to, and the rule that a decision record for a system not yet b
 its details being settled by the sprint that builds it (a missing detail is a NOTE until then). Sprint 3 skips its
 plan review on this approval. The text shown to the owner included the CONVENTIONS sentence exactly as committed,
 the checklist clause (only "stay inside your files" and "no secrets or leftover debug code" remain) and the
-decision-record rule; TASK-305 clarified the WORKFLOW "Where" line to say CI runs the smoke check, which the same
-approved text required.
+decision-record rule. Two edits since, both within that approval: TASK-305 clarified the WORKFLOW "Where" line to
+say CI runs the smoke check, which the same approved text required, and restated checklist item 9 in full (dead
+code and unused imports too), which only tightens it.
 
 ## Task log
 
@@ -139,11 +141,25 @@ clean-up of everything the prototype added, and Sprint 3's production ruling in 
 (light bar, none contradicts RULES): founding beside a site under construction, a cancelled Hall keeping another's
 price, a site order without a tile (the screen never sends one).
 
+### TASK-306: sprint-end review fixes (cycle 2)
+
+Status complete · Agent: Orchestrator · Checklist pass (self-check) · Review: sprint-end cycle 3 · Files:
+`prototype/RULES.md`, `ROADMAP.md`, this log. Criteria: every cycle-2 BLOCKER fixed → cycle 3.
+
+Codex BLOCKED on one claim: the conformance section said the reviewer had rechecked the rules in cycle 2 before
+that review existed. It did recheck them (reviewer cycle 2, APPROVED-WITH-WARNINGS), and the section now cites that
+file. Also from the reviewer: the M1 clean-up row now says to remove every mention of the prototype found outside
+`prototype/` and the sprint logs; the approval record names both edits made since the owner's OK; RULES.md marks
+three more engineering rules and says which two numbers were put to the owner. Carried to Sprint 4: the reviewer's
+question for the owner, whether `prototype/RULES.md` itself should be reviewed at the normal bar (a mistaken copy of
+a ruling would now rate only a NOTE).
+
 ## Design conformance
 
 For the prototype, conforming means matching `prototype/RULES.md` (WORKFLOW, "Prototype phase"). Checked by the
-builder's table and scratch checks, the reviewer's section-by-section comparison (cycle 1, rechecked in cycle 2
-after TASK-305), and the owner's playtest (pending). No game rules in `src/` yet.
+builder's table and scratch checks, the reviewer's section-by-section comparison in cycle 1, its recheck after
+TASK-305 in cycle 2 (`.claude/reviews/SPRINT-3-reviewer-c2.md`: the refund, Hall pricing, every function cited
+below), and the owner's playtest (pending). No game rules in `src/` yet.
 
 | RULES.md section | Implemented in (`prototype/`) | Verified by | Status |
 |---|---|---|---|
@@ -180,9 +196,10 @@ _Exact output of the real runs, never numbers from memory._
 
 ## Handoff
 
-- **State:** TASK-301 to 305 committed on `sprint/3`; the prototype is playable (`prototype/index.html`). Sprint-end
-  review cycle 1: both lenses BLOCKED, all fixed in TASK-305; cycle 2 next.
+- **State:** TASK-301 to 306 committed on `sprint/3`; the prototype is playable (`prototype/index.html`). Sprint-end
+  review: cycle 1 both BLOCKED (fixed in TASK-305); cycle 2 reviewer APPROVED-WITH-WARNINGS, Codex BLOCKED on one
+  log claim (fixed in TASK-306); cycle 3 (the last under the cap) next.
 - **In flight:** nothing between reviews. No worktrees.
 - **Waiting on:** the owner's playtest of slice 1 (notes into the next sprint's "Playtest input").
-- **Next action:** sprint-end review cycle 2 (stamp, Codex and the Fable reviewer in parallel, saved per cycle in
-  `.claude/reviews/SPRINT-3-*-c2.md`), then close (WORKFLOW step 8), push, watch GitHub CI.
+- **Next action:** sprint-end review cycle 3, then close (WORKFLOW step 8), push, watch GitHub CI. Sprint 4 opens
+  with the owner's playtest notes and the reviewer's question: should `prototype/RULES.md` get the normal bar?

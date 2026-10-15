@@ -2,9 +2,11 @@
 
 The rules the throwaway prototype follows (WORKFLOW, "Prototype phase"). Written by the Orchestrator from the
 owner's rulings and the slice 1 placeholders P1 to P12 (Sprint 2 and 3 logs, "Owner design rulings"); the builder
-may not change it, and reports any rule that can't work as written. Every number here is a starting value that lives in `numbers.js`, where the owner can change it and
-reload. "(P3)" and similar point to the placeholder or ruling a rule comes from; "(eng.)" marks engineering's own
-proposal, which the owner may flag. Every number is engineering's starting value, even in a rule a ruling names.
+may not change it, and reports any rule that can't work as written. A mark such as "(P3)" points to the ruling or
+placeholder a rule comes from; "(eng.)" marks engineering's own proposal, which the owner may flag, and a rule
+without a mark is engineering's too. Every number is a starting value engineering proposed, kept in `numbers.js`
+where the owner can change it and reload. Two were put to the owner in the placeholder questions and left as they
+were (a Hall adds one move, P10; attention makes sites produce a quarter more for five turns, P5).
 
 ## The map
 - A hex grid, 24 × 18 tiles, one landmass surrounded by water, made from a seed number: the same seed always
@@ -28,8 +30,8 @@ proposal, which the owner may flag. Every number is engineering's starting value
   an earlier turn is a new order (one move).
 - Anything you leave alone keeps following its last orders (K4).
 - Attention (P5): an order given in a city (a build, a route that starts there, founding it) gives that city
-  attention for 5 turns: its sites produce a quarter more. A new order restarts the 5 turns. Orders to a settler
-  give no attention.
+  attention for 5 turns: its sites produce a quarter more. A new order restarts the 5 turns (eng.). Orders to a
+  settler give no attention.
 - The Hall (P10) adds one move per turn. Each further Hall costs half as much again as the one before, counting
   Halls finished or being built, so ordering several at once doesn't get the first price; one per city; moves per
   turn never exceed 8 (P4 asks for a slow rise with a cap; the price growth and the 8 are eng.).
@@ -83,7 +85,7 @@ proposal, which the owner may flag. Every number is engineering's starting value
 - A route carries one good (food or stone) from one of your cities to another; setting it up, changing it or
   cancelling it costs one move (P3). It runs every turn until you change it (K4).
 - Each turn it ships everything the sending city holds above a reserve: for food, what the city eats in 3 turns;
-  for stone, 10 (eng.). Routes from the same city carrying the same good share the surplus equally.
+  for stone, 10 (eng.). Routes from the same city carrying the same good share the surplus equally (eng.).
 - Goods take 1 turn per 3 tiles of distance between the cities (counted in hexes, ignoring terrain), rounded up
   (P9). The route is drawn as a line with the amount on it.
 
@@ -94,7 +96,7 @@ proposal, which the owner may flag. Every number is engineering's starting value
   borders (eng.). The new city starts at size 1 with empty stores.
 
 ## A turn
-When you end the turn, in this order, city by city in founding order: working sites send their output; routes
+When you end the turn, in this order (eng.), city by city in founding order: working sites send their output; routes
 ship; goods arriving this turn land (and earn trade coin); people eat, then the city grows or shrinks; production
 advances the build; coin is paid; settlers walk; attention counts down; this turn's moves are added.
 
