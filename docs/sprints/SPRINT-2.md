@@ -85,6 +85,18 @@ it. Problem 6, decided by the owner: how the player finds where a move is worth 
 the interface design, not decided now. Flagged: the budget's feel depends on it, so it must not come too late.
 All six challenges are done; the moves budget stands at K1, K3 to K6 (K2 replaced), with problem 3 as a lean.
 
+**Economy (2026-10-15).** The question carried over from Sprint 1: what pays for units and buildings (artifact
+"TemuCiv Currency Options"). Decided by the owner: coin and goods (C2). One empire-wide coin pays for everything
+abstract (for example upkeep, buying speed, topping up web nodes under C1); beside food, a few physical goods
+(examples: stone, bronze) are made where the resource is, stored there and hauled by logistics; buildings and
+units cost coin plus goods; web nodes need no goods. Production still only sets build speed. The demo starts with
+food plus one or two materials. Two things changed since the research and favored it: C1 already prices the web
+(so "coin and knowledge" fell away), and K4 meets coin and goods' condition that routes run on their own (parts
+nobody spends a move on keep their last orders). Flagged: logistics now carries goods as well as food and must
+help brake big empires (K4), so its big shape is the natural next piece; computer opponents must plan flows of
+goods (the planning layer, ADR-009). Parked for the economy spec: the list of goods, how coin is earned, a market,
+upkeep, spoilage and how distance costs (all still proposals).
+
 ## Task log
 
 ### TASK-201: the ladder and risk-based testing in CONVENTIONS
@@ -208,10 +220,11 @@ _Exact output of the real runs, never numbers from memory._
   ruling). Sprint-end review cycle 1: both lenses BLOCKED; every finding fixed (TASK-206). Local CI PASS. Nothing
   pushed: `main` is still the Sprint 1 close, and `sprint/2` exists only on this computer.
 - **In flight:** nothing. No agents, no worktrees.
-- **Waiting on:** the owner, to resume the "ruling a large empire" brainstorm at challenge 3 of 6 (Owner design
-  rulings above; working notes `.claude/refinements/REFINEMENT-empire-control.md`). Offer it first next session.
+- **Waiting on:** the owner, for the next big piece of the design brainstorm. Done so far: the moves budget (all
+  six challenges, 2026-10-13) and the economy (C2, coin and goods, 2026-10-15); see Owner design rulings above.
+  Still open: logistics (engineering's recommendation next), cities, what runs the parts nobody spends a move on.
 - **Next action:** sprint-end review cycle 2 (cap 3): `node tools/review-stamp.mjs`, then Codex (prompt in the
   scratchpad is gone; rebuild it from AGENTS.md's template with the sprint goal above and FOCUS on whether the
   cycle-1 findings are fixed) and the reviewer (`model: "fable"`) in parallel, saved as
   `.claude/reviews/SPRINT-2-codex.md` and `SPRINT-2-reviewer.md` with the stamp lines on top. Then close (WORKFLOW
-  step 8). After the close: the owner's design work (vision and scope, the carried-over economy question), then M1.
+  step 8). After the close: the owner's design work (vision and scope, the rest of the brainstorm), then M1.
