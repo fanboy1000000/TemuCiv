@@ -97,6 +97,17 @@ help brake big empires (K4), so its big shape is the natural next piece; compute
 goods (the planning layer, ADR-009). Parked for the economy spec: the list of goods, how coin is earned, a market,
 upkeep, spoilage and how distance costs (all still proposals).
 
+**A first playable prototype (2026-10-15).** Instead of the next brainstorm piece, the owner asked for an MVP
+route to a rough playable demo: there are many untested ideas, and nobody knows yet how they play together.
+Decided by the owner: a prototype phase before production (ROADMAP, M0.5), built in slices of one sprint each, so
+playtests rather than more paper design decide which ideas stay. The prototype is throwaway (D1): lighter rules,
+its own folder the game never imports, and production starts fresh once the design settles; the exception to
+CONVENTIONS' professional-methods rule still needs the owner's OK on exact wording. Slice 1 is a solo sandbox
+(D2): the moves budget plus coin and goods with hauling, no rival; slice 2 adds a rival and armies, slice 3 a few
+web nodes and the category scores. Flagged: logistics and cities are not designed yet, so the prototype uses crude
+stand-ins, each listed for the owner's OK and turned into a design question; the army-or-empire side of the budget
+(K5) is felt only from slice 2. Working notes: `.claude/refinements/REFINEMENT-first-playable.md`.
+
 ## Task log
 
 ### TASK-201: the ladder and risk-based testing in CONVENTIONS
@@ -220,11 +231,12 @@ _Exact output of the real runs, never numbers from memory._
   ruling). Sprint-end review cycle 1: both lenses BLOCKED; every finding fixed (TASK-206). Local CI PASS. Nothing
   pushed: `main` is still the Sprint 1 close, and `sprint/2` exists only on this computer.
 - **In flight:** nothing. No agents, no worktrees.
-- **Waiting on:** the owner, for the next big piece of the design brainstorm. Done so far: the moves budget (all
-  six challenges, 2026-10-13) and the economy (C2, coin and goods, 2026-10-15); see Owner design rulings above.
-  Still open: logistics (engineering's recommendation next), cities, what runs the parts nobody spends a move on.
+- **Waiting on:** nothing from the owner. The brainstorm moved to a throwaway prototype (D1, D2, 2026-10-15; Owner
+  design rulings above): Sprint 3 builds slice 1 after this sprint closes. Logistics, cities and what runs the
+  parts nobody spends a move on stay open, to be answered partly through play.
 - **Next action:** sprint-end review cycle 2 (cap 3): `node tools/review-stamp.mjs`, then Codex (prompt in the
   scratchpad is gone; rebuild it from AGENTS.md's template with the sprint goal above and FOCUS on whether the
   cycle-1 findings are fixed) and the reviewer (`model: "fable"`) in parallel, saved as
   `.claude/reviews/SPRINT-2-codex.md` and `SPRINT-2-reviewer.md` with the stamp lines on top. Then close (WORKFLOW
-  step 8). After the close: the owner's design work (vision and scope, the rest of the brainstorm), then M1.
+  step 8). After the close: Sprint 3, the prototype's slice 1 (M0.5), starting with the CONVENTIONS prototype
+  exception for the owner to approve and slice 1's stand-ins listed in the plan.

@@ -11,6 +11,7 @@ Milestones are ordered by dependency. The sprints each one takes are projections
 | Milestone | Goal | Delivers |
 |---|---|---|
 | **M0: Design** (current) | Governance, architecture, the owner's vision and scope | Workflow and gates; `docs/architecture.md` (done, S2); `docs/design/vision.md` and `scope.md` |
+| **M0.5: Prototype** (owner, 2026-10-15) | Feel how the untested ideas play together before production: a rough, throwaway build in slices, one sprint each. 1: solo sandbox (moves budget, coin and goods, hauling); 2: a rival and armies; 3: progress and the category scores | Builds the owner plays; the lessons go into `docs/design/`. The code is thrown away, and production (M1) starts fresh |
 | **M1: Foundation** | Project skeleton, hex grid, map generation, rendering, camera; CI for types, tests and determinism | A map you can scroll |
 | **M2: Core loop** | Units, movement, turns, cities, yields, production; a first AI player that plays them (ADR-009) | Found cities and grow, next to an AI rival |
 | **M3: Depth** | Progress (the leader web in rings), combat, borders, fog of war; the AI learns each system as it lands | Something close to a real game |
