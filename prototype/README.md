@@ -1,10 +1,10 @@
-# TemuCiv prototype, slice 1: the solo sandbox
+# TemuCiv prototype, slice 2: armies and supply
 
 A rough, throwaway version of the game, made only so you can play the untested ideas and feel how they work
 together: a limited number of moves per turn, coin plus food and stone that must be hauled, cities that build
-farms and quarries worked by their people, and routes between cities. It is a tool, not the game: none of this
-code goes into the real game, and the folder is deleted when production starts. The rules it follows are in
-[RULES.md](RULES.md).
+farms and quarries worked by their people, routes between cities, and now armies that must be fed far from home,
+marching on a rival's cities. It is a tool, not the game: none of this code goes into the real game, and the
+folder is deleted when production starts. The rules it follows are in [RULES.md](RULES.md).
 
 ## Opening it
 
@@ -13,21 +13,45 @@ is sent anywhere. There is no saving: reloading the page starts a new game.
 
 ## Controls
 
-- **Look (free):** click a tile, a city or a settler. The panel on the right shows it; press Esc to see the
-  whole empire.
+- **Look (free):** click a tile, a city, a settler or an army. The panel on the right shows it; press Esc to see
+  the whole empire, with your armies and the rival's cities.
 - **Map:** drag to scroll, mouse wheel to zoom. Hover over a tile to see its terrain and who holds it.
 - **Orders (one move each):** buttons in the right panel. A button you can't use right now is greyed out and
-  says why. Farms, quarries, sending a settler and routes ask you to pick a tile or a city on the map
-  (the allowed ones are outlined); Esc or a right-click cancels.
+  says why. Farms, quarries, sending a settler or an army, routes and supply ask you to pick a tile or a city on
+  the map (the allowed ones are outlined); Esc or a right-click cancels.
+- **Army orders** are in the general's panel (click the army): send it to a tile, take or leave regiments (type
+  how many in the box next to the button), and set, change or cancel its supply city. While you pick a tile for
+  an army, red dots mark tiles next to a rival city; hover one to see your chance of winning there.
 - **Undo:** the Undo button or Ctrl+Z takes back your last order this turn, with its move and costs. Repeat to
   go back to the start of the turn.
 - **End turn:** the button, Enter or Space.
 - **Hover over any underlined number** to see what it is made of.
-- **Waiting for you** (bottom left) lists cities with nothing to build, idle sites, settlers without orders
-  and cities whose food is falling. Click a line to go there. The **turn log** (bottom right) says what
-  happened at the end of the last few turns.
+- **Waiting for you** (bottom left) lists cities with nothing to build, idle sites, settlers without orders,
+  cities whose food is falling, generals without orders outside your cities, and armies with less than 2 turns
+  of food, counting the supply food on its way. Click a line to go there. The **turn log** (bottom right) says
+  what happened at the end of the last few turns, battles included.
 - **Seed** (top right): the number the map is made from. Type another number and press Enter (or New game),
   or press Random.
+
+## Armies
+
+You start with one general in your first city. A city can build more generals, and regiments: a regiment is one
+of the city's people turned soldier, so it takes a person when it is finished (and waits while the city has only
+one). Regiments stay in their city as its garrison, eating from the city's food, until a general takes them: only
+a general moves regiments. A general and its regiments are an army, the dark square with a gold edge and the
+number of regiments on it.
+
+Away from your cities an army lives on its baggage: up to 3 turns of food, filled at the end of a turn while it
+stands in one of your cities. To keep it fed further away, give the general a supply city: each turn that city
+sends what the baggage needs, keeping back only what it eats itself in one turn (so armies are fed before the
+city grows; routes still keep back 3 turns). The food takes a turn for every 3 tiles and lands wherever the
+general is by then. The dashed yellow line shows it, with the amount. An army that
+runs out of food loses a regiment each turn.
+
+The rival's three cities are red, far from your start, with their garrison in a shield. They never move, but
+an army that ends its turn next to one fights it: one battle, decided by luck. The general's panel shows your
+chance first. Win, and the city is yours with its people and you take 10 coin per person; lose, and the whole
+army is gone, general included. Keep a general with no regiments away from rival cities: it always loses.
 
 ## Changing a number
 
@@ -43,5 +67,5 @@ the edit in Notepad (Ctrl+Z), save and reload.
 ## For engineers
 
 `game.js` holds the rules with no screen code, `ui.js` draws the screen, `numbers.js` holds every number.
-`node prototype/smoke.js` (from the repository root) plays 300 turns of random orders and checks that nothing
-breaks.
+`node prototype/smoke.js` (from the repository root) plays 300 turns of random orders, then a shorter war game
+that starts with an army next to a rival city, and checks that nothing breaks.

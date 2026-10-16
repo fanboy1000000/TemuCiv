@@ -1,4 +1,4 @@
-// TemuCiv prototype, slice 1: every number the rules use (prototype/RULES.md says where each one comes from).
+// TemuCiv prototype, slices 1 and 2: every number the rules use (prototype/RULES.md says where each one comes from).
 //
 // To try a different number: change it here, save the file, and reload the page (F5). The game starts over.
 // Only change the numbers (and the names in quotes, if you like); keep the commas, colons and brackets as they are.
@@ -28,6 +28,7 @@ var NUMBERS = {
     food: 10, // food in your first city's store
     stone: 10, // stone in your first city's store
     settlers: 1, // settlers standing next to your first city
+    generals: 1, // generals standing in your first city
   },
 
   // ---- Moves ----
@@ -64,12 +65,38 @@ var NUMBERS = {
   tradeCoinPerUnit: 0.5, // coin earned for each unit of goods a route delivers
 
   // ---- Routes ----
-  foodReserveTurns: 3, // a route leaves the sending city the food it eats in this many turns
+  foodReserveTurns: 3, // a route only ships food above what the sending city eats in this many turns
   stoneReserve: 10, // a route leaves the sending city this much stone
 
   // ---- Settlers ----
   settlerSteps: 2, // tiles a settler walks each turn
   minCityDistance: 3, // a new city must be at least this many tiles from every other city
+
+  // ---- Generals, regiments and armies ----
+  foodPerRegiment: 2, // food each regiment eats each turn: in a city from its store, with a general from the baggage
+  baggageTurns: 3, // an army's baggage holds this many turns of its eating
+  armyReserveTurns: 1, // supply lines and baggage only take food above what the city eats in this many turns
+  armySteps: 2, // tiles an army marches each turn
+  hungerLoss: 1, // regiments an army loses in a turn its baggage can't feed it
+  lowFoodTurns: 2, // "Waiting for you" lists an army whose food, counting food on its way, lasts fewer turns than this
+
+  // ---- The rival ----
+  rival: {
+    cities: 3, // how many cities the rival has
+    citySize: 3, // people in each rival city
+    spacing: 3, // rival cities stand at least this many tiles from each other
+    garrison: 3, // regiments defending each rival city at the start
+    garrisonGrowth: 1, // regiments a rival garrison gains...
+    garrisonEvery: 5, // ...every this many turns
+    garrisonMax: 8, // a rival garrison never grows above this
+  },
+
+  // ---- Battles ----
+  battlePower: 2, // your chance to win is A^2 / (A^2 + D^2), A your regiments, D the defence; 2 is that square
+  walls: 1.5, // a city's defence D is its garrison times this, for its walls
+  winnerLoss: 0.5, // the winner loses this share of the loser's regiments, rounded down (0.5 = half)
+  winnerKeeps: 1, // ...but always keeps at least this many
+  plunderPerPerson: 10, // coin you take for each person in a rival city you capture
 
   // ---- What cities can build ----
   // coin is paid from your purse, stone (and food) from the city's store, all when you give the order.
@@ -104,6 +131,19 @@ var NUMBERS = {
       food: 15, // food paid from the city's store when ordered
       production: 20,
       people: 1, // people the city gives up when the settler is finished
+    },
+    general: {
+      name: 'General',
+      coin: 30,
+      stone: 0,
+      production: 20, // a general takes no person, and you can have as many as you like
+    },
+    regiment: {
+      name: 'Regiment',
+      coin: 15,
+      stone: 5,
+      production: 20,
+      people: 1, // people the city gives up when the regiment is finished (it waits while the city is size 1)
     },
     hall: {
       name: 'Hall',

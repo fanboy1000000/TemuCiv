@@ -1,4 +1,4 @@
-// TemuCiv prototype, slice 1: the game rules (prototype/RULES.md).
+// TemuCiv prototype, slices 1 and 2: the game rules (prototype/RULES.md).
 //
 // No DOM, canvas or clock in this file, so the page (ui.js) and the smoke check (smoke.js) both run it.
 // Every balance number comes from NUMBERS (numbers.js). Throwaway code: nothing outside prototype/ uses it
@@ -6,6 +6,7 @@
 //
 // The game is { state, undo }. `state` is plain data. Every order checks itself first (check* returns
 // { ok, reason, cost }), then saves a copy of the state for undo, spends its move and applies itself.
+// The battle dice are part of the state (state.dice), so undo and a replay of the same orders stay exact.
 
 var Game = (function () {
   'use strict';
@@ -17,6 +18,8 @@ var Game = (function () {
     'Hollowmere', 'Ivydale', 'Juniper', 'Kestrel', 'Larkspur', 'Millbrook', 'Northwick', 'Oakridge',
     'Pebblecombe', 'Quillon', 'Redcliff', 'Stonehaven', 'Thornbury', 'Underhill', 'Valewood', 'Westmarch',
     'Yarrow'];
+  var RIVAL_NAMES = ['Vorhast', 'Karnmoor', 'Ostrava', 'Drakwall', 'Zelgrad', 'Morvane'];
+  var DICE_SALT = 0x9e3779b9; // mixed into the seed so the battle dice don't repeat the map's random numbers
 
   // ---- Small helpers ----
 
@@ -31,15 +34,27 @@ var Game = (function () {
     return r;
   }
 
-  /** Seeded random numbers (mulberry32): the same seed always gives the same sequence, so the same map. */
+  /** Seeded random numbers (mulberry32): one step turns the counter `a` into a number from 0 up to 1. */
+  function mix(a) {
+    var t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  }
+  var STEP = 0x6d2b79f5;
+
+  /** The same seed always gives the same sequence, so the same map. */
   function makeRng(seed) {
     var a = seed >>> 0;
     return function () {
-      a = (a + 0x6d2b79f5) | 0;
-      var t = Math.imul(a ^ (a >>> 15), 1 | a);
-      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      a = (a + STEP) | 0;
+      return mix(a);
     };
+  }
+
+  /** The battle dice: the next number from the generator kept in the state (RULES, Battles, A5). */
+  function rollDice(s) {
+    s.dice = (s.dice + STEP) | 0;
+    return mix(s.dice);
   }
 
   // ---- The hex grid ----
@@ -88,16 +103,21 @@ var Game = (function () {
     return i >= 0 && s.terrain[i] !== 'water' && s.terrain[i] !== 'mountains';
   }
 
+  /** Can a walker step on tile i? `blocked` (optional, { tile: true }) adds tiles it must keep off. */
+  function canStep(s, i, blocked) {
+    return passable(s, i) && !(blocked && blocked[i]);
+  }
+
   /** The shortest walk from `from` to `to` over land, as a list of tiles (without `from`), or null. */
-  function findPath(s, from, to) {
+  function findPath(s, from, to, blocked) {
     if (from === to) return [];
-    if (!passable(s, to)) return null;
+    if (!canStep(s, to, blocked)) return null;
     var prev = {};
     prev[from] = from;
     var queue = [from];
     for (var head = 0; head < queue.length && prev[to] === undefined; head++) {
       neighbors(s, queue[head]).forEach(function (n) {
-        if (prev[n] === undefined && passable(s, n)) {
+        if (prev[n] === undefined && canStep(s, n, blocked)) {
           prev[n] = queue[head];
           queue.push(n);
         }
@@ -109,14 +129,14 @@ var Game = (function () {
     return path;
   }
 
-  /** Every land tile a settler on `from` can walk to. */
-  function reachable(s, from) {
+  /** Every land tile a walker on `from` can reach (an army passes `blocked`: the rival's city tiles). */
+  function reachable(s, from, blocked) {
     var seen = {};
     seen[from] = true;
     var queue = [from];
     for (var head = 0; head < queue.length; head++) {
       neighbors(s, queue[head]).forEach(function (n) {
-        if (!seen[n] && passable(s, n)) {
+        if (!seen[n] && canStep(s, n, blocked)) {
           seen[n] = true;
           queue.push(n);
         }
@@ -198,7 +218,36 @@ var Game = (function () {
   function settlerById(s, id) { return s.settlers.find(function (x) { return x.id === id; }) || null; }
   function settlersAt(s, tile) { return s.settlers.filter(function (x) { return x.tile === tile; }); }
   function routeById(s, id) { return s.routes.find(function (r) { return r.id === id; }) || null; }
+  function generalById(s, id) { return s.generals.find(function (g) { return g.id === id; }) || null; }
+  function generalsAt(s, tile) { return s.generals.filter(function (g) { return g.tile === tile; }); }
+  function rivalById(s, id) { return s.rivals.find(function (r) { return r.id === id; }) || null; }
+  function rivalAt(s, tile) { return s.rivals.find(function (r) { return r.tile === tile; }) || null; }
   function has(city, kind) { return city.buildings.indexOf(kind) >= 0; }
+
+  /** The name of the city holding a tile, yours or the rival's. */
+  function holderName(s, id) {
+    var c = cityById(s, id) || rivalById(s, id);
+    return c ? c.name : '';
+  }
+
+  /** The rival's city tiles, which armies never step onto (RULES, Generals and regiments). */
+  function armyBlocked(s) {
+    var out = {};
+    s.rivals.forEach(function (r) { out[r.tile] = true; });
+    return out;
+  }
+
+  /** The rival cities next to a tile. */
+  function rivalsNext(s, tile) {
+    return s.rivals.filter(function (r) { return dist(s, tile, r.tile) === 1; });
+  }
+
+  /** The rival city an army on this tile fights: the one next to it with the smaller garrison (RULES, Battles). */
+  function foeAt(s, tile) {
+    var best = null;
+    rivalsNext(s, tile).forEach(function (r) { if (!best || r.garrison < best.garrison) best = r; });
+    return best;
+  }
 
   /** The city building a site on this tile, if any. */
   function siteBuilderAt(s, tile) {
@@ -236,7 +285,73 @@ var Game = (function () {
     return { base: N.productionBase, people: N.productionPerPerson * city.size, workshop: bonus, total: base + bonus };
   }
 
-  function eats(city) { return city.size * N.foodPerPerson; }
+  /** What a city eats each turn: its garrison and its people, from one store (RULES, Generals and regiments). */
+  function eats(city) { return city.garrison * N.foodPerRegiment + city.size * N.foodPerPerson; }
+
+  // An army's food (RULES, Feeding armies): its regiments eat from the baggage; the general eats nothing.
+  function armyEats(g) { return g.regiments * N.foodPerRegiment; }
+  function baggageCap(g) { return armyEats(g) * N.baggageTurns; }
+
+  /** Whole turns the baggage feeds the army, not counting food on its way. */
+  function turnsOfFood(g) {
+    var eat = armyEats(g);
+    return eat ? Math.floor(g.baggage / eat) : Infinity;
+  }
+
+  /** Supply food already on its way to this general. */
+  function foodOnWay(s, generalId) {
+    var sum = 0;
+    s.transit.forEach(function (g) { if (g.general === generalId) sum += g.amount; });
+    return sum;
+  }
+
+  /** Whole turns the army is fed, counting its baggage and the supply food on its way ("Waiting for you"). */
+  function turnsFed(s, g) {
+    var eat = armyEats(g);
+    return eat ? Math.floor((g.baggage + foodOnWay(s, g.id)) / eat) : Infinity;
+  }
+
+  /**
+   * What the supply lines ship when the turn ends (RULES, Feeding armies: step 2): in the order they were set,
+   * each city sends what brings the baggage to full, counting food on its way, from its food above what it eats in
+   * one turn. The turn uses this list, so what the page shows is what ships.
+   */
+  function supplyPlan(s) {
+    var left = {};
+    return s.generals.filter(function (g) { return g.supply !== null; })
+      .sort(function (a, b) { return a.supplySince - b.supplySince; })
+      .map(function (g) {
+        var city = cityById(s, g.supply), onWay = foodOnWay(s, g.id);
+        if (left[city.id] === undefined) left[city.id] = Math.max(0, city.food - armyReserve(city));
+        var need = Math.max(0, baggageCap(g) - g.baggage - onWay), spare = left[city.id];
+        var amount = Math.min(need, spare);
+        left[city.id] -= amount;
+        return { general: g, city: city, need: need, onWay: onWay, spare: spare, amount: amount,
+          travel: travelTurns(s, city.tile, g.tile) };
+      });
+  }
+
+  /** Supply food a city sends when the turn ends, before its routes ship. */
+  function suppliedFrom(s, cityId) {
+    var sum = 0;
+    supplyPlan(s).forEach(function (p) { if (p.city.id === cityId) sum += p.amount; });
+    return sum;
+  }
+
+  /**
+   * The chance an army of `a` regiments beats a garrison (RULES, Battles): A^2 / (A^2 + D^2), D = garrison x walls.
+   * The battle rolls against this same number.
+   */
+  function winChance(a, garrison) {
+    if (a <= 0) return 0;
+    var A = Math.pow(a, N.battlePower), D = Math.pow(garrison * N.walls, N.battlePower);
+    return A / (A + D);
+  }
+
+  /** What the winner of a battle has left: it loses half the loser's regiments, rounded down, keeping at least one. */
+  function winnerLeft(winner, loser) {
+    return Math.max(Math.min(N.winnerKeeps, winner), winner - Math.floor(loser * N.winnerLoss));
+  }
 
   function growthNeed(city) {
     var need = N.growthBase + N.growthPerSize * city.size;
@@ -276,15 +391,21 @@ var Game = (function () {
     return good === 'food' ? eats(city) * N.foodReserveTurns : N.stoneReserve;
   }
 
+  /** What supply lines and baggage leave in a city: what it eats in one turn (RULES, Feeding armies). */
+  function armyReserve(city) {
+    return eats(city) * N.armyReserveTurns;
+  }
+
   function marketFactor(city) {
     return has(city, 'market') ? 1 + N.builds.market.coinBonus : 1;
   }
 
-  /** What a route would ship if the turn ended now: its equal share of the sender's surplus. */
+  /** What a route would ship if the turn ended now: its equal share of what the sender's supply lines leave. */
   function routeShare(s, route) {
     var from = cityById(s, route.from);
     var mates = s.routes.filter(function (r) { return r.from === route.from && r.good === route.good; });
-    var surplus = Math.max(0, from[route.good] - reserve(from, route.good));
+    var supplied = route.good === 'food' ? suppliedFrom(s, from.id) : 0;
+    var surplus = Math.max(0, from[route.good] - reserve(from, route.good) - supplied);
     return surplus / mates.length;
   }
 
@@ -302,8 +423,10 @@ var Game = (function () {
     });
     var tile = good === 'food' ? N.cityTileFood : 0;
     var eaten = good === 'food' ? eats(city) : 0;
-    // Shipping out only takes what is above the reserve, so it never makes a store run dry: "net" leaves it out.
-    return { tile: tile, sites: made, routesIn: routesIn, routesOut: routesOut, eaten: eaten,
+    var supplyOut = good === 'food' ? suppliedFrom(s, city.id) : 0;
+    // Shipping out only takes what is above a reserve (routes 3 turns of eating, supply 1), so it never makes the
+    // store run dry before the city eats: "net" leaves it out.
+    return { tile: tile, sites: made, routesIn: routesIn, routesOut: routesOut, supplyOut: supplyOut, eaten: eaten,
       net: tile + made + routesIn - eaten };
   }
 
@@ -341,6 +464,16 @@ var Game = (function () {
     s.settlers.forEach(function (st) {
       if (st.dest === null) out.push({ kind: 'settler', tile: st.tile, text: 'A settler has no orders' });
     });
+    s.generals.forEach(function (g) {
+      if (g.dest === null && !cityAt(s, g.tile)) {
+        out.push({ kind: 'general', tile: g.tile, text: 'A general at ' + where(s, g.tile) + ' has no orders' });
+      }
+      var fed = turnsFed(s, g);
+      if (fed < N.lowFoodTurns) {
+        out.push({ kind: 'army-food', tile: g.tile, text: 'An army at ' + where(s, g.tile) + ' has food for ' + fed +
+          (fed === 1 ? ' turn' : ' turns') + ', counting food on its way' });
+      }
+    });
     return out;
   }
 
@@ -359,7 +492,7 @@ var Game = (function () {
     var builder = siteBuilderAt(s, tile);
     if (builder && builder !== city) return builder.name + ' is building a site there';
     var owner = s.owner[tile];
-    if (owner && owner !== city.id) return "Inside " + cityById(s, owner).name + "'s borders";
+    if (owner && owner !== city.id) return "Inside " + holderName(s, owner) + "'s borders";
     if (owner !== city.id && !neighbors(s, tile).some(function (n) { return s.owner[n] === city.id; })) {
       return 'Too far: a site goes inside the borders or next to them';
     }
@@ -425,11 +558,12 @@ var Game = (function () {
   /** Why a city can't be founded on this tile, or null (RULES, Settlers). */
   function foundProblemAt(s, tile) {
     if (!passable(s, tile)) return 'Cities go on land';
-    if (s.owner[tile]) return "Inside " + cityById(s, s.owner[tile]).name + "'s borders";
-    for (var k = 0; k < s.cities.length; k++) {
-      var d = dist(s, tile, s.cities[k].tile);
+    if (s.owner[tile]) return "Inside " + holderName(s, s.owner[tile]) + "'s borders";
+    var all = s.cities.concat(s.rivals); // every other city, yours or the rival's
+    for (var k = 0; k < all.length; k++) {
+      var d = dist(s, tile, all[k].tile);
       if (d < N.minCityDistance) {
-        return 'Too close to ' + s.cities[k].name + ' (' + d + ' tiles; needs ' + N.minCityDistance + ')';
+        return 'Too close to ' + all[k].name + ' (' + d + ' tiles; needs ' + N.minCityDistance + ')';
       }
     }
     var builder = siteBuilderAt(s, tile);
@@ -477,6 +611,70 @@ var Game = (function () {
     return mp ? no(mp) : { ok: true };
   }
 
+  /** Can this general be sent to this tile with its army? Without a tile: can it be sent anywhere now? */
+  function checkMarch(s, generalId, tile) {
+    var g = generalById(s, generalId);
+    if (!g) return no('Unknown general');
+    if (tile !== undefined) {
+      if (!passable(s, tile)) return no('Armies can\'t enter ' + s.terrain[tile]);
+      if (rivalAt(s, tile)) return no('Armies never step onto a rival city: stand next to it to fight it');
+      if (tile === g.tile) return no('The army is already there');
+      if (tile === g.dest) return no('Already heading there');
+      if (!findPath(s, g.tile, tile, armyBlocked(s))) return no('No way there over land');
+    }
+    var mp = moveProblem(s);
+    return mp ? no(mp) : { ok: true };
+  }
+
+  /** Is `n` a whole number of regiments from 1 to `most`? */
+  function badCount(n, most) {
+    return !(n >= 1 && n <= most && n === Math.floor(n));
+  }
+
+  /** Can the general take `n` regiments standing in the city it is in? Without `n`: can it take any now? */
+  function checkTake(s, generalId, n) {
+    var g = generalById(s, generalId);
+    if (!g) return no('Unknown general');
+    var city = cityAt(s, g.tile);
+    if (!city) return no('A general takes regiments only in one of your cities');
+    if (!city.garrison) return no('No regiments stand in ' + city.name);
+    if (n !== undefined && badCount(n, city.garrison)) return no('Choose from 1 to ' + city.garrison + ' regiments');
+    var mp = moveProblem(s);
+    return mp ? no(mp) : { ok: true };
+  }
+
+  /** Can the general leave `n` of its regiments in the city it stands in? Without `n`: can it leave any now? */
+  function checkLeave(s, generalId, n) {
+    var g = generalById(s, generalId);
+    if (!g) return no('Unknown general');
+    if (!g.regiments) return no('The general has no regiments');
+    if (!cityAt(s, g.tile)) return no('Regiments are only left in one of your cities');
+    if (n !== undefined && badCount(n, g.regiments)) return no('Choose from 1 to ' + g.regiments + ' regiments');
+    var mp = moveProblem(s);
+    return mp ? no(mp) : { ok: true };
+  }
+
+  /** Can this city be set to supply the general (or the supply changed to it)? Without a city: can it be set now? */
+  function checkSupply(s, generalId, cityId) {
+    var g = generalById(s, generalId);
+    if (!g) return no('Unknown general');
+    if (cityId !== undefined) {
+      var city = cityById(s, cityId);
+      if (!city) return no('Pick one of your cities');
+      if (g.supply === cityId) return no(city.name + ' already supplies this general');
+    }
+    var mp = moveProblem(s);
+    return mp ? no(mp) : { ok: true };
+  }
+
+  function checkCancelSupply(s, generalId) {
+    var g = generalById(s, generalId);
+    if (!g) return no('Unknown general');
+    if (g.supply === null) return no('The general has no supply to cancel');
+    var mp = moveProblem(s);
+    return mp ? no(mp) : { ok: true };
+  }
+
   // ---- Orders: each costs one move and can be undone this turn ----
 
   /** Save the state for undo and spend the order's move. */
@@ -514,16 +712,27 @@ var Game = (function () {
     return { ok: true };
   }
 
+  /** A name from the list, numbered once the list runs out. */
+  function nameFrom(list, n) {
+    return list[n % list.length] + (n >= list.length ? ' ' + (Math.floor(n / list.length) + 1) : '');
+  }
+
+  /** One of your cities, with empty stores and nothing built. */
+  function makeCity(id, name, tile, size) {
+    return { id: id, name: name, tile: tile, size: size, food: 0, stone: 0, garrison: 0, build: null, buildings: [],
+      attention: 0 };
+  }
+
   function foundCity(s, tile) {
-    var n = s.cities.length, names = CITY_NAMES.length;
-    var city = {
-      id: s.nextId++,
-      name: CITY_NAMES[n % names] + (n >= names ? ' ' + (Math.floor(n / names) + 1) : ''),
-      tile: tile, size: N.newCitySize, food: 0, stone: 0, build: null, buildings: [], attention: 0,
-    };
+    var city = makeCity(s.nextId++, nameFrom(CITY_NAMES, s.cities.length), tile, N.newCitySize);
     s.cities.push(city);
     claim(s, city.id, tile, N.cityRadius);
     return city;
+  }
+
+  /** A general standing on a tile, with no regiments, no baggage and no orders. */
+  function makeGeneral(s, tile) {
+    return { id: s.nextId++, tile: tile, dest: null, regiments: 0, baggage: 0, supply: null, supplySince: null };
   }
 
   /** Tiles around `centre` join the city's borders, except tiles another city already holds (RULES, P8). */
@@ -575,6 +784,58 @@ var Game = (function () {
     return { ok: true };
   }
 
+  // Orders to a general give no attention (RULES, Moves).
+
+  /** Send a general and all its regiments to a tile: one move for the whole army. */
+  function orderMarch(game, generalId, tile) {
+    var check = checkMarch(game.state, generalId, tile);
+    if (!check.ok || tile === undefined) return check.ok ? no('Pick a tile') : check;
+    var s = begin(game);
+    generalById(s, generalId).dest = tile;
+    return { ok: true };
+  }
+
+  function orderTake(game, generalId, n) {
+    if (n === undefined) return no('Choose how many regiments');
+    var check = checkTake(game.state, generalId, n);
+    if (!check.ok) return check;
+    var s = begin(game), g = generalById(s, generalId), city = cityAt(s, g.tile);
+    city.garrison -= n;
+    g.regiments += n;
+    return { ok: true };
+  }
+
+  /** Leave regiments in the city the general stands in; the baggage stays with the general. */
+  function orderLeave(game, generalId, n) {
+    if (n === undefined) return no('Choose how many regiments');
+    var check = checkLeave(game.state, generalId, n);
+    if (!check.ok) return check;
+    var s = begin(game), g = generalById(s, generalId), city = cityAt(s, g.tile);
+    g.regiments -= n;
+    city.garrison += n;
+    return { ok: true };
+  }
+
+  /** Set or change the city that feeds a general. A changed line counts as newly set: it is served last. */
+  function orderSupply(game, generalId, cityId) {
+    if (cityId === undefined) return no('Pick a city');
+    var check = checkSupply(game.state, generalId, cityId);
+    if (!check.ok) return check;
+    var s = begin(game), g = generalById(s, generalId);
+    g.supply = cityId;
+    g.supplySince = s.nextId++;
+    return { ok: true };
+  }
+
+  function orderCancelSupply(game, generalId) {
+    var check = checkCancelSupply(game.state, generalId);
+    if (!check.ok) return check;
+    var s = begin(game), g = generalById(s, generalId);
+    g.supply = null;
+    g.supplySince = null;
+    return { ok: true };
+  }
+
   /** Take back the most recent order of this turn: everything returns to how it was before it. */
   function undo(game) {
     if (!game.undo.length) return no('No orders given this turn');
@@ -583,11 +844,17 @@ var Game = (function () {
   }
 
   // ---- The end of a turn (RULES, A turn) ----
-  // Each step runs over the cities in founding order (the order of s.cities) before the next step starts.
+  // Each step runs over the cities in founding order (the order of s.cities) and the armies oldest first (the
+  // order of s.generals) before the next step starts.
 
   function endTurn(game) {
     var s = game.state, turn = s.turn, log = [];
-    function note(text, tile) { log.push({ text: text, tile: tile }); }
+    function note(text, tile, kind) {
+      var e = { text: text, tile: tile };
+      if (kind) e.kind = kind;
+      log.push(e);
+    }
+    function regs(n) { return n + (n === 1 ? ' regiment' : ' regiments'); }
 
     // 1. Working sites send their output to their city; it arrives after its travel time.
     s.cities.forEach(function (city) {
@@ -604,7 +871,14 @@ var Game = (function () {
       });
     });
 
-    // 2. Routes ship everything above the reserve; routes from one city with one good share it equally.
+    // 2. Supply lines ship first, in the order they were set, towards where each general stands now; then routes
+    // ship everything still above the reserve, routes from one city with one good sharing it equally.
+    supplyPlan(s).forEach(function (p) {
+      if (!p.amount) return;
+      p.city.food -= p.amount;
+      s.transit.push({ good: 'food', amount: p.amount, general: p.general.id, from: p.city.name, fromCity: p.city.id,
+        arrives: turn + p.travel, trade: false });
+    });
     s.cities.forEach(function (city) {
       GOODS.forEach(function (good) {
         var rs = s.routes.filter(function (r) { return r.from === city.id && r.good === good; });
@@ -623,10 +897,16 @@ var Game = (function () {
       });
     });
 
-    // 3. Goods arriving this turn land; goods a route delivers earn trade coin. The city tile's own food lands too.
+    // 3. Goods arriving this turn land: in a city (route deliveries earn trade coin) or, for supply, in the
+    // baggage wherever the general is now. Supply for a general who is gone is lost. The city tile's food lands too.
     var trade = 0;
     s.transit = s.transit.filter(function (g) {
       if (g.arrives > turn) return true;
+      if (g.general) {
+        var gen = generalById(s, g.general);
+        if (gen) gen.baggage += g.amount;
+        return false;
+      }
       var city = cityById(s, g.to);
       city[g.good] += g.amount;
       if (g.trade) trade += g.amount * N.tradeCoinPerUnit * marketFactor(city);
@@ -635,7 +915,8 @@ var Game = (function () {
     s.coin += trade;
     s.cities.forEach(function (city) { city.food += N.cityTileFood; });
 
-    // 4. People eat, then the city grows or shrinks.
+    // 4. The garrison eats, then the people, from one store; then the city grows or shrinks. If the store can't
+    // feed everyone, the city loses a person and the garrison is unharmed.
     s.cities.forEach(function (city) {
       var eat = eats(city);
       if (city.food >= eat) {
@@ -650,19 +931,20 @@ var Game = (function () {
         city.food = 0;
         var before = city.size;
         city.size = Math.max(N.minCitySize, city.size - N.starveLoss);
-        note(city.name + (city.size < before ? ' starved and shrank to size ' + city.size : ' went hungry (store empty)'), city.tile);
+        note(city.name + (city.size < before ? ' starved and shrank to size ' + city.size : ' went hungry (store empty)') +
+          (city.garrison ? '; its garrison is unharmed' : ''), city.tile);
       }
     });
 
-    // 5. Production advances the build. A finished settler waits while the city can't spare a person.
+    // 5. Production advances the build. A finished settler or regiment waits while the city can't spare a person.
     s.cities.forEach(function (city) {
       var b = city.build;
       if (!b) return;
       b.progress = Math.min(b.cost, b.progress + production(s, city).total);
       if (b.progress < b.cost) return;
       var spec = N.builds[b.kind];
-      if (b.kind === 'settler' && city.size - spec.people < N.minCitySize) {
-        note(city.name + ': the settler is ready but waits until the city grows', city.tile);
+      if (!spec.site && spec.people && city.size - spec.people < N.minCitySize) {
+        note(city.name + ': the ' + spec.name.toLowerCase() + ' is ready but waits until the city grows', city.tile);
         return;
       }
       city.build = null;
@@ -674,6 +956,13 @@ var Game = (function () {
         city.size -= spec.people;
         s.settlers.push({ id: s.nextId++, tile: city.tile, dest: null });
         note(city.name + ' finished a settler (the city is now size ' + city.size + ')', city.tile);
+      } else if (b.kind === 'regiment') {
+        city.size -= spec.people;
+        city.garrison += 1;
+        note(city.name + ' finished a regiment (garrison ' + city.garrison + '; the city is now size ' + city.size + ')', city.tile);
+      } else if (b.kind === 'general') {
+        s.generals.push(makeGeneral(s, city.tile));
+        note(city.name + ' finished a general, who stands in the city', city.tile);
       } else {
         city.buildings.push(b.kind);
         note(city.name + ' finished a ' + spec.name, city.tile);
@@ -684,28 +973,84 @@ var Game = (function () {
     var people = 0;
     s.cities.forEach(function (city) { people += city.size * N.coinPerPerson * marketFactor(city); });
     s.coin += people;
-    s.lastIncome = { people: people, trade: trade };
+    s.lastIncome = { people: people, trade: trade, plunder: 0 };
 
-    // 7. Settlers walk towards their tile, around mountains and water.
-    s.settlers.forEach(function (st) {
-      if (st.dest === null) return;
-      var path = findPath(s, st.tile, st.dest);
+    // 7. Settlers walk and armies march towards their tile, around mountains and water (armies around rival cities).
+    function walk(unit, steps, blocked, who) {
+      if (unit.dest === null) return;
+      var path = findPath(s, unit.tile, unit.dest, blocked);
       if (!path || !path.length) {
-        st.dest = null;
-        note('A settler could not go on and waits for orders', st.tile);
+        unit.dest = null;
+        note(who + ' could not go on and waits for orders', unit.tile);
         return;
       }
-      st.tile = path[Math.min(N.settlerSteps, path.length) - 1];
-      if (st.tile === st.dest) {
-        st.dest = null;
-        note('A settler arrived and waits for orders', st.tile);
+      unit.tile = path[Math.min(steps, path.length) - 1];
+      if (unit.tile === unit.dest) {
+        unit.dest = null;
+        note(who + ' arrived and waits for orders', unit.tile);
+      }
+    }
+    s.settlers.forEach(function (st) { walk(st, N.settlerSteps, null, 'A settler'); });
+    var blocked = armyBlocked(s);
+    s.generals.forEach(function (g) { walk(g, N.armySteps, blocked, 'An army'); });
+
+    // 8. Armies in your cities fill their baggage from the food above what the city eats in one turn; then every
+    // army eats from its baggage. An army that can't eat fully eats what there is and loses a regiment.
+    s.generals.forEach(function (g) {
+      var city = cityAt(s, g.tile);
+      if (!city) return;
+      var take = Math.min(Math.max(0, baggageCap(g) - g.baggage), Math.max(0, city.food - armyReserve(city)));
+      city.food -= take;
+      g.baggage += take;
+    });
+    s.generals.forEach(function (g) {
+      var eat = armyEats(g);
+      if (g.baggage >= eat) {
+        g.baggage -= eat;
+        return;
+      }
+      g.baggage = 0;
+      g.regiments = Math.max(0, g.regiments - N.hungerLoss);
+      note('An army at ' + where(s, g.tile) + ' went hungry and lost a regiment (' + regs(g.regiments) + ' left)', g.tile, 'hunger');
+    });
+
+    // 9. Battles: each army next to a rival city fights it, oldest first; next to two, the smaller garrison.
+    s.generals.slice().forEach(function (g) {
+      var foe = foeAt(s, g.tile);
+      if (!foe) return;
+      var a = g.regiments, d = foe.garrison, chance = winChance(a, d);
+      var head = 'Battle at ' + foe.name + ': your ' + regs(a) + ' against ' + d + ' (win chance ' +
+        fmt(chance * 100) + '%): ';
+      if (rollDice(s) < chance) {
+        g.regiments = winnerLeft(a, d);
+        s.rivals.splice(s.rivals.indexOf(foe), 1);
+        s.cities.push(makeCity(foe.id, foe.name, foe.tile, foe.size));
+        var plunder = foe.size * N.plunderPerPerson;
+        s.coin += plunder;
+        s.lastIncome.plunder += plunder;
+        g.tile = foe.tile;
+        g.dest = null;
+        note(head + 'won. All ' + d + ' defenders are gone; you lost ' + (a - g.regiments) + ', ' + regs(g.regiments) +
+          ' left', foe.tile, 'battle');
+        note(foe.name + ' is yours: size ' + foe.size + ', empty stores; your army stands in it. Plunder: ' + fmt(plunder) +
+          ' coin', foe.tile, 'capture');
+      } else {
+        foe.garrison = winnerLeft(d, a);
+        s.generals.splice(s.generals.indexOf(g), 1);
+        note(head + 'lost. The general and every regiment are gone; ' + foe.name + ' lost ' + (d - foe.garrison) +
+          ' and has ' + foe.garrison + ' left', foe.tile, 'battle');
       }
     });
 
-    // 8. Attention counts down.
-    s.cities.forEach(function (city) { if (city.attention > 0) city.attention -= 1; });
+    // 10. Rival garrisons grow every few turns, up to their most.
+    if (turn % N.rival.garrisonEvery === 0) {
+      s.rivals.forEach(function (r) {
+        if (r.garrison < N.rival.garrisonMax) r.garrison = Math.min(N.rival.garrisonMax, r.garrison + N.rival.garrisonGrowth);
+      });
+    }
 
-    // 9. This turn's moves are added; unused moves carry over with no limit.
+    // 11. Attention counts down; this turn's moves are added; unused moves carry over with no limit.
+    s.cities.forEach(function (city) { if (city.attention > 0) city.attention -= 1; });
     s.movesSaved = s.moves;
     s.moves += movesPerTurn(s);
     s.turn += 1;
@@ -716,12 +1061,29 @@ var Game = (function () {
 
   // ---- A new game (RULES, The start) ----
 
+  /** The rival's cities: on the land farthest from your first city, apart from each other (RULES, The rival). */
+  function placeRivals(s, home) {
+    // Land your armies can walk to from your first city, farthest first (ties by tile, so a seed gives one layout).
+    var land = reachable(s, home.tile);
+    land.sort(function (a, b) { return dist(s, home.tile, b) - dist(s, home.tile, a) || a - b; });
+    for (var k = 0; k < land.length && s.rivals.length < N.rival.cities; k++) {
+      var t = land[k];
+      if (s.owner[t]) continue;
+      if (s.rivals.some(function (r) { return dist(s, t, r.tile) < N.rival.spacing; })) continue;
+      var r = { id: s.nextId++, name: nameFrom(RIVAL_NAMES, s.rivals.length), tile: t, size: N.rival.citySize,
+        garrison: N.rival.garrison };
+      s.rivals.push(r);
+      claim(s, r.id, t, N.cityRadius);
+    }
+  }
+
   function newGame(seed) {
     var s = {
       seed: seed, turn: 1, w: N.map.width, h: N.map.height, coin: N.start.coin,
-      moves: 0, movesSaved: 0, nextId: 1,
+      moves: 0, movesSaved: 0, nextId: 1, dice: (seed ^ DICE_SALT) | 0,
       terrain: [], owner: [], cities: [], sites: [], settlers: [], routes: [], transit: [], log: [],
-      lastIncome: { people: 0, trade: 0 },
+      generals: [], rivals: [],
+      lastIncome: { people: 0, trade: 0, plunder: 0 },
     };
     makeMap(s, makeRng(seed));
     s.terrain.forEach(function () { s.owner.push(0); });
@@ -729,10 +1091,12 @@ var Game = (function () {
     start.size = N.start.citySize;
     start.food = N.start.food;
     start.stone = N.start.stone;
+    placeRivals(s, start);
     var spots = neighbors(s, start.tile).filter(function (n) { return passable(s, n); });
     for (var k = 0; k < N.start.settlers && spots.length; k++) {
       s.settlers.push({ id: s.nextId++, tile: spots[k % spots.length], dest: null });
     }
+    for (var j = 0; j < N.start.generals; j++) s.generals.push(makeGeneral(s, start.tile));
     s.moves = movesPerTurn(s);
     return { state: s, undo: [] };
   }
@@ -740,16 +1104,25 @@ var Game = (function () {
   return {
     GOODS: GOODS, newGame: newGame, makeRng: makeRng, fmt: fmt,
     col: col, row: row, neighbor: neighbor, neighbors: neighbors, dist: dist, passable: passable,
-    findPath: findPath, reachable: reachable,
+    findPath: findPath, reachable: reachable, armyBlocked: armyBlocked,
     cityById: cityById, cityAt: cityAt, siteAt: siteAt, settlerById: settlerById, settlersAt: settlersAt,
-    routeById: routeById, siteBuilderAt: siteBuilderAt, has: has,
+    routeById: routeById, siteBuilderAt: siteBuilderAt, has: has, holderName: holderName,
+    generalById: generalById, generalsAt: generalsAt, rivalAt: rivalAt,
+    rivalsNext: rivalsNext, foeAt: foeAt,
     hallsBuilt: hallsBuilt, hallsCounted: hallsCounted, movesPerTurn: movesPerTurn, movesSaved: movesSaved,
     production: production, eats: eats, growthNeed: growthNeed, staffing: staffing, siteOutput: siteOutput,
-    travelTurns: travelTurns, reserve: reserve, routeShare: routeShare, flow: flow, coinNext: coinNext,
+    travelTurns: travelTurns, reserve: reserve, armyReserve: armyReserve, routeShare: routeShare, flow: flow,
+    coinNext: coinNext,
     buildCost: buildCost, waiting: waiting,
+    armyEats: armyEats, baggageCap: baggageCap, turnsOfFood: turnsOfFood, foodOnWay: foodOnWay, turnsFed: turnsFed,
+    supplyPlan: supplyPlan, winChance: winChance,
     checkBuild: checkBuild, siteProblem: siteProblem, siteTiles: siteTiles, checkSend: checkSend,
     checkFound: checkFound, foundProblemAt: foundProblemAt, checkRoute: checkRoute, checkCancelRoute: checkCancelRoute,
+    checkMarch: checkMarch, checkTake: checkTake, checkLeave: checkLeave, checkSupply: checkSupply,
+    checkCancelSupply: checkCancelSupply,
     orderBuild: orderBuild, orderSend: orderSend, orderFound: orderFound, orderRoute: orderRoute,
-    orderChangeRoute: orderChangeRoute, orderCancelRoute: orderCancelRoute, undo: undo, endTurn: endTurn,
+    orderChangeRoute: orderChangeRoute, orderCancelRoute: orderCancelRoute,
+    orderMarch: orderMarch, orderTake: orderTake, orderLeave: orderLeave, orderSupply: orderSupply,
+    orderCancelSupply: orderCancelSupply, undo: undo, endTurn: endTurn,
   };
 })();
