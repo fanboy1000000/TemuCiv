@@ -43,8 +43,10 @@ generals, against a passive rival with one battle decided by luck, to feel the l
 | TASK-407 | the TASK-403 agent, resumed | `prototype/**` except `RULES.md` | The code follows TASK-406's rules; the hunger warning plays the real end of turn on a copy; checks for an army raised in a city with ordinary stores; smoke; CI → cycle 3 | no (prototype) |
 | TASK-408 | Orchestrator | `prototype/RULES.md`, this log | Every owner mark in RULES.md rests on recorded words, quoted where the wording differs, checked by a script; cycle 3's findings fixed → cycle 4 | no |
 | TASK-409 | the TASK-403 agent, resumed | `prototype/**` except `RULES.md` | The look-ahead wins every battle, so the warning never reveals a battle's result; README and delete-list from cycle 3 → checks; smoke; CI; cycle 4 | no (prototype) |
+| TASK-410 | Orchestrator | `prototype/RULES.md`, this log, the working notes | Cycle 4's findings on the rules and the log fixed → cycle 5, scoped to the fixes | no |
+| TASK-411 | the TASK-403 agent, resumed | `prototype/**` except `RULES.md` | In the look-ahead an army with no regiments loses; README's "if it wins" wording → checks; smoke; CI; cycle 5 | no (prototype) |
 
-Waves: 401 and 402 (Orchestrator), then 403; 404 and 405 follow the cycle-1 review, 406 and 407 the cycle-2 review, 408 and 409 the cycle-3 review (past the cap, on the owner's decision). TASK-403 uses a generic agent with the model named, as in Sprint 3:
+Waves: 401 and 402 (Orchestrator), then 403; 404 and 405 follow the cycle-1 review, 406 and 407 the cycle-2 review, 408 and 409 the cycle-3 review, 410 and 411 the cycle-4 review (both past the cap, on the owner's decisions). TASK-403 uses a generic agent with the model named, as in Sprint 3:
 the simulation and presentation definitions carry standing instructions the prototype exception sets aside.
 
 ## Plan review (step 2)
@@ -104,6 +106,11 @@ general, the turn order) are in RULES.md marked "(eng.)", and were summarized to
 RULES.md claimed more than the recorded words), so the owner was asked (WORKFLOW, "Review cycles"). Options: one
 more round fixing every such mark at once (recommended), accept and close with a waiver, or close with a waiver
 and fix in Sprint 5. Decided by the owner: "One more round (Recommended)" (TASK-408, 409, then cycle 4).
+
+**Cycle 4 (2026-10-16).** Codex BLOCKED again on small items, the reviewer APPROVED-WITH-WARNINGS. Options put to
+the owner: fix, then a check of only the fixes by both lenses (recommended: the whole-sprint rounds kept finding
+new small things in freshly written text); fix and close with a waiver; or close now and fix in Sprint 5. Decided
+by the owner: "Fix, then a narrow check (Recommended)" (TASK-410, 411, then cycle 5 on the fix diff only).
 
 ## Task log
 
@@ -219,7 +226,7 @@ hunger warning is defined as playing the next two ends of turn on a copy of the 
 rules (TASK-407). Provenance: an owner's mark is used only where its record contains the words the rule rests on,
 quoted where not obvious; this log now records A1 to A5 and R1 with the option text the owner chose, word for
 word; "a few rival cities far away" and the captured city quote A1's chosen text; the legend covers "(owner,
-2026-10-15)" and says where the placeholder texts are; A3's "no person" quotes its option; stability and
+2026-10-15)" and says where the placeholder texts are; A3's "no person" quotes its option (wrong: the option says only "coin and production"; corrected in TASK-408); stability and
 sanitation are P7, the battle map and initiative eng. Handoff: from now on it is rewritten in the same commit as
 the work it describes. Declined (the reviewer's note, twice): keeping the scratch checks in the repository, since
 they hard-code today's numbers and would fail CI whenever the owner tunes `numbers.js`.
@@ -256,8 +263,8 @@ cycle-2 blocker confirmed fixed by both. The reviewer's brief first carried a se
 the last cycle; it was withdrawn by message before grading, and the reviewer confirms the cap played no part.
 Provenance had now drawn findings three cycles running, so instead of fixing Codex's two marks alone, every owner
 mark was audited against the recorded words: "no person" for a general is eng. (A3's option says "coin and
-production, with no limit"); a route's single good, food or stone, is eng. (P2 says routes move goods); and eight
-more of the same kind, each now quoted or marked eng.: the terrain list, a changed order being a new order, P5's
+production, with no limit"); a route's single good, food or stone, is eng. (P2 says routes move goods); and more
+of the same kind, each now quoted or marked eng.: the terrain list, a changed order being a new order, P5's
 "any real order", the Hall's rising price (P10) and its cap (P4), the Granary, Workshop and Market effects (P10's
 words, amounts eng.), the borders' exceptions (P8), A2 for moving with a general, K6's "defending is free",
 cities and sites as simple shapes (D3 names buildings), P12's "no summary", and a rival that attacks (eng.). The
@@ -281,6 +288,23 @@ warning matched the battle's result 40 of 40 times; a winner arriving in an empt
 wins", and an army hungry before its battle is not; three look-aheads leave the state, dice and undo untouched
 and the real turn identical (40 of 40); over 10 seeds × 150 random turns the forecast still matched all 32 real
 hungers with no false alarms. Screenshot checked by the Orchestrator: the three places agree.
+
+### TASK-410: cycle 4's findings (rules, log, working notes)
+
+Status complete · Agent: Orchestrator · Checklist pass (self-check) · Review: sprint-end cycle 5, scoped to the
+fixes · Files: `prototype/RULES.md`, this log, `.claude/refinements/REFINEMENT-slice2-armies.md` (gitignored).
+Criteria: cycle 4's findings fixed → cycle 5.
+
+Cycle 4: Codex BLOCKED (3 blockers, 1 warning), the reviewer APPROVED-WITH-WARNINGS (2 warnings, 7 notes), every
+cycle-3 finding confirmed fixed by both. Fixed: in the look-ahead an army with no regiments loses, as always
+(Codex: forcing a 0% battle to be won contradicted RULES; code in TASK-411); "if it wins" is for an army whose
+hunger would come after a battle, as the code does (the reviewer's W1); P2 is quoted as one unbroken phrase from
+the Sprint 2 log instead of with an ellipsis; A4 is quoted ("Like a settler"), the settler's timing marked eng.;
+the working notes and the TASK-406 entry no longer credit "no person" to A3; TASK-408's "eight more" count is
+gone; ragged lines rewrapped; the handoff names the close steps, including the rulebook review that passing the
+cap requires (the reviewer's W2). Declined, with reasons: the smoke running the look-ahead (a light-bar note; the
+checks exercise it and a crash would show on the page at once); "1 turn left (if it wins)" reading ambiguously
+(a light-bar note, left for the owner's playtest).
 
 ## Design conformance
 
@@ -307,10 +331,13 @@ builder's table and scratch checks and the Orchestrator's screenshots and spot c
 
 ## Handoff
 
-- **State:** on `sprint/4`: TASK-401 to 409 committed (TASK-409 and this handoff are this commit); local `npm run
-  ci` 4/4. Past the cap on the owner's decision; cycle 3's findings are fixed in TASK-408 (rules, log) and TASK-409
-  (code).
-- **In flight:** nothing; cycle 4 starts on a fresh stamp after this commit.
-- **Waiting on:** cycle 4's verdicts; the owner's slice 1 playtest notes (invited, not blocking).
-- **Next action:** stamp, run cycle 4 with both lenses; if both pass, close Sprint 4 (log, ROADMAP, `npm run ci`
-  last, `S4 close`), push and watch GitHub CI; if not, back to the owner.
+- **State:** on `sprint/4`: TASK-401 to 410 committed (TASK-410 and this handoff are this commit). Past the cap
+  twice on the owner's decisions; cycle 4: Codex BLOCKED, the reviewer APPROVED-WITH-WARNINGS.
+- **In flight:** TASK-411 (the TASK-403 agent: a look-ahead army with no regiments loses; README wording),
+  uncommitted.
+- **Waiting on:** TASK-411; then cycle 5, both lenses, scoped to the fix diff since `3d3aba5`.
+- **Next action:** verify and commit TASK-411 with this handoff rewritten; stamp; cycle 5. If both pass, close:
+  complete the log (review summary, test summary, a retrospective with the rulebook review that passing the cap
+  requires, WORKFLOW "Review cycles" and "Harness evolution"), route follow-ups to ROADMAP, `npm run ci` last,
+  commit `S4 close: Prototype slice 2, armies and supply`, fast-forward `main`, push, watch GitHub CI once. If
+  cycle 5 blocks, back to the owner.
