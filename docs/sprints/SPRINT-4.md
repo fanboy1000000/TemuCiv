@@ -39,8 +39,10 @@ generals, against a passive rival with one battle decided by luck, to feel the l
 | TASK-403 | general-purpose agent (Opus, named at spawn) | `prototype/**` except `RULES.md` | Plays as RULES.md says, section by section (the builder's table and scratch checks whose expected values come from RULES.md); every number in `numbers.js`; 300 smoke turns of random valid orders including every army order, with no error, no NaN, no negative store or baggage; a deliberate break fails the smoke; opens by double-click → `node prototype/smoke.js`, `npm run ci`, a screenshot, the owner's playtest | no (prototype) |
 | TASK-404 | Orchestrator | `prototype/RULES.md`, this log | Every sprint-end cycle-1 BLOCKER on the rules and the log fixed → sprint-end review cycle 2 | no |
 | TASK-405 | the TASK-403 agent, resumed | `prototype/**` except `RULES.md` | The code follows TASK-404's rules; scratch checks for each change, including a long supply line held for many turns; smoke; CI → `node prototype/smoke.js`, `npm run ci`, cycle 2 | no (prototype) |
+| TASK-406 | Orchestrator | `prototype/RULES.md`, this log | Every sprint-end cycle-2 BLOCKER on the rules and the log fixed, with the structural changes → cycle 3 | no |
+| TASK-407 | the TASK-403 agent, resumed | `prototype/**` except `RULES.md` | The code follows TASK-406's rules; the hunger warning plays the real end of turn on a copy; checks for an army raised in a city with ordinary stores; smoke; CI → cycle 3 | no (prototype) |
 
-Waves: 401 and 402 (Orchestrator), then 403; 404 and 405 follow the cycle-1 review. TASK-403 uses a generic agent with the model named, as in Sprint 3:
+Waves: 401 and 402 (Orchestrator), then 403; 404 and 405 follow the cycle-1 review, 406 and 407 the cycle-2 review. TASK-403 uses a generic agent with the model named, as in Sprint 3:
 the simulation and presentation definitions carry standing instructions the prototype exception sets aside.
 
 ## Plan review (step 2)
@@ -52,31 +54,45 @@ the simulation and presentation definitions carry standing instructions the prot
 ## Owner design rulings
 
 Slice 2's answers, asked one at a time on 2026-10-16 and numbered A1 to A5 so `prototype/RULES.md` can cite them.
-Working notes: `.claude/refinements/REFINEMENT-slice2-armies.md`.
+Each records the option text the owner chose, word for word, so a mark in RULES.md can be checked against the
+owner's words (TASK-406). Working notes: `.claude/refinements/REFINEMENT-slice2-armies.md`.
 
 **A1, what slice 2 includes.** Decided by the owner (option B of three): armies and supply, plus a passive rival
 whose cities defend themselves but never move; battles are settled automatically. Given up: the rival can't
-threaten your supply lines yet (the full rival was the truest test but the biggest build).
+threaten your supply lines yet (the full rival was the truest test but the biggest build). The option as chosen,
+"Plus a passive rival (Recommended)": "Armies and supply, plus a few rival cities far away that defend themselves
+but never move. Marching far then wins something (a captured city, coin from war). Battles are settled
+automatically. Adds 2–3 short questions on battles and capture. One sprint."
 
 **A2, supply and generals.** Asked how an army away from your cities gets its food, the owner said: "You set
 supply on generals. Armies can only move with a general. They can also bring baggage." Engineering's reading,
 shown to the owner before the next question and not corrected: supply is an order given to a general, naming the
-city that feeds it, and the line follows that general (Sprint 1 log, the owner's combat concept); regiments without a general can't move; an army
-carries baggage as well as being supplied.
+city that feeds it, and the line follows that general (Sprint 1 log, the owner's combat concept); regiments
+without a general can't move; an army carries baggage as well as being supplied.
 
 **A3, generals.** Built in a city, like a regiment (coin and production), with no limit: the moves budget
 already limits command (option 1 of three; a fixed number of generals and a general that takes a person were the
-others).
+others). As chosen, "Built in a city (Recommended)": "A city builds a general the way it builds a regiment (coin
+and production), with no limit. The moves budget already limits how many armies you can command each turn, since
+every army order costs a move, so there's no need for a second limit."
 
-**A4, manpower.** A regiment takes one person from its city (option 1 of three).
+**A4, manpower.** A regiment takes one person from its city (option 1 of three). As chosen, "Yes, one person
+(Recommended)": "Like a settler, each regiment takes one person from the city. War then costs the economy directly:
+fewer workers, less food and coin. A regiment that starves on a bad supply line is a real person lost. This makes
+guns or butter as sharp as it gets."
 
 **A5, battles.** One battle, decided in one turn, with luck from the game's seeded random numbers (option 2 of
 three). Engineering had leaned to a fight over several turns, so that the supply line would matter for winning
-as well as for getting there; given up by the owner for a quick, decisive battle.
+as well as for getting there; given up by the owner for a quick, decisive battle. As chosen, "One battle, with
+luck": "Decided in one turn. The bigger army usually wins, with luck from the game's seeded dice. Quick and
+exciting, but supply only matters for getting there, not for winning."
 
 **R1, the review bar for RULES.md.** Carried from Sprint 3. Decided by the owner: `prototype/RULES.md` gets the
 normal review bar, checked against the owner's rulings, because a ruling copied wrong would make the prototype
-test the wrong idea (TASK-401).
+test the wrong idea (TASK-401). As chosen, "Full standard for RULES.md (Recommended)": "RULES.md is where your
+rulings become the prototype's spec. If I copy one wrong, the prototype tests the wrong idea and the playtest
+lessons mislead the design. Under the full standard, a wrong copy blocks the sprint until it's fixed. Cost: maybe
+one more review round on a short file."
 
 Engineering's own rules for the slice (numbers, baggage, the rival's layout, the win chance, plunder, the start
 general, the turn order) are in RULES.md marked "(eng.)", and were summarized to the owner before R1.
@@ -156,7 +172,7 @@ explanations are promised for underlined numbers, as the screen does. Source mar
 marks, "S1" now names its Sprint 1 entry, the numbers sentence says a number is the owner's when its rule's mark
 says so, the rival's start, its "few cities far away" and the captured city now cite A1, and the "Left out"
 list marks each item with its own source. In this log: the goal, a stale code line reference, the conformance
-paragraph's tense; the handoff is current.
+paragraph's tense; the handoff (stale again by the next commit; TASK-406).
 
 ### TASK-405: sprint-end review fixes, cycle 1 (code)
 
@@ -170,13 +186,35 @@ baggage fills before the march; leaving regiments puts their extra food in the c
 regiments when it can't feed them; take, leave and supply orders give attention; the delete-list is done (an
 unused transit field, three unused exports, a smoke check that couldn't fail). New checks with hand-worked
 expectations, all PASS: an army of 3 at 10 tiles goes hungry exactly once before the first delivery and never in
-the next 30 turns; at 7, 8 and 9 tiles never; a marching army supplied before leaving never; take and march in one
-turn leaves with full baggage; leaving 2 of 3 regiments puts 12 food in the city; the size-1 garrison; each
+the next 30 turns; at 7, 8 and 9 tiles never; a marching army supplied before leaving never, from a well-stocked
+city (with an ordinary store it could still go hungry on turn 1: cycle 2, TASK-406); take and march in one turn
+leaves with full baggage, from a city holding enough food; leaving 2 of 3 regiments puts 12 food in the city; the size-1 garrison; each
 attention case; the forecast. Run against the cycle-1 code, the changed cases fail ("7 tiles: never hungry over 30
 turns: expected [], got [4,9,15]"). Earlier checks whose expectations changed with the rules were updated, each
 with its reason in the builder's report. Watch in play: a new supply line sends the baggage limit plus the trip's
 eating at once (24 for an army of 3 at 10 tiles), then about a turn's eating per turn; army orders now give
 attention.
+
+### TASK-406: sprint-end review fixes, cycle 2 (rules and log)
+
+Status complete · Agent: Orchestrator · Checklist pass (self-check) · Review: sprint-end cycle 3 · Files:
+`prototype/RULES.md`, this log. Criteria: every cycle-2 BLOCKER on the rules and the log fixed → cycle 3.
+
+Both lenses BLOCKED in cycle 2 (Codex 4 blockers, 1 note; the reviewer 4 blockers, 1 warning, 5 notes). The
+reviewer saw three kinds of finding recur from cycle 1 and proposed structural changes, taken here instead of
+another patch. Army food across the turn: an army in one of your cities now fills its baggage inside step 4,
+after the garrison eats and before the people eat and the city grows, and a supply line sends nothing while its
+general stands in the city that feeds it (an army raised in a city could go hungry on turn 1: the line emptied
+the city before the fill, and growth came first); supply's travel time is stated as rounded up, at least 1 turn;
+"a supply line of any length" now says "once its first delivery lands, as long as the city has the food". The
+hunger warning is defined as playing the next two ends of turn on a copy of the game, so it can't drift from the
+rules (TASK-407). Provenance: an owner's mark is used only where its record contains the words the rule rests on,
+quoted where not obvious; this log now records A1 to A5 and R1 with the option text the owner chose, word for
+word; "a few rival cities far away" and the captured city quote A1's chosen text; the legend covers "(owner,
+2026-10-15)" and says where the placeholder texts are; A3's "no person" quotes its option; stability and
+sanitation are P7, the battle map and initiative eng. Handoff: from now on it is rewritten in the same commit as
+the work it describes. Declined (the reviewer's note, twice): keeping the scratch checks in the repository, since
+they hard-code today's numbers and would fail CI whenever the owner tunes `numbers.js`.
 
 ## Design conformance
 
@@ -203,10 +241,11 @@ builder's table and scratch checks and the Orchestrator's screenshots and spot c
 
 ## Handoff
 
-- **State:** on `sprint/4`: TASK-401 to 404 committed (last `e306c51`). Sprint-end review cycle 1: both lenses
-  BLOCKED (`.claude/reviews/SPRINT-4-codex-c1.md`, `SPRINT-4-reviewer-c1.md`); the rules and log side is fixed in
-  TASK-404.
-- **In flight:** TASK-405, the TASK-403 agent resumed in the shared tree, bringing the code in line with TASK-404's
-  rules (uncommitted).
-- **Waiting on:** TASK-405's report; the owner's slice 1 playtest notes (invited, not blocking).
-- **Next action:** verify and commit TASK-405, record it, stamp, then sprint-end review cycle 2 with both lenses.
+- **State:** on `sprint/4`: TASK-401 to 406 committed (TASK-406 is this commit). Sprint-end review: cycle 1 and
+  cycle 2 both BLOCKED by both lenses (`.claude/reviews/SPRINT-4-*-c1.md`, `-c2.md`); the rules and log side of
+  cycle 2 is fixed in TASK-406, with the reviewer's structural changes.
+- **In flight:** TASK-407, the TASK-403 agent resumed in the shared tree, bringing the code in line with TASK-406
+  (uncommitted).
+- **Waiting on:** TASK-407's report; the owner's slice 1 playtest notes (invited, not blocking).
+- **Next action:** verify TASK-407, commit it with its log entry and this handoff rewritten in the same commit,
+  stamp, then cycle 3, the last under the cap: if it still finds new BLOCKERs, stop and ask the owner (WORKFLOW).

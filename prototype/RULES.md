@@ -4,11 +4,15 @@ The rules the throwaway prototype follows (WORKFLOW, "Prototype phase"). Written
 owner's rulings: the slice 1 placeholders P1 to P12 and the earlier rulings (Sprint 1 to 3 logs), and the slice 2
 answers A1 to A5 (Sprint 4 log), all under "Owner design rulings". The builder may not change this file, and
 reports any rule that can't work as written. Each rule ends with its source; "(eng.)" marks engineering's own
-proposal, which the owner may flag, and a rule with two parts may carry two marks. The owner's marks: K1 to K6 (the
-moves budget), C2 (the economy), D1 to D3 and P1 to P12 (the first playable and slice 1's placeholders), all in the
-Sprint 2 log; A1 to A5 and R1 in the Sprint 4 log; "S1" with an entry name points to the Sprint 1 log's rulings:
-"S1 logistics" (logistics is a major feature), "S1 combat" (the owner's combat concept, still to be matured) and
-"S1 map" (map and borders). A number is the owner's when its rule's mark says so, for example one move per order
+proposal, which the owner may flag, and a rule with two parts may carry two marks. An owner's mark is used only
+where the record it points to contains the words the rule rests on; a quote in the mark gives those words where
+they are not obvious; anything else is (eng.). The owner's marks: K1 to K6 (the moves budget), C2 (the economy),
+D1 to D3 and P1 to P12 (the first playable and slice 1's placeholders), all in the Sprint 2 log, with the
+placeholder texts as put to the owner in the working notes `.claude/refinements/REFINEMENT-first-playable.md`;
+"(owner, 2026-10-15)", the Sprint 3 log's "Production and coin" ruling; A1 to A5 and R1 in the Sprint 4 log, with
+the exact option text the owner chose; "S1" with an entry name points to the Sprint 1 log's rulings: "S1
+logistics" (logistics is a major feature), "S1 combat" (the owner's combat concept, still to be matured) and "S1
+map" (map and borders). A number is the owner's when its rule's mark says so, for example one move per order
 (P3) or one person per regiment (A4); four more were shown to the owner as examples and kept: 4 moves per turn and
 a cap of about 8 (P4), a Hall's one move (P10), and attention's quarter more for five turns (P5). Every other
 number is a starting value engineering proposed, kept in `numbers.js` where the owner can change it and reload.
@@ -69,7 +73,7 @@ number is a starting value engineering proposed, kept in `numbers.js` where the 
 | Farm (site) | 10 | 0 | 15 | grassland only; needs 1 person | 4 food per turn |
 | Quarry (site) | 10 | 0 | 20 | hills only; needs 2 people | 2 stone per turn |
 | Settler | 0 | 0 | 20 | 15 food when ordered; 1 person when finished (the build waits while the city is size 1) | founds a city |
-| General | 30 | 0 | 20 | no person; no limit (A3) | leads regiments; only a general moves them (A2) |
+| General | 30 | 0 | 20 | no person; no limit (A3: "the way it builds a regiment (coin and production), with no limit") | leads regiments; only a general moves them (A2) |
 | Regiment | 15 | 5 | 20 | 1 person when finished (A4); the build waits while the city is size 1 | a soldier who eats like a person |
 | Hall | 40 | 20 | 40 | one per city; coin and stone × 1.5 for each Hall finished or being built | +1 move per turn (P10) |
 | Granary | 20 | 10 | 25 | one per city | growth needs a quarter less food |
@@ -137,8 +141,9 @@ the general and the regiment are A2 to A4, as marked; everything else in the tab
 - Armies need food and supply lines (S1 logistics). Each regiment with a general eats 2 food per turn from the
   army's baggage (eng.). An army never feeds off the land (eng.).
 - An army brings baggage (A2). Its limit is 3 turns of the army's eating (eng.). An army standing in one of your
-  cities fills its baggage up to the limit at the end of the turn, before it marches, from the city's store,
-  taking only what is above what the city eats in one turn, at no move (eng.). Regiments left in a city leave the
+  cities fills its baggage up to the limit at the end of the turn, at no move: after the city's garrison eats and
+  before its people eat and the city grows (step 4), so before the army marches, from the city's store, taking
+  only what is above what the city eats in one turn (eng.). Regiments left in a city leave the
   food above the smaller army's limit in that city's store (eng.). Otherwise food already in the baggage is kept
   until eaten, even above the limit, for example after a battle loss or when supply lands after the army shrank:
   nothing carried is thrown away (eng.).
@@ -146,37 +151,43 @@ the general and the regiment are A2 to A4, as marked; everything else in the tab
   when routes ship, that city sends what keeps the baggage at its limit when this food lands: the limit, plus what
   the army eats while this food travels (1 turn's eating per turn of travel), minus the baggage and the food
   already on its way, never less than nothing; it comes out of the city's store above what the city eats in one
-  turn (eng.). So a supply line of any length keeps a fed army fed, and distance costs only time (P9): a longer
-  line only means more food on the way and a longer wait for the first delivery. An army is fed before its city
-  grows: the routes' 3-turn reserve would leave nothing to send once a city reaches size 6 or so, because the city
-  grows and spends its store first (eng., found while building slice 2). Supply lines are served before routes,
-  in the order they were set up; routes share what is left (eng.).
-- Supply food takes 1 turn per 3 tiles of the distance from the city to where the general stands when it is sent
-  (P9; the rate is eng.), and lands in the baggage wherever the general is then: the supply line follows the
-  general (S1 combat). Nothing is lost on the way (P9). Food on its way to a general who is gone is lost (eng.).
+  turn (eng.). While the general stands in the city that feeds it, the line sends nothing: the baggage fill does
+  that job (eng.). Supply lines are served before routes, in the order they were set up; routes share what is left
+  (eng.). The one-turn reserve, and the fill coming before growth, feed an army before its city grows: the routes'
+  3-turn reserve would leave nothing to send once a city reaches size 6 or so, because the city grows and spends
+  its store first (eng., found while building slice 2).
+- What this means in play (eng.): once its first delivery lands, a supply line of any length keeps the army fed,
+  as long as the feeding city has the food to send; until then the baggage must last the trip. A longer line
+  costs only time (P9): more food on the way and a longer wait for the first delivery.
+- Supply food takes 1 turn per 3 tiles of the distance from the city to where the general stands when it is sent,
+  rounded up, at least 1 turn (P9; the rate is eng.), and lands in the baggage wherever the general is then: the
+  supply line follows the general (S1 combat). Nothing is lost on the way (P9). Food on its way to a general who
+  is gone is lost (eng.).
 - Supply runs every turn until you change or cancel it (K4); each is one move (P3). It earns no trade coin (eng.).
 - An army whose baggage can't feed it this turn eats what there is and loses one regiment, a person lost (eng.).
 
 ## The rival
-- One rival with a few cities far away (A1), always at war with you (S1 map: every player is at war with every
-  other from the moment they meet). It has 3 cities, placed on the land farthest from your first city, at least 3
-  tiles from each other, each of size 3 with a new city's borders (eng.).
+- One rival (A1), with "a few rival cities far away" (A1, from the option text the owner chose), always at war
+  with you (S1 map: every player is at war with every other from the moment they meet). It has 3 cities, placed
+  on the land farthest from your first city, at least 3 tiles from each other, each of size 3 with a new city's
+  borders (eng.).
 - The rival's cities defend themselves but never move (A1). They never build or grow (eng.).
 - Each rival city has a garrison of 3 regiments, which gains one every 5 turns, up to 8 (eng.).
 
 ## Battles
 - At the end of a turn, each of your armies standing next to a rival city fights it (S1 combat: hostile armies
-  that are adjacent fight); battles are settled automatically (A1); defending costs the rival nothing (K6). Armies fight one at a time, the oldest first; an army
-  next to two rival cities fights the one with the smaller garrison (eng.).
+  that are adjacent fight); battles are settled automatically (A1); defending costs the rival nothing (K6).
+  Armies fight one at a time, the oldest first; an army next to two rival cities fights the one with the smaller
+  garrison (eng.).
 - One battle decides it, in that turn, with luck from the game's seeded random numbers (A5).
 - The chance you win is A² ÷ (A² + D²), where A is the army's regiments and D is the garrison × 1.5 for the
   city's walls (eng.). An army with no regiments always loses (eng.).
 - The loser loses every regiment; your army that loses is gone, general too (eng.). The winner loses half the
   loser's regiments, rounded down, and always keeps at least one (eng.).
-- When you win, the city becomes yours (A1: marching far wins a captured city and coin from war; P6: war earns
-  coin) with its people and borders and empty stores, your army stands in it, and you plunder 10 coin per person
-  (eng.). A captured city is a city like any other: it can build, feed
-  supply lines and fill baggage (eng.).
+- When you win, the city becomes yours (A1: "Marching far then wins something (a captured city, coin from war)";
+  P6: war earns coin). It keeps its people and borders, with empty stores; your army stands in it; you plunder 10
+  coin per person (eng.). A captured city is a city like any other: it can build, feed supply lines and fill
+  baggage (eng.).
 - The screen shows the win chance before you march: inspecting a general shows the chance against each rival city
   next to its destination or its tile (eng.).
 
@@ -185,10 +196,11 @@ When you end the turn, in this order (eng.), city by city in founding order and 
 1. Working sites send their output.
 2. Supply lines ship, then routes ship.
 3. Goods arriving this turn land, in a city (earning trade coin for route deliveries) or in a general's baggage.
-4. Garrisons and people eat, then each city grows or shrinks.
+4. In each city: the garrison eats; armies standing there fill their baggage; the people eat; the city grows or
+   shrinks.
 5. Production advances each build.
 6. Coin is paid.
-7. Armies in your cities fill their baggage; then settlers walk and armies march.
+7. Settlers walk; armies march.
 8. Armies eat; a hungry army loses a regiment.
 9. Battles; captured cities change hands.
 10. Rival garrisons grow.
@@ -207,8 +219,9 @@ When you end the turn, in this order (eng.), city by city in founding order and 
 - A general's panel: regiments, baggage (food and turns left), its supply city and the food on its way,
   destination, and the win chance next to a rival city. Orders are buttons that show their cost (eng.).
 - "Waiting for you": cities with nothing to build, idle sites, settlers without orders, cities whose food store
-  is falling, generals without orders outside your cities, and armies that will go hungry within the next 2 turns,
-  counting only the food that lands in time (eng.).
+  is falling, generals without orders outside your cities, and armies that will go hungry at one of the next two
+  ends of turn if you give no more orders. The screen finds them by playing those two ends of turn on a copy of
+  the game, so the warning follows the same rules as the turn itself (eng.).
 - A turn log: what happened this turn (a city grew, a build finished, a site stood idle, a city starved, a battle
   and its result, a city taken, an army went hungry) (eng.).
 - Hover over an underlined number to see what it is made of (eng.).
@@ -216,5 +229,6 @@ When you end the turn, in this order (eng.), city by city in founding order and 
 
 ## Left out
 Left out of the prototype so far: a rival that moves or attacks (A1); a rival that builds or grows (eng.); the
-battle map and initiative (A1: battles are settled automatically); the web and the category scores, which wait for
-slice 3 (D2); hidden parts of the map, ships and sea, stability and sanitation, saving, sound and art (eng.).
+battle map and initiative (eng.; A1 has battles settled automatically); the web and the category scores, which
+wait for slice 3 (D2); stability and sanitation, which wait for a later slice (P7); hidden parts of the map, ships
+and sea, saving, sound and art (eng.).
