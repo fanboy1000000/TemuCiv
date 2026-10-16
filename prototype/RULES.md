@@ -130,12 +130,14 @@ the general and the regiment are A2 to A4, as marked; everything else in the tab
 - Armies need food and supply lines (S1). Each regiment with a general eats 2 food per turn from the army's
   baggage (eng.). An army never feeds off the land (eng.).
 - An army brings baggage (A2). It holds up to 3 turns of the army's eating (eng.). An army standing in one of your
-  cities fills its baggage at the end of the turn from the city's store, taking only what is above the city's
-  3-turn food reserve, at no move (eng.).
+  cities fills its baggage at the end of the turn from the city's store, taking only what is above what the
+  city eats in one turn, at no move (eng.).
 - Supply is set on a general (A2): an order, one move (P3), naming one of your cities to feed it (eng.). Each turn,
   when routes ship, that city sends the food needed to bring the baggage to full, counting food already on its
-  way, out of its store above the 3-turn reserve (eng.). Supply lines are served before routes, in the order
-  they were set up; routes share what is left (eng.).
+  way, out of its store above what the city eats in one turn (eng.). So an army is fed before its city grows: the
+  routes' 3-turn reserve would leave nothing to send once a city reaches size 6 or so, because the city grows
+  and spends its store first (eng., found while building slice 2). Supply lines are served before routes, in the
+  order they were set up; routes share what is left (eng.).
 - Supply food takes 1 turn per 3 tiles of the distance from the city to where the general stands when it is sent
   (P9; the rate is eng.), and lands in the baggage wherever the general is then: the supply line follows the
   general (S1). Nothing is lost on the way (P9). Food on its way to a general who is gone is lost (eng.).
@@ -191,8 +193,8 @@ When you end the turn, in this order (eng.), city by city in founding order and 
 - A general's panel: regiments, baggage (food and turns left), its supply city and the food on its way,
   destination, and the win chance next to a rival city. Orders are buttons that show their cost (eng.).
 - "Waiting for you": cities with nothing to build, idle sites, settlers without orders, cities whose food store
-  is falling, generals without orders outside your cities, and armies with less than 2 turns of food and no
-  supply (eng.).
+  is falling, generals without orders outside your cities, and armies with less than 2 turns of food, counting
+  the food on its way (eng.).
 - A turn log: what happened this turn (a city grew, a build finished, a site stood idle, a city starved, a battle
   and its result, a city taken, an army went hungry) (eng.).
 - Hover over any number to see what it is made of (eng.).
