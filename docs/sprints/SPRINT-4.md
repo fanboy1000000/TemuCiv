@@ -41,8 +41,10 @@ generals, against a passive rival with one battle decided by luck, to feel the l
 | TASK-405 | the TASK-403 agent, resumed | `prototype/**` except `RULES.md` | The code follows TASK-404's rules; scratch checks for each change, including a long supply line held for many turns; smoke; CI → `node prototype/smoke.js`, `npm run ci`, cycle 2 | no (prototype) |
 | TASK-406 | Orchestrator | `prototype/RULES.md`, this log | Every sprint-end cycle-2 BLOCKER on the rules and the log fixed, with the structural changes → cycle 3 | no |
 | TASK-407 | the TASK-403 agent, resumed | `prototype/**` except `RULES.md` | The code follows TASK-406's rules; the hunger warning plays the real end of turn on a copy; checks for an army raised in a city with ordinary stores; smoke; CI → cycle 3 | no (prototype) |
+| TASK-408 | Orchestrator | `prototype/RULES.md`, this log | Every owner mark in RULES.md rests on recorded words, quoted where the wording differs, checked by a script; cycle 3's findings fixed → cycle 4 | no |
+| TASK-409 | the TASK-403 agent, resumed | `prototype/**` except `RULES.md` | The look-ahead wins every battle, so the warning never reveals a battle's result; README and delete-list from cycle 3 → checks; smoke; CI; cycle 4 | no (prototype) |
 
-Waves: 401 and 402 (Orchestrator), then 403; 404 and 405 follow the cycle-1 review, 406 and 407 the cycle-2 review. TASK-403 uses a generic agent with the model named, as in Sprint 3:
+Waves: 401 and 402 (Orchestrator), then 403; 404 and 405 follow the cycle-1 review, 406 and 407 the cycle-2 review, 408 and 409 the cycle-3 review (past the cap, on the owner's decision). TASK-403 uses a generic agent with the model named, as in Sprint 3:
 the simulation and presentation definitions carry standing instructions the prototype exception sets aside.
 
 ## Plan review (step 2)
@@ -66,7 +68,8 @@ automatically. Adds 2–3 short questions on battles and capture. One sprint."
 
 **A2, supply and generals.** Asked how an army away from your cities gets its food, the owner said: "You set
 supply on generals. Armies can only move with a general. They can also bring baggage." Engineering's reading,
-shown to the owner before the next question and not corrected: supply is an order given to a general, naming the
+shown to the owner in the message before the next question ("Here's how I read your answer; correct me if any of
+it is wrong") and not corrected: supply is an order given to a general, naming the
 city that feeds it, and the line follows that general (Sprint 1 log, the owner's combat concept); regiments
 without a general can't move; an army carries baggage as well as being supplied.
 
@@ -96,6 +99,11 @@ one more review round on a short file."
 
 Engineering's own rules for the slice (numbers, baggage, the rival's layout, the win chance, plunder, the start
 general, the turn order) are in RULES.md marked "(eng.)", and were summarized to the owner before R1.
+
+**Past the cycle cap (2026-10-16).** Sprint-end cycle 3 still found new BLOCKERs (Codex: two owner marks in
+RULES.md claimed more than the recorded words), so the owner was asked (WORKFLOW, "Review cycles"). Options: one
+more round fixing every such mark at once (recommended), accept and close with a waiver, or close with a waiver
+and fix in Sprint 5. Decided by the owner: "One more round (Recommended)" (TASK-408, 409, then cycle 4).
 
 ## Task log
 
@@ -236,6 +244,28 @@ each End Turn matched all 32 real hungers with no false alarms, and the forecast
 reading, kept as engineering's: the fill's one-turn reserve still counts the garrison's eating although the
 garrison has eaten (RULES says "what the city eats in one turn").
 
+### TASK-408: past the cap, every owner mark rests on recorded words (rules and log)
+
+Status complete · Agent: Orchestrator · Checklist pass (self-check) · Review: sprint-end cycle 4 · Files:
+`prototype/RULES.md`, this log. Criteria: every owner mark rests on recorded words PASS (a script finds each of the
+23 quoted phrases, word for word, in the Sprint 1 to 4 logs or the placeholder texts; the unquoted marks were read
+one by one against their records); cycle 3's findings fixed → cycle 4.
+
+Cycle 3: Codex BLOCKED (2 blockers, 1 note), the reviewer APPROVED-WITH-WARNINGS (2 warnings, 5 notes), every
+cycle-2 blocker confirmed fixed by both. The reviewer's brief first carried a sentence that loosened the bar for
+the last cycle; it was withdrawn by message before grading, and the reviewer confirms the cap played no part.
+Provenance had now drawn findings three cycles running, so instead of fixing Codex's two marks alone, every owner
+mark was audited against the recorded words: "no person" for a general is eng. (A3's option says "coin and
+production, with no limit"); a route's single good, food or stone, is eng. (P2 says routes move goods); and eight
+more of the same kind, each now quoted or marked eng.: the terrain list, a changed order being a new order, P5's
+"any real order", the Hall's rising price (P10) and its cap (P4), the Granary, Workshop and Market effects (P10's
+words, amounts eng.), the borders' exceptions (P8), A2 for moving with a general, K6's "defending is free",
+cities and sites as simple shapes (D3 names buildings), P12's "no summary", and a rival that attacks (eng.). The
+reviewer's W2, the third cycle on one sentence: the promise that a supply line keeps an army fed is deleted,
+keeping "a longer line costs only time". Its W1: the hunger warning plays every battle as won, so it never reveals
+a battle's result (RULES; the code in TASK-409). Its note: the fill's reserve counting the garrison's share is now
+stated as the rule. The A2 record quotes the message that showed the owner engineering's reading.
+
 ## Design conformance
 
 For the prototype, conforming means matching `prototype/RULES.md` (WORKFLOW, "Prototype phase"). Checked by the
@@ -261,10 +291,11 @@ builder's table and scratch checks and the Orchestrator's screenshots and spot c
 
 ## Handoff
 
-- **State:** on `sprint/4`: TASK-401 to 407 committed (TASK-407 and this handoff are this commit). Sprint-end
-  review: cycles 1 and 2 BLOCKED by both lenses; every cycle-2 blocker is fixed in TASK-406 (rules, log) and
-  TASK-407 (code); local `npm run ci` 4/4.
-- **In flight:** nothing yet; cycle 3 starts on a fresh stamp after this commit.
-- **Waiting on:** cycle 3's verdicts; the owner's slice 1 playtest notes (invited, not blocking).
-- **Next action:** stamp, run cycle 3 with both lenses. It is the last under the cap: if it finds new BLOCKERs,
-  stop and ask the owner with a recommendation (WORKFLOW, "Review cycles"); if it passes, close Sprint 4.
+- **State:** on `sprint/4`: TASK-401 to 408 committed (TASK-408 and this handoff are this commit). Sprint-end
+  review cycle 3: Codex BLOCKED, the reviewer APPROVED-WITH-WARNINGS; past the cap, the owner chose one more round
+  (Owner design rulings, "Past the cycle cap").
+- **In flight:** TASK-409, the TASK-403 agent resumed in the shared tree (the look-ahead wins every battle; README;
+  delete-list), uncommitted.
+- **Waiting on:** TASK-409's report; the owner's slice 1 playtest notes (invited, not blocking).
+- **Next action:** verify TASK-409 and commit it with its log entry and this handoff rewritten in the same commit;
+  stamp; cycle 4 with both lenses; if it passes, close Sprint 4; if not, back to the owner.

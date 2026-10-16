@@ -20,8 +20,9 @@ number is a starting value engineering proposed, kept in `numbers.js` where the 
 ## The map
 - A hex grid, 24 × 18 tiles, one landmass surrounded by water, made from a seed number: the same seed always
   gives the same map (eng.). The seed shows on screen; a new game can be started with any seed (eng.).
-- Five terrains, shown by colour alone (D3): grassland (light green), forest (dark green), hills (tan),
-  mountains (grey), water (blue). Mountains and water can't be entered (eng.).
+- Five terrains (eng.), shown by colour alone (D3: "terrain is shown by colour alone"): grassland (light green),
+  forest (dark green), hills (tan), mountains (grey), water (blue) (eng.). Mountains and water can't be entered
+  (eng.).
 - The whole map is visible (eng.).
 
 ## The start
@@ -39,29 +40,31 @@ number is a starting value engineering proposed, kept in `numbers.js` where the 
   An order you can't afford is shown disabled, with the reason (eng.).
 - Undo takes back the most recent order given this turn, and can be repeated back to the start of the turn: the
   order's move, coin, stone and food come back, so correcting a misclick costs nothing (eng.). Changing an order
-  from an earlier turn is a new order, one move (P3).
+  from an earlier turn is a new order (eng.), so it costs one move (P3: "every order costs one move").
 - Anything you leave alone keeps following its last orders (K4).
-- Attention: any order given in a city gives that city attention for 5 turns: its sites produce a quarter more
-  (P5). Orders given in a city are: a build; founding it; setting up, changing or cancelling a route that starts
-  there; setting, changing or cancelling a supply line that it feeds (for a change, the city named; for a cancel,
-  the city that was feeding); a general taking or leaving regiments there (the list is eng.). A new order
+- Attention: any real order given in a city gives that city attention for 5 turns: its sites produce a quarter more
+  (P5: "Any real order in a city also gives it the attention boost"; "the city's sites produce a quarter more for
+  five turns"). Orders given in a city are: a build; founding it; setting up, changing or cancelling a route that
+  starts there; setting, changing or cancelling a supply line that it feeds (for a change, the city named; for a
+  cancel, the city that was feeding); a general taking or leaving regiments there (the list is eng.). A new order
   restarts the 5 turns (eng.). Sending a settler or a general is an order to a unit, not to a city, and gives no
   attention (eng.).
-- The Hall adds one move per turn (P10). Each further Hall costs half as much again as the one before, counting
-  Halls finished or being built, so ordering several at once doesn't get the first price; one per city (eng.).
-  Moves per turn never exceed 8: P4 asks for a slow rise to a cap of about 8; the price growth is eng.
+- The Hall adds one move per turn, at a rising price (P10: "+1 move per turn, rising price, up to the cap"). Each
+  further Hall costs half as much again as the one before, counting Halls finished or being built, so ordering
+  several at once doesn't get the first price; one per city (eng.). Moves per turn never exceed 8 (P4: "a building
+  adds one more at a rising price, up to about 8").
 
 ## Cities, food and growth
 - A city's own tile makes 2 food per turn with nobody working it (eng.).
 - Each person eats 2 food per turn from the city's store (eng.).
 - A city grows by one person when its food store reaches 10 + 5 × its size; that much food is used up (eng.).
-  Food is the only limit on growth (P7). The Granary lowers the amount by a quarter (P10 names it; the effect is
-  eng.).
+  Food is the only limit on growth (P7). The Granary lowers the amount (P10: "the city grows on less food"), by a
+  quarter (eng.).
 - If the store can't feed everyone, the city loses one person (never below 1) and the store drops to 0 (eng.).
 
 ## Production and building
-- A city's production is 2 + 1 per person (eng.). The Workshop raises it by half (P10 names it; the effect is
-  eng.). Production only sets build speed (owner, 2026-10-15).
+- A city's production is 2 + 1 per person (eng.). The Workshop raises it (P10: "more production"), by half (eng.).
+  Production only sets build speed (owner, 2026-10-15).
 - A city builds one thing at a time (eng.). Giving it something to build costs one move (P3); the coin (from your
   purse) and stone (from that city's store) are paid when you order it (eng.). Changing the order refunds the
   coin, stone and food paid and loses the progress (eng.).
@@ -73,22 +76,24 @@ number is a starting value engineering proposed, kept in `numbers.js` where the 
 | Farm (site) | 10 | 0 | 15 | grassland only; needs 1 person | 4 food per turn |
 | Quarry (site) | 10 | 0 | 20 | hills only; needs 2 people | 2 stone per turn |
 | Settler | 0 | 0 | 20 | 15 food when ordered; 1 person when finished (the build waits while the city is size 1) | founds a city |
-| General | 30 | 0 | 20 | no person; no limit (A3: "the way it builds a regiment (coin and production), with no limit") | leads regiments; only a general moves them (A2) |
+| General | 30 | 0 | 20 | no limit (A3: "the way it builds a regiment (coin and production), with no limit"); no person (eng.) | leads regiments; only a general moves them (A2) |
 | Regiment | 15 | 5 | 20 | 1 person when finished (A4); the build waits while the city is size 1 | a soldier who eats like a person |
 | Hall | 40 | 20 | 40 | one per city; coin and stone × 1.5 for each Hall finished or being built | +1 move per turn (P10) |
-| Granary | 20 | 10 | 25 | one per city | growth needs a quarter less food |
-| Market | 25 | 10 | 30 | one per city | coin from people and arriving trade +50% |
-| Workshop | 20 | 15 | 30 | one per city | production +50% |
+| Granary | 20 | 10 | 25 | one per city | growth needs a quarter less food (see Cities) |
+| Market | 25 | 10 | 30 | one per city | coin from people and arriving trade +50% (see Coin) |
+| Workshop | 20 | 15 | 30 | one per city | production +50% (see Production) |
 
 Every cost in the table and the Hall's price growth are eng. The four buildings are named by P10; farms and
-quarries are sites (P1); settlers appear in the map and borders ruling (Sprint 1 log), and their rules are eng.;
+quarries are sites (P1); settlers appear in the map and borders ruling (S1 map: "ships carry armies, settlers and
+food"), and their rules are eng.;
 the general and the regiment are A2 to A4, as marked; everything else in the table not marked is eng.
 
 ## Sites
 - A site is ordered on a tile inside the city's borders or next to them, of the right terrain, with no site or
   city on it, and not inside another city's borders, yours or the rival's (P8; the exact tiles are eng.).
-- When a site is finished, its tile and the tiles around it join the city's borders, except tiles another city
-  already holds (P8). Sites are the only way borders grow (eng.).
+- When a site is finished, its tile and the tiles around it join the city's borders (P8: "claims that tile and
+  the tiles around it"), except tiles another city already holds (eng.). Sites are the only way borders grow
+  (eng.).
 - A site is worked by the city's people (P1). The city fills its sites on its own: farms first, then quarries,
   nearest first (eng.). A site without enough people stands idle and is listed under "Waiting for you" (eng.).
 - A working site's output travels to its city on its own (P2): it arrives after 1 turn per 3 tiles of distance
@@ -97,18 +102,20 @@ the general and the regiment are A2 to A4, as marked; everything else in the tab
 - People not working at a site still eat, pay coin and add to production (eng.).
 
 ## Borders
-- A new city holds its own tile and the six around it, except tiles another city already holds (P8, assumed in
-  the placeholder question).
+- A new city holds its own tile and the six around it (P8: "Assumed: a new city starts with its own tile and the
+  six around it"), except tiles another city already holds (eng.).
 
 ## Coin
-- One purse for the whole empire (C2). Each turn every person pays 1 coin (P6; the amount is eng.). The Market (P10
-  names it; the effect is eng.) adds half to that city's people coin and to the trade coin of goods arriving there.
+- One purse for the whole empire (C2). Each turn every person pays 1 coin (P6; the amount is eng.). The Market adds to
+  that city's people coin and to the trade coin of goods arriving there (P10: "more coin from people and arriving
+  trade"), half as much again (eng.).
 - Trade: every unit of goods a route delivers earns 0.5 coin on arrival (P6; the amount is eng.).
 - War earns coin (P6): taking a rival city plunders 10 coin per person in it (eng.).
 
 ## Routes
-- A route carries one good (food or stone) from one of your cities to another (P2); setting it up, changing it or
-  cancelling it costs one move (P3). It runs every turn until you change it (K4).
+- A route moves goods from one of your cities to another (P2: "Routes the player sets up ... only move goods
+  between cities"); each route carries one good, food or stone (eng.). Setting it up, changing it or cancelling it
+  costs one move (P3). It runs every turn until you change it (K4).
 - Each turn it ships everything the sending city holds above a reserve: for food, what the city eats in 3 turns;
   for stone, 10 (eng.). Routes from the same city carrying the same good share the surplus equally (eng.).
 - Goods take 1 turn per 3 tiles of distance between the cities (counted in hexes, ignoring terrain), rounded up
@@ -123,18 +130,19 @@ the general and the regiment are A2 to A4, as marked; everything else in the tab
 ## Generals and regiments
 - A finished general or regiment stands in the city that built it (eng.). A regiment takes one person from the
   city when it is finished (A4).
-- Regiments without a general can't move (A2): they stay in a city as its garrison (eng.). A garrison eats with
-  its city, 2 food per regiment from the city's store, before the people; if the store can't feed everyone, the
-  city loses a person as above, or, when the city is already size 1, the garrison loses a regiment instead (eng.).
+- Regiments without a general can't move (A2: "Armies can only move with a general"): they stay in a city as its
+  garrison (eng.). A garrison eats with its city, 2 food per regiment from the city's store, before the people; if
+  the store can't feed everyone, the city loses a person as above, or, when the city is already size 1, the garrison
+  loses a regiment instead (eng.).
 - A general and the regiments with it are an army, one marker on one tile (eng.; S1 combat puts units on the
   general's tile or the tiles around it, which waits for the battle map).
 - A general takes regiments standing in the city it is in, as many as you choose: one move (P3; the order is
   eng.).
 - A general leaves regiments, as many as you choose, in one of your cities it stands in: one move (P3; the order
   is eng.). Regiments are never left outside a city (eng.).
-- Sending a general to a tile moves it with all its regiments (A2): one move for the whole army (P3; one order
-  for the whole army is eng.). It marches 2 tiles per turn around mountains and water, and never onto a rival
-  city's tile (eng.); it keeps its orders until it arrives (K4).
+- Sending a general to a tile moves it with all its regiments (A2: "Armies can only move with a general"; that the
+  whole army goes is eng.): one move (P3). It marches 2 tiles per turn around mountains and water, and never onto a
+  rival city's tile (eng.); it keeps its orders until it arrives (K4).
 - A general eats nothing (eng.).
 
 ## Feeding armies: baggage and supply
@@ -143,7 +151,8 @@ the general and the regiment are A2 to A4, as marked; everything else in the tab
 - An army brings baggage (A2). Its limit is 3 turns of the army's eating (eng.). An army standing in one of your
   cities fills its baggage up to the limit at the end of the turn, at no move: after the city's garrison eats and
   before its people eat and the city grows (step 4), so before the army marches, from the city's store, taking
-  only what is above what the city eats in one turn (eng.). Regiments left in a city leave the
+  only what is above what the city eats in one turn, its garrison's share included although the garrison has
+  already eaten (eng.). Regiments left in a city leave the
   food above the smaller army's limit in that city's store (eng.). Otherwise food already in the baggage is kept
   until eaten, even above the limit, for example after a battle loss or when supply lands after the army shrank:
   nothing carried is thrown away (eng.).
@@ -156,9 +165,8 @@ the general and the regiment are A2 to A4, as marked; everything else in the tab
   (eng.). The one-turn reserve, and the fill coming before growth, feed an army before its city grows: the routes'
   3-turn reserve would leave nothing to send once a city reaches size 6 or so, because the city grows and spends
   its store first (eng., found while building slice 2).
-- What this means in play (eng.): once its first delivery lands, a supply line of any length keeps the army fed,
-  as long as the feeding city has the food to send; until then the baggage must last the trip. A longer line
-  costs only time (P9): more food on the way and a longer wait for the first delivery.
+- A longer line costs only time (P9: "distance costs only time for now"): more food on the way and a longer wait
+  for the first delivery, which the baggage must last (eng.).
 - Supply food takes 1 turn per 3 tiles of the distance from the city to where the general stands when it is sent,
   rounded up, at least 1 turn (P9; the rate is eng.), and lands in the baggage wherever the general is then: the
   supply line follows the general (S1 combat). Nothing is lost on the way (P9). Food on its way to a general who
@@ -175,10 +183,10 @@ the general and the regiment are A2 to A4, as marked; everything else in the tab
 - Each rival city has a garrison of 3 regiments, which gains one every 5 turns, up to 8 (eng.).
 
 ## Battles
-- At the end of a turn, each of your armies standing next to a rival city fights it (S1 combat: hostile armies
-  that are adjacent fight); battles are settled automatically (A1); defending costs the rival nothing (K6).
-  Armies fight one at a time, the oldest first; an army next to two rival cities fights the one with the smaller
-  garrison (eng.).
+- At the end of a turn, each of your armies standing next to a rival city fights it (S1 combat: hostile armies that
+  are adjacent fight); battles are settled automatically (A1); defending costs the rival nothing (K6: "defending is
+  free"). Armies fight one at a time, the oldest first; an army next to two rival cities fights the one with the
+  smaller garrison (eng.).
 - One battle decides it, in that turn, with luck from the game's seeded random numbers (A5).
 - The chance you win is A² ÷ (A² + D²), where A is the army's regiments and D is the garrison × 1.5 for the
   city's walls (eng.). An army with no regiments always loses (eng.).
@@ -207,8 +215,9 @@ When you end the turn, in this order (eng.), city by city in founding order and 
 11. Attention counts down; this turn's moves are added.
 
 ## The screen
-- The map: drag to scroll, wheel to zoom, click a tile, city or army to inspect it, free (P3). Cities, sites and
-  buildings are simple shapes (D3); borders are a coloured outline; routes are lines with their amounts (eng.).
+- The map: drag to scroll, wheel to zoom, click a tile, city or army to inspect it, free (P3). Buildings are simple
+  shapes (D3: "buildings are simple shapes"), and so are cities and sites; borders are a coloured outline; routes
+  are lines with their amounts (eng.).
 - An army is a marker with its regiment count; a city shows its garrison; rival cities and borders have their own
   colour and show their garrison. A supply line is a dashed line from its city to the general, with the amount
   on it (eng.).
@@ -220,15 +229,18 @@ When you end the turn, in this order (eng.), city by city in founding order and 
   destination, and the win chance next to a rival city. Orders are buttons that show their cost (eng.).
 - "Waiting for you": cities with nothing to build, idle sites, settlers without orders, cities whose food store
   is falling, generals without orders outside your cities, and armies that will go hungry at one of the next two
-  ends of turn if you give no more orders. The screen finds them by playing those two ends of turn on a copy of
-  the game, so the warning follows the same rules as the turn itself (eng.).
+  ends of turn if you give no more orders and win every battle. The screen finds them by playing those two ends
+  of turn on a copy of the game in which every battle is won, so the warning follows the same rules as the turn
+  itself but never reveals how a battle will go; an army with a battle ahead is listed as going hungry "if it
+  wins" (eng.).
 - A turn log: what happened this turn (a city grew, a build finished, a site stood idle, a city starved, a battle
   and its result, a city taken, an army went hungry) (eng.).
 - Hover over an underlined number to see what it is made of (eng.).
-- Playing freely: there is no end and no score (P12).
+- Playing freely: there is no end and no summary (P12: "play freely; no end and no summary").
 
 ## Left out
-Left out of the prototype so far: a rival that moves or attacks (A1); a rival that builds or grows (eng.); the
+Left out of the prototype so far: a rival that moves (A1: "never move"); a rival that attacks, builds or grows
+(eng.); the
 battle map and initiative (eng.; A1 has battles settled automatically); the web and the category scores, which
 wait for slice 3 (D2); stability and sanitation, which wait for a later slice (P7); hidden parts of the map, ships
 and sea, saving, sound and art (eng.).
