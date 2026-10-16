@@ -121,12 +121,16 @@
     return '';
   }
 
-  /** When the army goes hungry if you give no more orders: the same look-ahead as "Waiting for you". */
+  /**
+   * When the army goes hungry if you give no more orders and it wins every battle: the same look-ahead as "Waiting
+   * for you", which never reveals how a battle will go.
+   */
   function hungerText(g) {
-    var k = ui.hunger[g.id];
-    if (k === undefined) return 'Playing the next ' + count(N.lowFoodTurns, 'end of turn', 'ends of turn') +
-      ' with no more orders, it stays fed.';
-    return 'Playing ahead with no more orders, it goes hungry ' + (k ? 'at the end of turn ' + (S().turn + k) : 'when this turn ends') + '.';
+    var h = ui.hunger[g.id];
+    if (!h) return 'Playing the next ' + count(N.lowFoodTurns, 'end of turn', 'ends of turn') +
+      ' with no more orders (and every battle won), it stays fed.';
+    return 'Playing ahead with no more orders, it goes hungry ' + (h.at ? 'at the end of turn ' + (S().turn + h.at) : 'when this turn ends') +
+      (h.ifWins ? ' if it wins its battle' : '') + '. (The look-ahead counts every battle as won, so it never tells you how one will go.)';
   }
 
   function baggageTip(g) {
@@ -474,7 +478,8 @@
         '\nOnly a general moves regiments. Each regiment eats ' + N.foodPerRegiment + ' food per turn from the baggage; the general eats nothing.') +
         ' · eat ' + num(fmt(eat) + ' food per turn', regs(g.regiments) + ' × ' + N.foodPerRegiment + ' food, from the baggage.') + '</td></tr>' +
       '<tr><th>Baggage</th><td>' + num(fmt(g.baggage) + ' food', baggageTip(g)) + ' · ' + (eat
-        ? '<span class="' + (ui.hunger[g.id] !== undefined ? 'bad' : 'good') + '">' + num(count(left, 'turn', 'turns') + ' left', baggageTip(g)) + '</span>'
+        ? '<span class="' + (ui.hunger[g.id] ? 'bad' : 'good') + '">' + num(count(left, 'turn', 'turns') + ' left', baggageTip(g)) +
+          (ui.hunger[g.id] && ui.hunger[g.id].ifWins ? ' (if it wins)' : '') + '</span>'
         : 'no one to feed') + ' · limit ' + num(fmt(G.baggageCap(g)), 'The baggage limit is ' + N.baggageTurns + ' turns of eating: ' +
         fmt(eat) + ' × ' + N.baggageTurns + ' = ' + fmt(G.baggageCap(g)) + '. Filling and supply aim at it.') + '</td></tr>' +
       '<tr><th>Supply</th><td>' + supply + '</td></tr>' +
@@ -604,7 +609,7 @@
   }
 
   function render() {
-    ui.hunger = G.hungerAhead(S()); // the next ends of turn played on a copy, once per redraw
+    ui.hunger = G.hungerAhead(S()); // the next ends of turn played on a copy (every battle won), once per redraw
     renderTop();
     renderSide();
     renderWaiting();

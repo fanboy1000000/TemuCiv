@@ -266,6 +266,22 @@ keeping "a longer line costs only time". Its W1: the hunger warning plays every 
 a battle's result (RULES; the code in TASK-409). Its note: the fill's reserve counting the garrison's share is now
 stated as the rule. The A2 record quotes the message that showed the owner engineering's reading.
 
+### TASK-409: past the cap, the look-ahead wins every battle (code)
+
+Status complete · Agent: the TASK-403 agent, resumed · Checklist items 1 and 9 pass · Review: sprint-end cycle 4
+(light bar) · Files: `prototype/game.js`, `ui.js`, `README.md`. Criteria: the code follows TASK-408's rules PASS;
+checks PASS (133, rerun by the Orchestrator with its own spot check); smoke PASS; `npm run ci` 4/4 PASS.
+
+`endTurn` takes an option only the look-ahead passes, winning every battle without dice; a hunger after a battle
+in the look-ahead is shown "if it wins" in the waiting list, the general panel and the baggage tip; the README
+follows RULES (a longer line costs only time; full baggage only if the city has the food; the fill's reserve);
+the unused fallback is deleted. Checks: over 40 seeds, an army of 4 with one turn of food next to a rival city
+(real chance 44%, 16 won and 24 lost) got the same warning, "if it wins", every time, where the TASK-407 code's
+warning matched the battle's result 40 of 40 times; a winner arriving in an empty captured city is listed "if it
+wins", and an army hungry before its battle is not; three look-aheads leave the state, dice and undo untouched
+and the real turn identical (40 of 40); over 10 seeds × 150 random turns the forecast still matched all 32 real
+hungers with no false alarms. Screenshot checked by the Orchestrator: the three places agree.
+
 ## Design conformance
 
 For the prototype, conforming means matching `prototype/RULES.md` (WORKFLOW, "Prototype phase"). Checked by the
@@ -277,7 +293,7 @@ builder's table and scratch checks and the Orchestrator's screenshots and spot c
 | The start; the rival | `game.js` `newGame`, `placeRivals`, end-of-turn step 10 | spot check; scratch checks (garrison 3/4/4/5/8/8) | PASS |
 | Moves (army orders, undo) | `game.js` check and order functions for general, regiment, march, take, leave, supply; `undo` | scratch checks (one move each, undo exact); smoke | PASS |
 | Cities, food; generals and regiments | `eats` (garrison first), `makeGeneral`, `armyBlocked`, steps 4, 5, 7 | scratch checks (regiment takes a person, waits at size 1; garrison eating) | PASS |
-| Feeding armies: baggage and supply | `armyReserve`, `baggageCap`, `supplyPlan`, `foodOnWay`, `hungerAhead`, steps 2, 3, 4, 8 | scratch checks (fill, arrival turn, lands where the general is, supply before routes, size-8 city ships, hunger; TASK-405: lines of 7 to 10 tiles held 30 turns, take and march, leaving regiments; TASK-407: an army raised and supplied in one city, two armies in a size-1 city, the look-ahead against 1,500 random turns) | PASS |
+| Feeding armies: baggage and supply | `armyReserve`, `baggageCap`, `supplyPlan`, `foodOnWay`, `hungerAhead` (with `endTurn`'s look-ahead option), steps 2, 3, 4, 8 | scratch checks (fill, arrival turn, lands where the general is, supply before routes, size-8 city ships, hunger; TASK-405: lines of 7 to 10 tiles held 30 turns, take and march, leaving regiments; TASK-407: an army raised and supplied in one city, two armies in a size-1 city, the look-ahead against 1,500 random turns) | PASS |
 | Battles, coin (plunder) | `winChance`, `winnerLeft`, `foeAt`, `rollDice`, step 9 | scratch checks under a fixed seed; capture screenshot (64%, 6 left, 30 plunder) | PASS |
 | Sites, settlers (rival borders) | `siteProblem`, `foundProblemAt` | scratch checks; smoke | PASS |
 | A turn | `endTurn`, one block per step, in RULES order | builder's table; review | PASS |
@@ -291,11 +307,10 @@ builder's table and scratch checks and the Orchestrator's screenshots and spot c
 
 ## Handoff
 
-- **State:** on `sprint/4`: TASK-401 to 408 committed (TASK-408 and this handoff are this commit). Sprint-end
-  review cycle 3: Codex BLOCKED, the reviewer APPROVED-WITH-WARNINGS; past the cap, the owner chose one more round
-  (Owner design rulings, "Past the cycle cap").
-- **In flight:** TASK-409, the TASK-403 agent resumed in the shared tree (the look-ahead wins every battle; README;
-  delete-list), uncommitted.
-- **Waiting on:** TASK-409's report; the owner's slice 1 playtest notes (invited, not blocking).
-- **Next action:** verify TASK-409 and commit it with its log entry and this handoff rewritten in the same commit;
-  stamp; cycle 4 with both lenses; if it passes, close Sprint 4; if not, back to the owner.
+- **State:** on `sprint/4`: TASK-401 to 409 committed (TASK-409 and this handoff are this commit); local `npm run
+  ci` 4/4. Past the cap on the owner's decision; cycle 3's findings are fixed in TASK-408 (rules, log) and TASK-409
+  (code).
+- **In flight:** nothing; cycle 4 starts on a fresh stamp after this commit.
+- **Waiting on:** cycle 4's verdicts; the owner's slice 1 playtest notes (invited, not blocking).
+- **Next action:** stamp, run cycle 4 with both lenses; if both pass, close Sprint 4 (log, ROADMAP, `npm run ci`
+  last, `S4 close`), push and watch GitHub CI; if not, back to the owner.

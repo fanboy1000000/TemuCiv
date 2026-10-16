@@ -328,16 +328,20 @@ var Game = (function () {
   }
 
   /**
-   * Which armies go hungry at the next N.lowFoodTurns ends of turn if no more orders are given ("Waiting for you"),
-   * as { generalId: 0 for this turn's end, 1 for the next, ... }. It plays those ends of turn on a copy of the state,
-   * made as undo makes it, and reads the hunger notes, so the warning follows the same rules as the turn itself. The
-   * real state, its dice and the undo list are not touched. It costs a couple of ends of turn: call it once per redraw.
+   * Which armies go hungry at the next N.lowFoodTurns ends of turn if no more orders are given and every battle is won
+   * ("Waiting for you"), as { generalId: { at: 0 for this turn's end, 1 for the next, ..., ifWins: true when the army
+   * fought a battle in the look-ahead before it went hungry } }. It plays those ends of turn on a copy of the state,
+   * made as undo makes it, in which every battle is won without rolling the dice, and reads the notes: the warning
+   * follows the same rules as the turn itself but never reveals how a battle will go. The real state, its dice and the
+   * undo list are not touched. It costs a couple of ends of turn: call it once per redraw.
    */
   function hungerAhead(s) {
-    var copy = { state: JSON.parse(JSON.stringify(s)), undo: [] }, out = {};
+    var copy = { state: JSON.parse(JSON.stringify(s)), undo: [] }, out = {}, fought = {};
     for (var k = 0; k < N.lowFoodTurns; k++) {
-      endTurn(copy).log.forEach(function (e) {
-        if (e.kind === 'hunger' && out[e.general] === undefined) out[e.general] = k;
+      // The notes come in turn order: an army's hunger (step 8) comes before its battle (step 9) in the same turn.
+      endTurn(copy, { winEveryBattle: true }).log.forEach(function (e) {
+        if (e.kind === 'battle') fought[e.general] = true;
+        if (e.kind === 'hunger' && out[e.general] === undefined) out[e.general] = { at: k, ifWins: !!fought[e.general] };
       });
     }
     return out;
@@ -459,9 +463,8 @@ var Game = (function () {
     return { coin: spec.coin * factor, stone: spec.stone * factor, food: spec.food || 0, production: spec.production };
   }
 
-  /** Things waiting for the player (RULES, The screen). */
+  /** Things waiting for the player (RULES, The screen); `hunger` is hungerAhead(s), which the page computes once. */
   function waiting(s, hunger) {
-    hunger = hunger || hungerAhead(s);
     var out = [];
     s.cities.forEach(function (city) {
       if (!city.build) out.push({ kind: 'build', tile: city.tile, text: city.name + ' has nothing to build' });
@@ -481,10 +484,10 @@ var Game = (function () {
       if (g.dest === null && !cityAt(s, g.tile)) {
         out.push({ kind: 'general', tile: g.tile, text: 'A general at ' + where(s, g.tile) + ' has no orders' });
       }
-      var hungry = hunger[g.id];
-      if (hungry !== undefined) {
+      var h = hunger[g.id];
+      if (h) {
         out.push({ kind: 'army-food', tile: g.tile, text: 'An army at ' + where(s, g.tile) + ' will go hungry ' +
-          (hungry ? 'at the end of turn ' + (s.turn + hungry) : 'when this turn ends') });
+          (h.at ? 'at the end of turn ' + (s.turn + h.at) : 'when this turn ends') + (h.ifWins ? ' if it wins' : '') });
       }
     });
     return out;
@@ -871,8 +874,9 @@ var Game = (function () {
   // Each step runs over the cities in founding order (the order of s.cities) and the armies oldest first (the
   // order of s.generals) before the next step starts.
 
-  function endTurn(game) {
-    var s = game.state, turn = s.turn, log = [];
+  /** Ends the turn. `opts.winEveryBattle` (only the hunger look-ahead passes it) wins every battle without dice. */
+  function endTurn(game, opts) {
+    var s = game.state, turn = s.turn, log = [], winAll = !!(opts && opts.winEveryBattle);
     function note(text, tile, kind, general) {
       var e = { text: text, tile: tile };
       if (kind) e.kind = kind;
@@ -1051,7 +1055,7 @@ var Game = (function () {
       var a = g.regiments, d = foe.garrison, chance = winChance(a, d);
       var head = 'Battle at ' + foe.name + ': your ' + regs(a) + ' against ' + d + ' (win chance ' +
         fmt(chance * 100) + '%): ';
-      if (rollDice(s) < chance) {
+      if (winAll || rollDice(s) < chance) {
         g.regiments = winnerLeft(a, d);
         s.rivals.splice(s.rivals.indexOf(foe), 1);
         s.cities.push(makeCity(foe.id, foe.name, foe.tile, foe.size));
@@ -1061,14 +1065,14 @@ var Game = (function () {
         g.tile = foe.tile;
         g.dest = null;
         note(head + 'won. All ' + d + ' defenders are gone; you lost ' + (a - g.regiments) + ', ' + regs(g.regiments) +
-          ' left', foe.tile, 'battle');
+          ' left', foe.tile, 'battle', g.id);
         note(foe.name + ' is yours: size ' + foe.size + ', empty stores; your army stands in it. Plunder: ' + fmt(plunder) +
           ' coin', foe.tile, 'capture');
       } else {
         foe.garrison = winnerLeft(d, a);
         s.generals.splice(s.generals.indexOf(g), 1);
         note(head + 'lost. The general and every regiment are gone; ' + foe.name + ' lost ' + (d - foe.garrison) +
-          ' and has ' + foe.garrison + ' left', foe.tile, 'battle');
+          ' and has ' + foe.garrison + ' left', foe.tile, 'battle', g.id);
       }
     });
 

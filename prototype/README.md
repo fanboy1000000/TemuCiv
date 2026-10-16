@@ -29,7 +29,8 @@ is sent anywhere. There is no saving: reloading the page starts a new game.
 - **Waiting for you** (bottom left) lists cities with nothing to build, idle sites, settlers without orders,
   cities whose food is falling, generals without orders outside your cities, and armies that will go hungry at
   one of the next two ends of turn if you give no more orders (the screen finds them by quietly playing those two
-  turns ahead on a copy of the game, with the same rules). Click a line to go there. The **turn log** (bottom
+  turns ahead on a copy of the game, with the same rules, counting every battle as won so it never gives away how
+  a battle will go; an army with a battle ahead is listed as going hungry "if it wins"). Click a line to go there. The **turn log** (bottom
   right) says what happened at the end of the last few turns, battles included.
 - **Seed** (top right): the number the map is made from. Type another number and press Enter (or New game),
   or press Random.
@@ -46,17 +47,18 @@ Taking or leaving regiments gives that city attention, like a build; sending the
 Away from your cities an army lives on its baggage. Its limit is 3 turns of the army's food: filling and supply
 aim at it, and food already carried is kept even above it until eaten. While an army stands in one of your
 cities, its baggage fills at the end of the turn, after the city's garrison eats and before the people eat and the
-city grows, keeping back only what the city eats in one turn. So an army is fed before its city grows, and you can
-take regiments and march off in the same turn with full baggage. Regiments you leave in a city leave the food the
-smaller army can't use there.
+city grows, keeping back only what the city eats in one turn (its whole one-turn eating, the garrison's share
+included, although the garrison has already eaten). So an army is fed before its city grows, and you can take
+regiments and march off in the same turn; it leaves with full baggage if the city has that much food above its
+one turn of eating. Regiments you leave in a city leave the food the smaller army can't use there.
 
 To keep an army fed further away, give the general a supply city: each turn that city sends what keeps the baggage
 full when the food arrives, including what the army eats on the way, again keeping back only one turn of its own
 eating (routes keep back 3 turns). While the general stands in the city that feeds it, the line sends nothing: the
-baggage fills there. The food takes a turn for every 3 tiles and lands wherever the general is by then. Once the
-first delivery lands, the line keeps the army fed as long as the city has food to send; until then the baggage
-must last the trip. The dashed yellow line shows it, with the amount; setting or changing supply gives the feeding
-city attention. An army that runs out of food loses a regiment each turn.
+baggage fills there. The food takes a turn for every 3 tiles and lands wherever the general is by then. A longer
+line costs only time: more food on the way and a longer wait for the first delivery, which the baggage must last.
+The dashed yellow line shows it, with the amount; setting or changing supply gives the feeding city attention. An
+army that runs out of food loses a regiment each turn.
 
 The rival's three cities are red, far from your start, with their garrison in a shield. They never move, but
 an army that ends its turn next to one fights it: one battle, decided by luck. The general's panel shows your
