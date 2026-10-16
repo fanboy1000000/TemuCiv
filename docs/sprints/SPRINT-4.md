@@ -216,6 +216,26 @@ sanitation are P7, the battle map and initiative eng. Handoff: from now on it is
 the work it describes. Declined (the reviewer's note, twice): keeping the scratch checks in the repository, since
 they hard-code today's numbers and would fail CI whenever the owner tunes `numbers.js`.
 
+### TASK-407: sprint-end review fixes, cycle 2 (code)
+
+Status complete · Agent: the TASK-403 agent, resumed · Checklist items 1 and 9 pass · Review: sprint-end cycle 3
+(light bar) · Files: `prototype/game.js`, `ui.js`, `README.md`. Criteria: the code follows TASK-406's rules PASS;
+checks PASS (128, rerun by the Orchestrator with its own spot check); smoke PASS; `npm run ci` 4/4 PASS.
+
+Step 4 now fills armies' baggage in each city after the garrison eats and before the people eat and the city
+grows; a supply line sends nothing while its general stands in its feeding city; the hand-built forecast is
+replaced by `hungerAhead`, which plays the next two ends of turn on a copy of the state with the real `endTurn`
+(about 4 ms on a grown game), read once per redraw by the waiting list, the general panel and the baggage tip;
+the tooltips and README describe the size-1 garrison rule, the fill before growth and the look-ahead. Checks with
+hand-worked expectations: the reviewer's scenario (a size-2 city, an army of 3 raised, supplied from the same city
+and marched) is never hungry at the end of turn 1 for stores 10 to 50, where the cycle-2 code went hungry at 10,
+20, 25, 30 and 50; supply sends 0 in the feeding city and 12 three tiles out; Codex's two armies in a size-1 city
+are forecast exactly (only the newer one, at turn 2); over 10 seeds × 150 random turns the forecast made before
+each End Turn matched all 32 real hungers with no false alarms, and the forecast from the turn before matched all
+12 when no orders came between; the look-ahead leaves the state, dice and undo untouched. The builder's open
+reading, kept as engineering's: the fill's one-turn reserve still counts the garrison's eating although the
+garrison has eaten (RULES says "what the city eats in one turn").
+
 ## Design conformance
 
 For the prototype, conforming means matching `prototype/RULES.md` (WORKFLOW, "Prototype phase"). Checked by the
@@ -227,7 +247,7 @@ builder's table and scratch checks and the Orchestrator's screenshots and spot c
 | The start; the rival | `game.js` `newGame`, `placeRivals`, end-of-turn step 10 | spot check; scratch checks (garrison 3/4/4/5/8/8) | PASS |
 | Moves (army orders, undo) | `game.js` check and order functions for general, regiment, march, take, leave, supply; `undo` | scratch checks (one move each, undo exact); smoke | PASS |
 | Cities, food; generals and regiments | `eats` (garrison first), `makeGeneral`, `armyBlocked`, steps 4, 5, 7 | scratch checks (regiment takes a person, waits at size 1; garrison eating) | PASS |
-| Feeding armies: baggage and supply | `armyReserve`, `baggageCap`, `supplyPlan`, `foodOnWay`, `hungryIn`, steps 2, 3, 7, 8 | scratch checks (fill, arrival turn, lands where the general is, supply before routes, size-8 city ships, hunger; TASK-405: lines of 7 to 10 tiles held 30 turns, take and march, leaving regiments, the forecast) | PASS |
+| Feeding armies: baggage and supply | `armyReserve`, `baggageCap`, `supplyPlan`, `foodOnWay`, `hungerAhead`, steps 2, 3, 4, 8 | scratch checks (fill, arrival turn, lands where the general is, supply before routes, size-8 city ships, hunger; TASK-405: lines of 7 to 10 tiles held 30 turns, take and march, leaving regiments; TASK-407: an army raised and supplied in one city, two armies in a size-1 city, the look-ahead against 1,500 random turns) | PASS |
 | Battles, coin (plunder) | `winChance`, `winnerLeft`, `foeAt`, `rollDice`, step 9 | scratch checks under a fixed seed; capture screenshot (64%, 6 left, 30 plunder) | PASS |
 | Sites, settlers (rival borders) | `siteProblem`, `foundProblemAt` | scratch checks; smoke | PASS |
 | A turn | `endTurn`, one block per step, in RULES order | builder's table; review | PASS |
@@ -241,11 +261,10 @@ builder's table and scratch checks and the Orchestrator's screenshots and spot c
 
 ## Handoff
 
-- **State:** on `sprint/4`: TASK-401 to 406 committed (TASK-406 is this commit). Sprint-end review: cycle 1 and
-  cycle 2 both BLOCKED by both lenses (`.claude/reviews/SPRINT-4-*-c1.md`, `-c2.md`); the rules and log side of
-  cycle 2 is fixed in TASK-406, with the reviewer's structural changes.
-- **In flight:** TASK-407, the TASK-403 agent resumed in the shared tree, bringing the code in line with TASK-406
-  (uncommitted).
-- **Waiting on:** TASK-407's report; the owner's slice 1 playtest notes (invited, not blocking).
-- **Next action:** verify TASK-407, commit it with its log entry and this handoff rewritten in the same commit,
-  stamp, then cycle 3, the last under the cap: if it still finds new BLOCKERs, stop and ask the owner (WORKFLOW).
+- **State:** on `sprint/4`: TASK-401 to 407 committed (TASK-407 and this handoff are this commit). Sprint-end
+  review: cycles 1 and 2 BLOCKED by both lenses; every cycle-2 blocker is fixed in TASK-406 (rules, log) and
+  TASK-407 (code); local `npm run ci` 4/4.
+- **In flight:** nothing yet; cycle 3 starts on a fresh stamp after this commit.
+- **Waiting on:** cycle 3's verdicts; the owner's slice 1 playtest notes (invited, not blocking).
+- **Next action:** stamp, run cycle 3 with both lenses. It is the last under the cap: if it finds new BLOCKERs,
+  stop and ask the owner with a recommendation (WORKFLOW, "Review cycles"); if it passes, close Sprint 4.

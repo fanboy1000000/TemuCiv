@@ -22,7 +22,7 @@
 
   var game = null, history = [];
   var ui = { sel: -1, shownSel: null, pick: null, msg: null, hover: -1, cam: { x: 0, y: 0, zoom: 1 }, down: null,
-    labels: [] };
+    labels: [], hunger: {} };
   var $ = function (id) { return document.getElementById(id); };
   var canvas = $('map'), ctx = canvas.getContext('2d'), tip = $('tip');
 
@@ -80,8 +80,11 @@
       '\n\nFarm food takes its travel time to arrive.\nGrows at ' + fmt(need) + ' food (' + N.growthBase + ' + ' +
       N.growthPerSize + ' × size ' + city.size + (G.has(city, 'granary') ? ', Granary −' +
         fmt(N.builds.granary.growthDiscount * 100) + '%' : '') + '); growing uses that food up.' +
+      (G.generalsAt(S(), city.tile).length ? '\n\nArmies standing here fill their baggage after the garrison eats and before ' +
+        'the people eat and the city grows, from the food above ' + fmt(G.armyReserve(city)) + ' (what the city eats in ' +
+        count(N.armyReserveTurns, 'turn', 'turns') + ').' : '') +
       '\nIf the store can\'t feed everyone, the city loses a person and the store drops to 0' +
-      (city.garrison ? ' (the garrison eats first and is unharmed).' : '.');
+      (city.garrison ? '; a city of size ' + N.minCitySize + ' loses a garrison regiment instead.' : '.');
   }
 
   function stoneTip(city) {
@@ -118,12 +121,12 @@
     return '';
   }
 
-  /** When the army goes hungry, counting only food that lands in time: the same test as "Waiting for you". */
+  /** When the army goes hungry if you give no more orders: the same look-ahead as "Waiting for you". */
   function hungerText(g) {
-    var k = G.hungryIn(S(), g);
-    if (k < 0) return 'Counting food that lands in time (and filling, if it stands in one of your cities), it stays fed for the next ' +
-      count(N.lowFoodTurns, 'turn end', 'turn ends') + '.';
-    return 'Counting only food that lands in time, it goes hungry ' + (k ? 'at the end of turn ' + (S().turn + k) : 'when this turn ends') + '.';
+    var k = ui.hunger[g.id];
+    if (k === undefined) return 'Playing the next ' + count(N.lowFoodTurns, 'end of turn', 'ends of turn') +
+      ' with no more orders, it stays fed.';
+    return 'Playing ahead with no more orders, it goes hungry ' + (k ? 'at the end of turn ' + (S().turn + k) : 'when this turn ends') + '.';
   }
 
   function baggageTip(g) {
@@ -133,7 +136,8 @@
       (eat ? '\n' + hungerText(g) : '') +
       '\nIts limit is ' + fmt(cap) + ' (' + N.baggageTurns + ' turns of eating): filling and supply aim at it; food above it is kept ' +
       'until eaten, except that regiments left in a city leave the food above the smaller army\'s limit there.' +
-      '\n\nIn one of your cities it fills up to the limit at the end of the turn, before it marches, from the food above what the city eats in ' +
+      '\n\nIn one of your cities it fills up to the limit at the end of the turn, after the city\'s garrison eats and before its ' +
+      'people eat and the city grows, so before it marches, from the food above what the city eats in ' +
       count(N.armyReserveTurns, 'turn', 'turns') + '. Away from your cities only supply refills it.' +
       '\nAn army whose baggage can\'t feed it eats what there is and loses ' + regs(N.hungerLoss) + '.';
   }
@@ -141,6 +145,7 @@
   function supplyTip(p) {
     var s = S(), g = p.general, keep = G.armyReserve(p.city), above = Math.max(0, p.city.food - keep);
     return p.city.name + ' supplies the army at ' + where(g.tile) + '.\nShips at the end of this turn: ' + fmt(p.amount) +
+      (p.inCity ? '\n\nThe general stands in ' + p.city.name + ', so the line sends nothing: the baggage fills here instead.' : '') +
       '\n\nWhat keeps the baggage at its limit when this food lands: ' + fmt(G.baggageCap(g)) + ' limit + ' +
       fmt(G.armyEats(g) * p.travel) + ' eaten while it travels (' + fmt(G.armyEats(g)) + ' × ' + count(p.travel, 'turn', 'turns') +
       ') − ' + fmt(g.baggage) + ' in the baggage − ' + fmt(p.onWay) + ' on its way = ' + fmt(p.need) + ' (never below 0)' +
@@ -286,7 +291,7 @@
         atSites + '. Free: ' + staff.free + '.\nEveryone eats, pays coin and adds production, working or not.') + ' · ' + atSites + ' at sites, ' + staff.free + ' free</td></tr>' +
       '<tr><th>Garrison</th><td>' + num(regs(city.garrison), 'Regiments standing in the city without a general: ' + city.garrison +
         '.\nThey can\'t move; a general standing here can take them.\nThey eat ' + N.foodPerRegiment + ' food each from the city\'s store, ' +
-        'before the people; if the store runs short the city loses a person and the garrison is unharmed.') +
+        'before the people; if the store runs short the city loses a person, or, at size ' + N.minCitySize + ', a garrison regiment instead.') +
         (city.garrison ? ' · eat ' + num(fmt(city.garrison * N.foodPerRegiment) + ' food per turn', regs(city.garrison) + ' × ' +
           N.foodPerRegiment + ' food, from the city\'s store, before the people.') : '') + '</td></tr>' +
       '<tr><th>Food</th><td>store ' + num(fmt(city.food), foodTip(city)) + ' · eats ' +
@@ -469,7 +474,7 @@
         '\nOnly a general moves regiments. Each regiment eats ' + N.foodPerRegiment + ' food per turn from the baggage; the general eats nothing.') +
         ' · eat ' + num(fmt(eat) + ' food per turn', regs(g.regiments) + ' × ' + N.foodPerRegiment + ' food, from the baggage.') + '</td></tr>' +
       '<tr><th>Baggage</th><td>' + num(fmt(g.baggage) + ' food', baggageTip(g)) + ' · ' + (eat
-        ? '<span class="' + (G.hungryIn(s, g) >= 0 ? 'bad' : 'good') + '">' + num(count(left, 'turn', 'turns') + ' left', baggageTip(g)) + '</span>'
+        ? '<span class="' + (ui.hunger[g.id] !== undefined ? 'bad' : 'good') + '">' + num(count(left, 'turn', 'turns') + ' left', baggageTip(g)) + '</span>'
         : 'no one to feed') + ' · limit ' + num(fmt(G.baggageCap(g)), 'The baggage limit is ' + N.baggageTurns + ' turns of eating: ' +
         fmt(eat) + ' × ' + N.baggageTurns + ' = ' + fmt(G.baggageCap(g)) + '. Filling and supply aim at it.') + '</td></tr>' +
       '<tr><th>Supply</th><td>' + supply + '</td></tr>' +
@@ -507,7 +512,8 @@
       'food above the smaller army\'s baggage limit in the city. Supply: the city you name sends what keeps the baggage at ' +
       'its limit when the food lands (its eating during the trip included), from its food above what it eats in ' +
       count(N.armyReserveTurns, 'turn', 'turns') + ', before its routes ship; the food takes 1 turn per ' + N.tilesPerTravelTurn +
-      ' tiles and lands wherever the general is then.<br>Attention: taking or leaving regiments gives the city the army stands in ' +
+      ' tiles and lands wherever the general is then. While the general stands in the city that feeds it, the line sends ' +
+      'nothing: the baggage fills there.<br>Attention: taking or leaving regiments gives the city the army stands in ' +
       'attention; setting, changing or cancelling supply gives it to the city that feeds (or fed) the army; sending the army gives none.</p>';
     return html;
   }
@@ -565,7 +571,7 @@
   // ---- Waiting for you, and the turn log ----
 
   function renderWaiting() {
-    var items = G.waiting(S());
+    var items = G.waiting(S(), ui.hunger);
     var html = '<h3>Waiting for you <span class="sub">(' + items.length + ')</span></h3>';
     if (!items.length) html += '<div class="muted">Nothing. Everything follows its last orders.</div>';
     items.forEach(function (it) {
@@ -598,6 +604,7 @@
   }
 
   function render() {
+    ui.hunger = G.hungerAhead(S()); // the next ends of turn played on a copy, once per redraw
     renderTop();
     renderSide();
     renderWaiting();

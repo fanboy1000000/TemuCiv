@@ -309,7 +309,8 @@ var Game = (function () {
    * What the supply lines ship when the turn ends (RULES, Feeding armies: step 2): in the order they were set, each
    * city sends what keeps the baggage at its limit when this food lands: the limit, plus the army's eating for each
    * turn of travel, minus the baggage and the food already on its way, never below 0; out of the city's food above
-   * what it eats in one turn. The turn uses this list, so what the page shows is what ships.
+   * what it eats in one turn. While the general stands in the city that feeds it, the line sends nothing: the baggage
+   * fills there at step 4 (`inCity`). The turn uses this list, so what the page shows is what ships.
    */
   function supplyPlan(s) {
     var left = {};
@@ -319,34 +320,27 @@ var Game = (function () {
         var city = cityById(s, g.supply), onWay = foodOnWay(s, g.id), travel = travelTurns(s, city.tile, g.tile);
         if (left[city.id] === undefined) left[city.id] = Math.max(0, city.food - armyReserve(city));
         var need = Math.max(0, baggageCap(g) + armyEats(g) * travel - g.baggage - onWay), spare = left[city.id];
-        var amount = Math.min(need, spare);
+        var inCity = g.tile === city.tile, amount = inCity ? 0 : Math.min(need, spare);
         left[city.id] -= amount;
-        return { general: g, city: city, need: need, onWay: onWay, spare: spare, amount: amount, travel: travel };
+        return { general: g, city: city, need: need, onWay: onWay, spare: spare, amount: amount, travel: travel,
+          inCity: inCity };
       });
   }
 
   /**
-   * Which coming turn end the army goes hungry at (0 = this turn's, 1 = the next, ...), or -1 if it stays fed for
-   * the next N.lowFoodTurns of them ("Waiting for you"). It counts the baggage; the fill at step 7 if the army stands
-   * in one of your cities now (from what the city holds now); and only supply food that lands in time, at step 3,
-   * before the army eats at step 8: food already on its way, and this turn's shipment.
+   * Which armies go hungry at the next N.lowFoodTurns ends of turn if no more orders are given ("Waiting for you"),
+   * as { generalId: 0 for this turn's end, 1 for the next, ... }. It plays those ends of turn on a copy of the state,
+   * made as undo makes it, and reads the hunger notes, so the warning follows the same rules as the turn itself. The
+   * real state, its dice and the undo list are not touched. It costs a couple of ends of turn: call it once per redraw.
    */
-  function hungryIn(s, g) {
-    var eat = armyEats(g);
-    if (!eat) return -1;
-    var food = g.baggage, city = cityAt(s, g.tile);
-    var plan = supplyPlan(s).filter(function (p) { return p.general === g; })[0];
+  function hungerAhead(s) {
+    var copy = { state: JSON.parse(JSON.stringify(s)), undo: [] }, out = {};
     for (var k = 0; k < N.lowFoodTurns; k++) {
-      var turn = s.turn + k;
-      s.transit.forEach(function (t) {
-        if (t.general === g.id && (k ? t.arrives === turn : t.arrives <= turn)) food += t.amount;
+      endTurn(copy).log.forEach(function (e) {
+        if (e.kind === 'hunger' && out[e.general] === undefined) out[e.general] = k;
       });
-      if (plan && s.turn + plan.travel === turn) food += plan.amount;
-      if (!k && city) food += Math.min(Math.max(0, baggageCap(g) - food), Math.max(0, city.food - armyReserve(city)));
-      if (food < eat) return k;
-      food -= eat;
     }
-    return -1;
+    return out;
   }
 
   /** Supply food a city sends when the turn ends, before its routes ship. */
@@ -466,7 +460,8 @@ var Game = (function () {
   }
 
   /** Things waiting for the player (RULES, The screen). */
-  function waiting(s) {
+  function waiting(s, hunger) {
+    hunger = hunger || hungerAhead(s);
     var out = [];
     s.cities.forEach(function (city) {
       if (!city.build) out.push({ kind: 'build', tile: city.tile, text: city.name + ' has nothing to build' });
@@ -486,8 +481,8 @@ var Game = (function () {
       if (g.dest === null && !cityAt(s, g.tile)) {
         out.push({ kind: 'general', tile: g.tile, text: 'A general at ' + where(s, g.tile) + ' has no orders' });
       }
-      var hungry = hungryIn(s, g);
-      if (hungry >= 0) {
+      var hungry = hunger[g.id];
+      if (hungry !== undefined) {
         out.push({ kind: 'army-food', tile: g.tile, text: 'An army at ' + where(s, g.tile) + ' will go hungry ' +
           (hungry ? 'at the end of turn ' + (s.turn + hungry) : 'when this turn ends') });
       }
@@ -878,9 +873,10 @@ var Game = (function () {
 
   function endTurn(game) {
     var s = game.state, turn = s.turn, log = [];
-    function note(text, tile, kind) {
+    function note(text, tile, kind, general) {
       var e = { text: text, tile: tile };
       if (kind) e.kind = kind;
+      if (general) e.general = general;
       log.push(e);
     }
     function regs(n) { return n + (n === 1 ? ' regiment' : ' regiments'); }
@@ -944,12 +940,19 @@ var Game = (function () {
     s.coin += trade;
     s.cities.forEach(function (city) { city.food += N.cityTileFood; });
 
-    // 4. The garrison eats, then the people, from one store; then the city grows or shrinks. If the store can't
-    // feed everyone, the city loses a person; a city already at its smallest loses a garrison regiment instead.
+    // 4. In each city: the garrison eats; armies standing there fill their baggage up to its limit, oldest first, from
+    // the food above what the city eats in one turn; the people eat; the city grows or shrinks. If the store can't feed
+    // garrison and people, the city loses a person; a city already at its smallest loses a garrison regiment instead.
+    // (A store that short has nothing above the one-turn reserve, so no army fills from it.)
     s.cities.forEach(function (city) {
-      var eat = eats(city);
-      if (city.food >= eat) {
-        city.food -= eat;
+      if (city.food >= eats(city)) {
+        city.food -= city.garrison * N.foodPerRegiment;
+        generalsAt(s, city.tile).forEach(function (g) {
+          var take = Math.min(Math.max(0, baggageCap(g) - g.baggage), Math.max(0, city.food - armyReserve(city)));
+          city.food -= take;
+          g.baggage += take;
+        });
+        city.food -= city.size * N.foodPerPerson;
         var need = growthNeed(city);
         if (city.food >= need) {
           city.food -= need;
@@ -1009,15 +1012,7 @@ var Game = (function () {
     s.coin += people;
     s.lastIncome = { people: people, trade: trade, plunder: 0 };
 
-    // 7. Armies in your cities fill their baggage up to its limit from the food above what the city eats in one turn;
-    // then settlers walk and armies march towards their tile, around mountains and water (armies around rival cities).
-    s.generals.forEach(function (g) {
-      var city = cityAt(s, g.tile);
-      if (!city) return;
-      var take = Math.min(Math.max(0, baggageCap(g) - g.baggage), Math.max(0, city.food - armyReserve(city)));
-      city.food -= take;
-      g.baggage += take;
-    });
+    // 7. Settlers walk and armies march towards their tile, around mountains and water (armies around rival cities).
     function walk(unit, steps, blocked, who) {
       if (unit.dest === null) return;
       var path = findPath(s, unit.tile, unit.dest, blocked);
@@ -1045,7 +1040,8 @@ var Game = (function () {
       }
       g.baggage = 0;
       g.regiments = Math.max(0, g.regiments - N.hungerLoss);
-      note('An army at ' + where(s, g.tile) + ' went hungry and lost a regiment (' + regs(g.regiments) + ' left)', g.tile, 'hunger');
+      note('An army at ' + where(s, g.tile) + ' went hungry and lost a regiment (' + regs(g.regiments) + ' left)', g.tile, 'hunger',
+        g.id);
     });
 
     // 9. Battles: each army next to a rival city fights it, oldest first; next to two, the smaller garrison.
@@ -1148,7 +1144,7 @@ var Game = (function () {
     travelTurns: travelTurns, reserve: reserve, armyReserve: armyReserve, routeShare: routeShare, flow: flow,
     coinNext: coinNext,
     waiting: waiting,
-    armyEats: armyEats, baggageCap: baggageCap, turnsOfFood: turnsOfFood, foodOnWay: foodOnWay, hungryIn: hungryIn,
+    armyEats: armyEats, baggageCap: baggageCap, turnsOfFood: turnsOfFood, foodOnWay: foodOnWay, hungerAhead: hungerAhead,
     supplyPlan: supplyPlan, winChance: winChance,
     checkBuild: checkBuild, siteTiles: siteTiles, checkSend: checkSend,
     checkFound: checkFound, foundProblemAt: foundProblemAt, checkRoute: checkRoute, checkCancelRoute: checkCancelRoute,
