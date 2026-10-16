@@ -16,9 +16,9 @@ _Pending: the owner's notes from playing slice 1._
 
 ## Goal
 
-The owner can raise armies in the prototype, march them, and keep them fed through supply lines, to feel the
-logistics system (owner, 2026-10-16: "I need to be able to move armies to get a feel for the logistic system").
-Refinement in progress.
+The owner can raise armies in the prototype, march them, and keep them fed through baggage and supply set on
+generals, against a passive rival with one battle decided by luck, to feel the logistics system (owner,
+2026-10-16: "I need to be able to move armies to get a feel for the logistic system").
 
 ## Entropy scan
 
@@ -37,8 +37,10 @@ Refinement in progress.
 | TASK-401 | Orchestrator | `docs/WORKFLOW.md`, `docs/AGENTS.md`, `.claude/agents/reviewer.md`, `CLAUDE.md` | RULES.md reviewed at the normal bar, in the canonical review instructions (R1); CLAUDE.md's phase line current → `check-docs`; sprint-end review | no |
 | TASK-402 | Orchestrator | `prototype/RULES.md` | Slice 2's rules from A1 to A5 and the refinement; Sprint 3's carried attribution fixes; every rule carries its source → sprint-end review at the normal bar (R1) | no |
 | TASK-403 | general-purpose agent (Opus, named at spawn) | `prototype/**` except `RULES.md` | Plays as RULES.md says, section by section (the builder's table and scratch checks whose expected values come from RULES.md); every number in `numbers.js`; 300 smoke turns of random valid orders including every army order, with no error, no NaN, no negative store or baggage; a deliberate break fails the smoke; opens by double-click → `node prototype/smoke.js`, `npm run ci`, a screenshot, the owner's playtest | no (prototype) |
+| TASK-404 | Orchestrator | `prototype/RULES.md`, this log | Every sprint-end cycle-1 BLOCKER on the rules and the log fixed → sprint-end review cycle 2 | no |
+| TASK-405 | the TASK-403 agent, resumed | `prototype/**` except `RULES.md` | The code follows TASK-404's rules; scratch checks for each change, including a long supply line held for many turns; smoke; CI → `node prototype/smoke.js`, `npm run ci`, cycle 2 | no (prototype) |
 
-Waves: 401 and 402 (Orchestrator), then 403. TASK-403 uses a generic agent with the model named, as in Sprint 3:
+Waves: 401 and 402 (Orchestrator), then 403; 404 and 405 follow the cycle-1 review. TASK-403 uses a generic agent with the model named, as in Sprint 3:
 the simulation and presentation definitions carry standing instructions the prototype exception sets aside.
 
 ## Plan review (step 2)
@@ -59,7 +61,7 @@ threaten your supply lines yet (the full rival was the truest test but the bigge
 **A2, supply and generals.** Asked how an army away from your cities gets its food, the owner said: "You set
 supply on generals. Armies can only move with a general. They can also bring baggage." Engineering's reading,
 shown to the owner before the next question and not corrected: supply is an order given to a general, naming the
-city that feeds it, and the line follows that general (S1); regiments without a general can't move; an army
+city that feeds it, and the line follows that general (Sprint 1 log, the owner's combat concept); regiments without a general can't move; an army
 carries baggage as well as being supplied.
 
 **A3, generals.** Built in a city, like a regiment (coin and production), with no limit: the moves budget
@@ -105,7 +107,7 @@ chance A² ÷ (A² + D²) with walls × 1.5, losses, plunder and the rival's lay
 Follow-up during TASK-403's verification (Orchestrator, recorded here because TASK-403's scope excludes this file):
 the builder found that supply and baggage, which took only food above the routes' 3-turn reserve, delivered
 almost nothing from a city of size 6 or more, because a city grows and spends its store before it gets above that
-reserve; confirmed at `game.js:385` and the supply plan. Supply and baggage now keep back only one turn of the
+reserve; confirmed in `game.js` (`reserve` and `supplyPlan`). Supply and baggage now keep back only one turn of the
 city's eating, so an army is fed before its city grows; routes keep the 3-turn reserve. "Waiting for you" now
 lists an army short of food counting the food on its way, not merely one without a supply line.
 
@@ -136,11 +138,31 @@ deviations, accepted: the smoke's labelled war game; your cities are blue now th
 knowledge entry (a labelled test start for states random play can't reach): prototype only; production tests set
 up their states directly.
 
+### TASK-404: sprint-end review fixes, cycle 1 (rules and log)
+
+Status complete · Agent: Orchestrator · Checklist pass (self-check) · Review: sprint-end cycle 2 · Files:
+`prototype/RULES.md`, this log. Criteria: every cycle-1 BLOCKER on the rules and the log fixed → cycle 2.
+
+Both lenses BLOCKED in cycle 1 (Codex 4 blockers, 1 note; the reviewer 1 blocker, 3 warnings, 5 notes). Rules
+fixed: a supply line now sends what keeps the baggage at its limit when the food lands, adding what the army eats
+while the food travels, so a line of any length keeps a fed army fed (the reviewer's blocker: from 7 tiles the
+army starved between deliveries, against P9); "Waiting for you" warns of an army that will go hungry within 2
+turns, counting only food that lands in time; baggage fills before the army marches (an army that took regiments
+and marched in one turn left empty); baggage is a limit on loading, regiments left in a city leave their extra
+food there, and nothing carried is thrown away (Codex: the code kept more than "holds up to 3 turns"); a size-1
+city that can't feed its garrison loses a regiment (a free garrison otherwise); any order given in a city gives
+it attention, now including supply and taking or leaving regiments (P5, which the earlier rule narrowed); hover
+explanations are promised for underlined numbers, as the screen does. Source marks: a legend for every family of
+marks, "S1" now names its Sprint 1 entry, the numbers sentence says a number is the owner's when its rule's mark
+says so, the rival's start, its "few cities far away" and the captured city now cite A1, and the "Left out"
+list marks each item with its own source. In this log: the goal, a stale code line reference, the conformance
+paragraph's tense; the handoff is current.
+
 ## Design conformance
 
 For the prototype, conforming means matching `prototype/RULES.md` (WORKFLOW, "Prototype phase"). Checked by the
-builder's table and scratch checks, the Orchestrator's screenshots and spot check, the sprint-end review (RULES.md
-itself at the normal bar, R1), and the owner's playtest (pending).
+builder's table and scratch checks and the Orchestrator's screenshots and spot check; the sprint-end review
+(RULES.md itself at the normal bar, R1) and the owner's playtest come after this table.
 
 | RULES.md section | Implemented in (`prototype/`) | Verified by | Status |
 |---|---|---|---|
@@ -161,9 +183,10 @@ itself at the normal bar, R1), and the owner's playtest (pending).
 
 ## Handoff
 
-- **State:** on `sprint/4` from `0298bc8`: TASK-401 (`87283d6`) and TASK-402 (`6de9cab`) committed. Owner rulings
-  A1 to A5 and R1 recorded above; slice 2's rules are in `prototype/RULES.md`.
-- **In flight:** TASK-403, the builder (generic agent, Opus named at spawn), in the shared tree, uncommitted.
-- **Waiting on:** the builder's report; the owner's slice 1 playtest notes (invited, not blocking).
-- **Next action:** verify TASK-403 (its report, contradictions, `npm run ci`, the screenshots, own scratch checks
-  of the battle and supply rules), commit it, then the sprint-end review with RULES.md at the normal bar.
+- **State:** on `sprint/4`: TASK-401 (`87283d6`), TASK-402 (`6de9cab`, follow-up `4c8d9a6`) and TASK-403
+  (`0d9a784`) committed; local `npm run ci` 4/4. Stamp: `0d9a784` / `10d314c7`.
+- **In flight:** sprint-end review cycle 1, both lenses (Codex to `.claude/reviews/SPRINT-4-codex-c1.raw.md`, the
+  reviewer agent on Fable).
+- **Waiting on:** the two verdicts; the owner's slice 1 playtest notes (invited, not blocking).
+- **Next action:** fix any BLOCKERs as a follow-up task and re-review on a fresh stamp; then close (log, ROADMAP,
+  `npm run ci` last, `S4 close`), push, watch GitHub CI; then the owner plays slice 2.
