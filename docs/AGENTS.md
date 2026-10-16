@@ -41,7 +41,8 @@ hands them to `platform`.
 
 **The prototype (M0.5):** `prototype/**` is written by the agent its task names, under WORKFLOW's "Prototype
 phase", which its prompt includes word for word; `prototype/RULES.md` is Orchestrator-only. For prototype work
-only checklist items 1 and 9 apply, and reviews use that section's lighter bar for `prototype/`.
+only checklist items 1 and 9 apply, and reviews use that section's lighter bar for `prototype/`, except
+`RULES.md`, which gets the normal bar.
 
 **A new role** is added only when an area is big enough that a specialist pays for itself. It gets a definition,
 a roster row and a line in the sprint log. Until then, the task's explicit file list in the sprint plan decides
@@ -200,7 +201,7 @@ FOCUS:
         what didn't need to exist.
 THE BAR: a BLOCKER is an invariant at risk, a design mismatch, a claim the code doesn't support, or a gap an
 agent would plausibly hit by mistake; an edge case nobody would plausibly hit is a NOTE. [For prototype/ work,
-add the lighter bar from WORKFLOW, "Prototype phase".]
+add the lighter bar from WORKFLOW, "Prototype phase", and that prototype/RULES.md keeps the normal bar.]
 OUTPUT: findings labelled BLOCKER / WARNING / NOTE, each with file:line, what is wrong, and the fix.
 Write for a product manager: what the problem means before the mechanism.
 End with exactly one line: verdict: APPROVED | APPROVED-WITH-WARNINGS | BLOCKED

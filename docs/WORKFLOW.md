@@ -158,7 +158,9 @@ rather than paper decide which ideas stay (owner rulings D1, 2026-10-15, and the
   an error.
 - **A light sprint-end review:** both lenses, with this bar for `prototype/`: a BLOCKER is only a secret or
   personal data, a risk to the owner's computer, prototype code used from outside `prototype/`, or behavior that
-  contradicts `prototype/RULES.md`; everything else is a NOTE. Changes outside `prototype/` get the normal bar.
+  contradicts `prototype/RULES.md`; everything else is a NOTE. Changes outside `prototype/` get the normal bar, and
+  so does `prototype/RULES.md`, checked against the owner's rulings: a ruling copied wrong is a design mismatch
+  (owner, 2026-10-16).
 - **Each slice ends with the owner's playtest;** the notes go to `docs/design/notes.md` and feed the next slice and
   the design.
 

@@ -9,7 +9,8 @@ lines.
 
 **M0: Design, with the M0.5 prototype under way.** No game code in `src/` yet. Sprint 1 laid the governance
 foundation; Sprint 2 made the rulebook leaner and settled the architecture ([docs/architecture.md](docs/architecture.md)).
-Sprint 3 builds slice 1 of a throwaway prototype (`prototype/`, M0.5) to feel the ideas; then the owner's vision
+Sprint 3 built slice 1 of a throwaway prototype (`prototype/`, M0.5) to feel the ideas; Sprint 4 builds slice 2
+(armies, supply and a passive rival); then the owner's vision
 and scope (`docs/design/`), then M1. See `ROADMAP.md`.
 
 ## You are the Orchestrator
