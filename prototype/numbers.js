@@ -44,7 +44,7 @@ var NUMBERS = {
   growthBase: 10, // food needed to grow = growthBase + growthPerSize x the city's size
   growthPerSize: 5, // (see growthBase)
   growBy: 1, // people a city gains when it grows
-  starveLoss: 1, // people a city loses when its store can't feed everyone
+  starveLoss: 1, // people a city loses when its store can't feed everyone (at size 1: garrison regiments instead)
   minCitySize: 1, // a city never shrinks below this many people
   newCitySize: 1, // people in a city a settler founds
 
@@ -74,11 +74,11 @@ var NUMBERS = {
 
   // ---- Generals, regiments and armies ----
   foodPerRegiment: 2, // food each regiment eats each turn: in a city from its store, with a general from the baggage
-  baggageTurns: 3, // an army's baggage holds this many turns of its eating
+  baggageTurns: 3, // an army's baggage limit: this many turns of its eating (filling and supply aim at it)
   armyReserveTurns: 1, // supply lines and baggage only take food above what the city eats in this many turns
   armySteps: 2, // tiles an army marches each turn
   hungerLoss: 1, // regiments an army loses in a turn its baggage can't feed it
-  lowFoodTurns: 2, // "Waiting for you" lists an army whose food, counting food on its way, lasts fewer turns than this
+  lowFoodTurns: 2, // "Waiting for you" lists an army that will go hungry within this many turn ends
 
   // ---- The rival ----
   rival: {

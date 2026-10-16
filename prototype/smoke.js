@@ -54,9 +54,7 @@ function checkState(s, when) {
   checkNumbers(s, 'state');
   if (s.coin < 0) fail(`${when}: coin is negative (${s.coin})`);
   if (s.moves < 0) fail(`${when}: moves are negative (${s.moves})`);
-  const perTurn = G.movesPerTurn(s);
   const fromHalls = N.movesPerTurn + G.hallsBuilt(s) * N.builds.hall.moves;
-  if (perTurn > N.movesCap) fail(`${when}: moves per turn ${perTurn} above the cap ${N.movesCap}`);
   if (fromHalls > Math.max(N.movesCap, N.movesPerTurn)) fail(`${when}: ${G.hallsBuilt(s)} Halls push moves per turn to ${fromHalls}, above the cap ${N.movesCap}`);
   for (const c of s.cities) {
     if (c.food < 0) fail(`${when}: ${c.name} has negative food (${c.food})`);

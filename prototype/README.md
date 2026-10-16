@@ -27,9 +27,9 @@ is sent anywhere. There is no saving: reloading the page starts a new game.
 - **End turn:** the button, Enter or Space.
 - **Hover over any underlined number** to see what it is made of.
 - **Waiting for you** (bottom left) lists cities with nothing to build, idle sites, settlers without orders,
-  cities whose food is falling, generals without orders outside your cities, and armies with less than 2 turns
-  of food, counting the supply food on its way. Click a line to go there. The **turn log** (bottom right) says
-  what happened at the end of the last few turns, battles included.
+  cities whose food is falling, generals without orders outside your cities, and armies that will go hungry
+  within the next 2 turns, counting only the supply food that lands in time. Click a line to go there. The
+  **turn log** (bottom right) says what happened at the end of the last few turns, battles included.
 - **Seed** (top right): the number the map is made from. Type another number and press Enter (or New game),
   or press Random.
 
@@ -38,15 +38,19 @@ is sent anywhere. There is no saving: reloading the page starts a new game.
 You start with one general in your first city. A city can build more generals, and regiments: a regiment is one
 of the city's people turned soldier, so it takes a person when it is finished (and waits while the city has only
 one). Regiments stay in their city as its garrison, eating from the city's food, until a general takes them: only
-a general moves regiments. A general and its regiments are an army, the dark square with a gold edge and the
-number of regiments on it.
+a general moves regiments. If a city of size 1 can't feed its garrison, a regiment is lost instead of a person. A
+general and its regiments are an army, the dark square with a gold edge and the number of regiments on it.
+Taking or leaving regiments gives that city attention, like a build; sending the army somewhere gives none.
 
 Away from your cities an army lives on its baggage: up to 3 turns of food, filled at the end of a turn while it
-stands in one of your cities. To keep it fed further away, give the general a supply city: each turn that city
-sends what the baggage needs, keeping back only what it eats itself in one turn (so armies are fed before the
-city grows; routes still keep back 3 turns). The food takes a turn for every 3 tiles and lands wherever the
-general is by then. The dashed yellow line shows it, with the amount. An army that
-runs out of food loses a regiment each turn.
+stands in one of your cities, before it marches (so you can take regiments and march off in the same turn).
+Regiments you leave in a city leave the food the smaller army can't use there. To keep an army fed further away,
+give the general a supply city: each turn that city sends what keeps the baggage full when the food arrives,
+including what the army eats on the way, keeping back only what the city eats itself in one turn (so armies are
+fed before the city grows; routes still keep back 3 turns). The food takes a turn for every 3 tiles and lands
+wherever the general is by then, so a far-off army waits longer for its first delivery and then stays fed. The
+dashed yellow line shows it, with the amount; setting or changing supply gives the feeding city attention. An
+army that runs out of food loses a regiment each turn.
 
 The rival's three cities are red, far from your start, with their garrison in a shield. They never move, but
 an army that ends its turn next to one fights it: one battle, decided by luck. The general's panel shows your
