@@ -3,12 +3,12 @@
 | Field | Value |
 |---|---|
 | **Sprint** | 3 |
-| **Status** | in-progress |
-| **Dates** | 2026-10-15 → |
+| **Status** | complete |
+| **Dates** | 2026-10-15 → 2026-10-16 |
 | **Base commit** | `ed7e65d` (the Sprint 2 close) |
 | **Previous close on GitHub** | run `38799350275`: success (both jobs) |
 | **Orchestrator model** | `claude-opus-5-5` (Claude Code 2.1.301) |
-| **CI verified** | no |
+| **CI verified** | local `npm run ci` PASS on the close state (the GitHub run is recorded by Sprint 4) |
 
 ## Playtest input
 
@@ -173,33 +173,42 @@ below), and the owner's playtest (pending). No game rules in `src/` yet.
 
 ## Sprint-end review (step 7)
 
-| Lens | Cycles | Findings | Final verdict | Stamp |
+| Lens | Cycles | Findings (per cycle, B/W/N) | Final verdict | Stamp |
 |---|---|---|---|---|
-| Codex | | NB/NW/NN | | `<commit>` / `<hash prefix>` |
-| Reviewer (`<model id>`) | | NB/NW/NN | | |
+| Codex | 3, plus a one-line check | 6/0/1, 1/0/0, 1/0/1; the check 0/0/0 | APPROVED | `2088cf0` / `f2a3b45f` |
+| Reviewer (`claude-fable-5-1`) | 3 | 1/6/4, 0/1/4, 0/0/2 | APPROVED | same |
 
-Findings and resolution: _one line each._
+Fixes are in TASK-305 and 306. Codex's cycle-3 blocker was the ROADMAP row for removing the prototype at M1 (too
+broad: it could have erased the milestone and playtest notes). ROADMAP is close paperwork outside the stamp; the
+row was rewritten and, on the owner's decision past the cap, Codex checked that one row and approved it
+(`.claude/reviews/SPRINT-3-codex-c4-line-check.md`). Carried to Sprint 4: who-decided-what marks in RULES.md (both
+lenses' cycle-3 notes: "looking is free" is P3, "war earns coin" is P6, P4's 4 moves and cap of 8 were put to the
+owner, the "Left out" list is D2) and the reviewer's question whether RULES.md itself gets the normal bar.
 
 ## Test summary
 
-_Exact output of the real runs, never numbers from memory._
-
-| Suite | Previous | Now | Change |
-|---|---|---|---|
+Final `npm run ci` on the close state: docs consistency PASS (72 files), secret scan PASS, governance tests 53/53
+PASS (no change), prototype smoke game PASS (new step: 300 turns, every undo restored exactly, CI 4/4).
 
 ## Retrospective
 
-- **Went well:**
-- **To improve:**
-- **Knowledge produced:**
-- **Harness notes:**
+- **Went well:** from the owner's "I want a playable demo" to a build they can double-click took one sprint; the
+  placeholders, asked one at a time, gave the builder a complete spec; the smoke game and the deliberate breaks
+  made "it works" checkable; the review loop converged in three cycles, as the decision-record rule intended.
+- **To improve:** my mid-sprint rule fix missed the screen text, which both lenses caught; the log claimed a
+  review before it ran; attribution in RULES.md (who decided what) took three passes and is still not exact. Mark
+  each rule's source one at a time from the start.
+- **Knowledge produced:** none; the builder's proposed pattern (undo by saving a copy) was declined as prototype-only.
+- **Harness notes:** the lighter prototype bar worked: most prototype findings were notes, and the blockers were
+  real (a screen contradicting the rules). Agent definitions load at session start, so an edit to one reaches agents
+  only in the next session.
 
 ## Handoff
 
-- **State:** TASK-301 to 306 committed on `sprint/3`; the prototype is playable (`prototype/index.html`). Sprint-end
-  review: cycle 1 both BLOCKED (fixed in TASK-305); cycle 2 reviewer APPROVED-WITH-WARNINGS, Codex BLOCKED on one
-  log claim (fixed in TASK-306); cycle 3 (the last under the cap) next.
-- **In flight:** nothing between reviews. No worktrees.
-- **Waiting on:** the owner's playtest of slice 1 (notes into the next sprint's "Playtest input").
-- **Next action:** sprint-end review cycle 3, then close (WORKFLOW step 8), push, watch GitHub CI. Sprint 4 opens
-  with the owner's playtest notes and the reviewer's question: should `prototype/RULES.md` get the normal bar?
+- **State:** Sprint 3 closed (`S3 close`), `main` fast-forwarded and pushed; `sprint/3` deleted. The prototype is
+  playable: double-click `prototype/index.html`.
+- **In flight:** the GitHub CI run for the push (Sprint 4 records it).
+- **Waiting on:** the owner's playtest of slice 1.
+- **Next action:** Sprint 4 (slice 2: a rival and armies). Start with the owner's playtest notes ("Playtest
+  input"), the question whether `prototype/RULES.md` gets the normal review bar, and RULES.md's attribution fixes;
+  then refine slice 2 one question at a time (refine-requirements).
