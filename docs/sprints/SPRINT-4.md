@@ -158,6 +158,26 @@ says so, the rival's start, its "few cities far away" and the captured city now 
 list marks each item with its own source. In this log: the goal, a stale code line reference, the conformance
 paragraph's tense; the handoff is current.
 
+### TASK-405: sprint-end review fixes, cycle 1 (code)
+
+Status complete · Agent: the TASK-403 agent, resumed · Checklist items 1 and 9 pass · Review: sprint-end cycle 2
+(light bar) · Files: `prototype/game.js`, `ui.js`, `numbers.js`, `smoke.js`, `README.md`. Criteria: the code
+follows TASK-404's rules PASS; checks PASS; smoke PASS; `npm run ci` 4/4 PASS (rerun by the Orchestrator, with
+the 112 checks and its own spot check).
+
+The supply amount adds the trip's eating; a forecast (`hungryIn`) drives the waiting list and the general panel;
+baggage fills before the march; leaving regiments puts their extra food in the city; a size-1 city loses garrison
+regiments when it can't feed them; take, leave and supply orders give attention; the delete-list is done (an
+unused transit field, three unused exports, a smoke check that couldn't fail). New checks with hand-worked
+expectations, all PASS: an army of 3 at 10 tiles goes hungry exactly once before the first delivery and never in
+the next 30 turns; at 7, 8 and 9 tiles never; a marching army supplied before leaving never; take and march in one
+turn leaves with full baggage; leaving 2 of 3 regiments puts 12 food in the city; the size-1 garrison; each
+attention case; the forecast. Run against the cycle-1 code, the changed cases fail ("7 tiles: never hungry over 30
+turns: expected [], got [4,9,15]"). Earlier checks whose expectations changed with the rules were updated, each
+with its reason in the builder's report. Watch in play: a new supply line sends the baggage limit plus the trip's
+eating at once (24 for an army of 3 at 10 tiles), then about a turn's eating per turn; army orders now give
+attention.
+
 ## Design conformance
 
 For the prototype, conforming means matching `prototype/RULES.md` (WORKFLOW, "Prototype phase"). Checked by the
@@ -169,7 +189,7 @@ builder's table and scratch checks and the Orchestrator's screenshots and spot c
 | The start; the rival | `game.js` `newGame`, `placeRivals`, end-of-turn step 10 | spot check; scratch checks (garrison 3/4/4/5/8/8) | PASS |
 | Moves (army orders, undo) | `game.js` check and order functions for general, regiment, march, take, leave, supply; `undo` | scratch checks (one move each, undo exact); smoke | PASS |
 | Cities, food; generals and regiments | `eats` (garrison first), `makeGeneral`, `armyBlocked`, steps 4, 5, 7 | scratch checks (regiment takes a person, waits at size 1; garrison eating) | PASS |
-| Feeding armies: baggage and supply | `armyReserve`, `baggageCap`, `supplyPlan`, `foodOnWay`, `turnsFed`, steps 2, 3, 8 | scratch checks (fill, arrival turn, lands where the general is, supply before routes, size-8 city ships, hunger) | PASS |
+| Feeding armies: baggage and supply | `armyReserve`, `baggageCap`, `supplyPlan`, `foodOnWay`, `hungryIn`, steps 2, 3, 7, 8 | scratch checks (fill, arrival turn, lands where the general is, supply before routes, size-8 city ships, hunger; TASK-405: lines of 7 to 10 tiles held 30 turns, take and march, leaving regiments, the forecast) | PASS |
 | Battles, coin (plunder) | `winChance`, `winnerLeft`, `foeAt`, `rollDice`, step 9 | scratch checks under a fixed seed; capture screenshot (64%, 6 left, 30 plunder) | PASS |
 | Sites, settlers (rival borders) | `siteProblem`, `foundProblemAt` | scratch checks; smoke | PASS |
 | A turn | `endTurn`, one block per step, in RULES order | builder's table; review | PASS |
@@ -183,10 +203,10 @@ builder's table and scratch checks and the Orchestrator's screenshots and spot c
 
 ## Handoff
 
-- **State:** on `sprint/4`: TASK-401 (`87283d6`), TASK-402 (`6de9cab`, follow-up `4c8d9a6`) and TASK-403
-  (`0d9a784`) committed; local `npm run ci` 4/4. Stamp: `0d9a784` / `10d314c7`.
-- **In flight:** sprint-end review cycle 1, both lenses (Codex to `.claude/reviews/SPRINT-4-codex-c1.raw.md`, the
-  reviewer agent on Fable).
-- **Waiting on:** the two verdicts; the owner's slice 1 playtest notes (invited, not blocking).
-- **Next action:** fix any BLOCKERs as a follow-up task and re-review on a fresh stamp; then close (log, ROADMAP,
-  `npm run ci` last, `S4 close`), push, watch GitHub CI; then the owner plays slice 2.
+- **State:** on `sprint/4`: TASK-401 to 404 committed (last `e306c51`). Sprint-end review cycle 1: both lenses
+  BLOCKED (`.claude/reviews/SPRINT-4-codex-c1.md`, `SPRINT-4-reviewer-c1.md`); the rules and log side is fixed in
+  TASK-404.
+- **In flight:** TASK-405, the TASK-403 agent resumed in the shared tree, bringing the code in line with TASK-404's
+  rules (uncommitted).
+- **Waiting on:** TASK-405's report; the owner's slice 1 playtest notes (invited, not blocking).
+- **Next action:** verify and commit TASK-405, record it, stamp, then sprint-end review cycle 2 with both lenses.
