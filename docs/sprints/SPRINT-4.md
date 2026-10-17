@@ -3,12 +3,12 @@
 | Field | Value |
 |---|---|
 | **Sprint** | 4 |
-| **Status** | in-progress |
-| **Dates** | 2026-10-16 → |
+| **Status** | complete |
+| **Dates** | 2026-10-16 → 2026-10-17 |
 | **Base commit** | `0298bc8` (the Sprint 3 close) |
 | **Previous close on GitHub** | run `38854972671`: success |
 | **Orchestrator model** | `claude-opus-5-5` (Claude Code 2.1.301) |
-| **CI verified** | no |
+| **CI verified** | local `npm run ci` PASS on the close state (the GitHub run is recorded by Sprint 5) |
 
 ## Playtest input
 
@@ -47,8 +47,8 @@ generals, against a passive rival with one battle decided by luck, to feel the l
 | TASK-411 | the TASK-403 agent, resumed (in the event a fresh agent: the entry says why) | `prototype/**` except `RULES.md` | In the look-ahead an army with no regiments loses; README's "if it wins" wording → checks; smoke; CI; cycle 5 | no (prototype) |
 | TASK-412 | Orchestrator (`ui.js` under the small tasks exception) | `prototype/ui.js`, `prototype/RULES.md`, this log, the working notes | Cycle 5's findings: the screen's hints say what RULES says; the log's records corrected → smoke; CI; cycle 6 on this diff | no |
 
-Waves: 401 and 402 (Orchestrator), then 403; 404 and 405 follow the cycle-1 review, 406 and 407 the cycle-2
-review, 408 and 409 the cycle-3 review, 410 and 411 the cycle-4 review (both past the cap, on the owner's
+Waves: 401 and 402 (Orchestrator), then 403; 404 and 405 follow the cycle-1 review, 406 and 407 the cycle-2 review,
+408 and 409 the cycle-3 review, 410 and 411 the cycle-4 review, 412 the cycle-5 review (past the cap, on the owner's
 decisions). TASK-403 uses a generic agent with the model named, as in Sprint 3: the simulation and presentation
 definitions carry standing instructions the prototype exception sets aside.
 
@@ -115,10 +115,16 @@ the owner: fix, then a check of only the fixes by both lenses (recommended: the 
 new small things in freshly written text); fix and close with a waiver; or close now and fix in Sprint 5. Decided
 by the owner: "Fix, then a narrow check (Recommended)" (TASK-410, 411, then cycle 5 on the fix diff only).
 
-**Cycle 5 (2026-10-17).** Codex BLOCKED (the handoff, and outside the fix diff a rival panel hint saying only a
-general with regiments fights), the reviewer APPROVED-WITH-WARNINGS. Decided by the owner: "Fix, tiny check, close
-(Recommended)": "I fix the two in-game hints (a few words in one file) and the small log items, then both reviewers
-check only those few lines, then we close." (TASK-412, then cycle 6 on its diff only.)
+**Cycle 5 (2026-10-17).** Codex BLOCKED (the handoff; outside the fix diff, two hints contradicting RULES), the
+reviewer APPROVED-WITH-WARNINGS. Turned down: "Close now with a waiver" ("you'd playtest slice 2 with a hint that
+wrongly says a lone general is safe next to a rival city") and "Another full review round". Decided by the owner:
+"Fix, tiny check, close (Recommended)": "I fix the two in-game hints (a few words in one file) and the small log
+items, then both reviewers check only those few lines, then we close." (TASK-412; cycle 6 on its diff.)
+
+**Cycle 6 (2026-10-17).** Codex BLOCKED on two slips in TASK-412's record, the reviewer APPROVED-WITH-WARNINGS;
+cycles 4 to 6 each found slips in new log text, not in the game or the rules. Turned down: a last check with a
+waiver as fallback (recommended); reviewing until clean. Decided by the owner: "Fix and close with a waiver now": "I
+make the same deletion-style fixes and close today with a waiver of Codex's block, on record in the sprint log."
 
 ## Task log
 
@@ -323,30 +329,28 @@ Criteria: the code follows TASK-410's rules PASS; checks PASS; smoke PASS; `npm 
 Orchestrator).
 
 In the look-ahead a battle is won only when its win chance is above 0, so an army with no regiments loses, as
-always; real turns roll the dice exactly as before. The README's "Waiting for you" says what RULES says. Checks: a
-general with no regiments next to a rival city, look-ahead turn, on 5 seeds: the TASK-409 code captured the city
-every time (20 failures), the new code loses the general with the garrison unchanged; the Orchestrator's own check
-on 5 other seeds agrees (5 failures before, all pass after); 1 regiment against a garrison of 8 is still won; real
-turns are identical to the TASK-409 code over 50 runs of 80 turns (67 battles, 51 of them with no regiments), and
-that comparison catches a deliberately broken copy (34 runs differ). Declined knowledge entry (in a no-dice mode,
-replace only the dice, keeping certain outcomes): one prototype instance; production designs its own look-ahead.
-Found by the Orchestrator before cycle 5: TASK-410's working-notes fix had not been made (line 30 still credited "no
-person" to A3, the cycle-4 Codex blocker); made now, and RULES' 25 owner quotes (23 distinct) rechecked word for
-word.
+always; real turns roll the dice exactly as before. The README's "Waiting for you" says what RULES says. Checks:
+a general with no regiments next to a rival city, look-ahead turn, on 5 seeds: the TASK-409 code captured the
+city every time (20 failures), the new code loses the general with the garrison unchanged; the Orchestrator's
+own check on 5 other seeds agrees (5 failures before, all pass after); 1 regiment against a garrison of 8 is
+still won; real turns are identical to the TASK-409 code over 50 runs of 80 turns (67 battles, 51 of them with
+no regiments), and that comparison catches a deliberately broken copy (34 runs differ). Declined knowledge entry
+(in a no-dice mode, replace only the dice, keeping certain outcomes): one prototype instance; production designs
+its own look-ahead. Found by the Orchestrator before cycle 5: TASK-410's working-notes fix had not been made
+(they still credited "no person" to A3, the cycle-4 Codex blocker); made now, and RULES' 25 owner quotes (23
+distinct) rechecked word for word.
 
 ### TASK-412: cycle 5's findings
 
 Status complete · Agent: Orchestrator (`ui.js` under the small tasks exception) · Checklist items 1 and 9 pass ·
 Review: cycle 6 on this diff · Files: `prototype/ui.js`, `RULES.md` (a rewrap), this log, the working notes.
-Criteria: the screen's hints say what RULES says PASS (read side by side); smoke PASS; `npm run ci` PASS.
-Cycle 5: Codex BLOCKED (1/2/0; outside the fix diff 1 blocker), the reviewer APPROVED-WITH-WARNINGS (0/1/5; outside
-1 warning, 2 notes). Fixed: a rival city's panel said only "a general with regiments" fights it, but every army
-does, so a lone general is lost (Codex); the hunger tip says the look-ahead wins every battle fought with regiments.
-The log: TASK-410 overstated what Codex confirmed (the reviewer's W1); the TASK-411 plan row; "the TASK-409 code";
-the quote count; A3's parenthesis; two wraps. The gitignored working notes now say at line 30 "no person (eng.:
-Q3's option says only "(coin and production), with no limit")" and open with "Superseded by `prototype/RULES.md`".
-The handoff (Codex's blocker) is rewritten at the close. Declined notes: A4's timing (the quote covers the person,
-the prose the timing); "after its own battle" (an army fights only its own battle).
+Criteria: the screen's hints say what RULES says PASS; smoke PASS; `npm run ci` PASS. Fixed: a rival city's panel
+said only "a general with regiments" fights it, but every army does, so a lone general is lost (Codex); the hunger
+tip says the look-ahead wins every battle fought with regiments. The log: TASK-410 overstated what Codex confirmed
+(the reviewer's W1); the TASK-411 plan row; "the TASK-409 code"; the quote count; A3's parenthesis. The gitignored
+working notes now say of the general "no person (eng.: Q3's option says only "(coin and production), with no limit")"
+and open with "Superseded by `prototype/RULES.md`". The handoff (Codex's blocker) is rewritten. Declined notes: A4's
+timing (the quote covers the person); "after its own battle" (an army fights only its own).
 
 ## Design conformance
 
@@ -367,19 +371,30 @@ builder's table and scratch checks and the Orchestrator's screenshots and spot c
 
 ## Sprint-end review (step 7)
 
+| Lens | Cycles | Findings per cycle (B/W/N; "+" outside the fix diff) | Final verdict | Stamp |
+|---|---|---|---|---|
+| Codex | 6 (5 and 6 on the fixes only) | 4/0/1, 4/0/1, 2/0/1, 3/1/0, 1/2/0 +1/0/0, 2/0/0 +0/1/0 | BLOCKED, waived by the owner | `c3786d8` / `ab1a74de` |
+| Reviewer (`claude-fable-5-1`) | 6 (same) | 1/3/5, 4/1/5, 0/2/5, 0/2/7, 0/1/5 +0/1/2, 0/1/5 | APPROVED-WITH-WARNINGS | same |
+
+Fixes in TASK-404 to 412, past the cap on the owner's decisions; reviews gate waived (`SPRINT-4-reviews-WAIVED.md`).
+Cycles 1 and 2 found real rule gaps (hunger on a long supply line, and on turn 1); later, mostly records.
+
 ## Test summary
+
+Final `npm run ci`: docs PASS (73 files), secret scan PASS, governance tests 53/53 PASS (no change), smoke PASS (was
+300 turns of slice 1; now 300 turns plus a 100-turn war game, 15 order kinds, 28 battles, 2 cities taken).
 
 ## Retrospective
 
+- **Went well:** A1 to A5 gave a complete slice; hand-worked checks caught supply delivering nothing from mid-sized
+  cities before review; playing the real end of turn on a copy ended a drifting forecast.
+- **To improve, and the rulebook review (past the cap):** six cycles, mostly on records after cycle 2 (owner marks
+  beyond the recorded words; log lines from memory). Proposals in the ROADMAP for the next harness review:
+  fix-diff-only checks after cycle 1; status copied from the review file; owner quotes in a tracked file.
+- **Knowledge and harness:** no KB entries; the read-only reviewer wrote a scratch file outside the repository.
+
 ## Handoff
 
-- **State:** on `sprint/4`: TASK-401 to 412 committed (TASK-412 and this handoff are the latest commit). Past the
-  cap three times on the owner's decisions; cycle 5: Codex BLOCKED, the reviewer APPROVED-WITH-WARNINGS; the owner
-  chose "Fix, tiny check, close" (TASK-412).
-- **In flight:** nothing.
-- **Waiting on:** cycle 6, both lenses, scoped to TASK-412's diff since `cba70e3`.
-- **Next action:** stamp; cycle 6. If both pass, close: complete the log (review summary, test summary, a
-  retrospective with the rulebook review that passing the cap requires, WORKFLOW "Review cycles" and "Harness
-  evolution"), route follow-ups to ROADMAP (the ten owner quotes resting on a gitignored file), `npm run ci` last,
-  commit `S4 close: Prototype slice 2, armies and supply`, fast-forward `main`, push, watch GitHub CI once. If
-  cycle 6 blocks, back to the owner.
+- **State:** Sprint 4 closed (`S4 close`, reviews gate waived); `main` fast-forwarded and pushed; `sprint/4` gone.
+- **Waiting on:** the GitHub CI run for the push (Sprint 5 records it); the owner's playtest of slices 1 and 2.
+- **Next action:** Sprint 5: the harness review with the proposals, CLAUDE.md's phase line, playtest notes, slice 3.
