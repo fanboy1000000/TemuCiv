@@ -322,6 +322,8 @@ on 5 other seeds agrees (5 failures before, all pass after); 1 regiment against 
 turns are identical to the TASK-410 code over 50 runs of 80 turns (67 battles, 51 of them with no regiments), and
 that comparison catches a deliberately broken copy (34 runs differ). Declined knowledge entry (in a no-dice mode,
 replace only the dice, keeping certain outcomes): one prototype instance; production designs its own look-ahead.
+Found by the Orchestrator before cycle 5: TASK-410's working-notes fix had not been made (line 30 still credited
+"no person" to A3, the cycle-4 Codex blocker); made now, and the 23 owner quotes in RULES rechecked word for word.
 
 ## Design conformance
 
