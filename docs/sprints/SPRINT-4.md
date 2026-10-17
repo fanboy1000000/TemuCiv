@@ -44,7 +44,8 @@ generals, against a passive rival with one battle decided by luck, to feel the l
 | TASK-408 | Orchestrator | `prototype/RULES.md`, this log | Every owner mark in RULES.md rests on recorded words, quoted where the wording differs, checked by a script; cycle 3's findings fixed → cycle 4 | no |
 | TASK-409 | the TASK-403 agent, resumed | `prototype/**` except `RULES.md` | The look-ahead wins every battle, so the warning never reveals a battle's result; README and delete-list from cycle 3 → checks; smoke; CI; cycle 4 | no (prototype) |
 | TASK-410 | Orchestrator | `prototype/RULES.md`, this log, the working notes | Cycle 4's findings on the rules and the log fixed → cycle 5, scoped to the fixes | no |
-| TASK-411 | the TASK-403 agent, resumed | `prototype/**` except `RULES.md` | In the look-ahead an army with no regiments loses; README's "if it wins" wording → checks; smoke; CI; cycle 5 | no (prototype) |
+| TASK-411 | the TASK-403 agent, resumed (in the event a fresh agent: the entry says why) | `prototype/**` except `RULES.md` | In the look-ahead an army with no regiments loses; README's "if it wins" wording → checks; smoke; CI; cycle 5 | no (prototype) |
+| TASK-412 | Orchestrator (`ui.js` under the small tasks exception) | `prototype/ui.js`, `prototype/RULES.md`, this log, the working notes | Cycle 5's findings: the screen's hints say what RULES says; the log's records corrected → smoke; CI; cycle 6 on this diff | no |
 
 Waves: 401 and 402 (Orchestrator), then 403; 404 and 405 follow the cycle-1 review, 406 and 407 the cycle-2
 review, 408 and 409 the cycle-3 review, 410 and 411 the cycle-4 review (both past the cap, on the owner's
@@ -73,9 +74,9 @@ automatically. Adds 2–3 short questions on battles and capture. One sprint."
 **A2, supply and generals.** Asked how an army away from your cities gets its food, the owner said: "You set
 supply on generals. Armies can only move with a general. They can also bring baggage." Engineering's reading,
 shown to the owner in the message before the next question ("Here's how I read your answer; correct me if any of
-it is wrong") and not corrected: supply is an order given to a general, naming the
-city that feeds it, and the line follows that general (Sprint 1 log, the owner's combat concept); regiments
-without a general can't move; an army carries baggage as well as being supplied.
+it is wrong") and not corrected: supply is an order given to a general, naming the city that feeds it, and the
+line follows that general (Sprint 1 log, the owner's combat concept); regiments without a general can't move; an
+army carries baggage as well as being supplied.
 
 **A3, generals.** Built in a city, like a regiment (coin and production), with no limit: the moves budget
 already limits command (option 1 of three; a fixed number of generals and a general that takes a person were the
@@ -113,6 +114,11 @@ and fix in Sprint 5. Decided by the owner: "One more round (Recommended)" (TASK-
 the owner: fix, then a check of only the fixes by both lenses (recommended: the whole-sprint rounds kept finding
 new small things in freshly written text); fix and close with a waiver; or close now and fix in Sprint 5. Decided
 by the owner: "Fix, then a narrow check (Recommended)" (TASK-410, 411, then cycle 5 on the fix diff only).
+
+**Cycle 5 (2026-10-17).** Codex BLOCKED (the handoff, and outside the fix diff a rival panel hint saying only a
+general with regiments fights), the reviewer APPROVED-WITH-WARNINGS. Decided by the owner: "Fix, tiny check, close
+(Recommended)": "I fix the two in-game hints (a few words in one file) and the small log items, then both reviewers
+check only those few lines, then we close." (TASK-412, then cycle 6 on its diff only.)
 
 ## Task log
 
@@ -264,8 +270,8 @@ Cycle 3: Codex BLOCKED (2 blockers, 1 note), the reviewer APPROVED-WITH-WARNINGS
 cycle-2 blocker confirmed fixed by both. The reviewer's brief first carried a sentence that loosened the bar for
 the last cycle; it was withdrawn by message before grading, and the reviewer confirms the cap played no part.
 Provenance had now drawn findings three cycles running, so instead of fixing Codex's two marks alone, every owner
-mark was audited against the recorded words: "no person" for a general is eng. (A3's option says "coin and
-production, with no limit"); a route's single good, food or stone, is eng. (P2 says routes move goods); and more
+mark was audited against the recorded words: "no person" for a general is eng. (A3's option says "(coin and
+production), with no limit"); a route's single good, food or stone, is eng. (P2 says routes move goods); and more
 of the same kind, each now quoted or marked eng.: the terrain list, a changed order being a new order, P5's
 "any real order", the Hall's rising price (P10) and its cap (P4), the Granary, Workshop and Market effects (P10's
 words, amounts eng.), the borders' exceptions (P8), A2 for moving with a general, K6's "defending is free",
@@ -297,16 +303,16 @@ Status complete · Agent: Orchestrator · Checklist pass (self-check) · Review:
 fixes · Files: `prototype/RULES.md`, this log, `.claude/refinements/REFINEMENT-slice2-armies.md` (gitignored).
 Criteria: cycle 4's findings fixed → cycle 5.
 
-Cycle 4: Codex BLOCKED (3 blockers, 1 warning), the reviewer APPROVED-WITH-WARNINGS (2 warnings, 7 notes), every
-cycle-3 finding confirmed fixed by both. Fixed: in the look-ahead an army with no regiments loses, as always
-(Codex: forcing a 0% battle to be won contradicted RULES; code in TASK-411); "if it wins" is for an army whose
-hunger would come after a battle, as the code does (the reviewer's W1); P2 is quoted as one unbroken phrase from
-the Sprint 2 log instead of with an ellipsis; A4 is quoted ("Like a settler"), the settler's timing marked eng.;
-the working notes and the TASK-406 entry no longer credit "no person" to A3; TASK-408's "eight more" count is
-gone; ragged lines rewrapped; the handoff names the close steps, including the rulebook review that passing the
-cap requires (the reviewer's W2). Declined, with reasons: the smoke running the look-ahead (a light-bar note; the
-checks exercise it and a crash would show on the page at once); "1 turn left (if it wins)" reading ambiguously
-(a light-bar note, left for the owner's playtest).
+Cycle 4: Codex BLOCKED (3 blockers, 1 warning), the reviewer APPROVED-WITH-WARNINGS (2 warnings, 7 notes); the
+cycle-3 findings confirmed fixed, except that Codex found the "no person" fix partial (the working notes). Fixed: in
+the look-ahead an army with no regiments loses, as always (Codex: forcing a 0% battle to be won contradicted RULES;
+code in TASK-411); "if it wins" is for an army whose hunger would come after a battle, as the code does (the
+reviewer's W1); P2 is quoted as one unbroken phrase from the Sprint 2 log instead of with an ellipsis; A4 is quoted
+("Like a settler"), the settler's timing marked eng.; the working notes and the TASK-406 entry no longer credit "no
+person" to A3; TASK-408's "eight more" count is gone; ragged lines rewrapped; the handoff names the close steps,
+including the rulebook review that passing the cap requires (the reviewer's W2). Declined, with reasons: the smoke
+running the look-ahead (a light-bar note; the checks exercise it and a crash would show on the page at once); "1
+turn left (if it wins)" reading ambiguously (a light-bar note, left for the owner's playtest).
 
 ### TASK-411: cycle 4's findings (code)
 
@@ -317,15 +323,30 @@ Criteria: the code follows TASK-410's rules PASS; checks PASS; smoke PASS; `npm 
 Orchestrator).
 
 In the look-ahead a battle is won only when its win chance is above 0, so an army with no regiments loses, as
-always; real turns roll the dice exactly as before. The README's "Waiting for you" says what RULES says. Checks:
-a general with no regiments next to a rival city, look-ahead turn, on 5 seeds: the TASK-410 code captured the city
+always; real turns roll the dice exactly as before. The README's "Waiting for you" says what RULES says. Checks: a
+general with no regiments next to a rival city, look-ahead turn, on 5 seeds: the TASK-409 code captured the city
 every time (20 failures), the new code loses the general with the garrison unchanged; the Orchestrator's own check
 on 5 other seeds agrees (5 failures before, all pass after); 1 regiment against a garrison of 8 is still won; real
-turns are identical to the TASK-410 code over 50 runs of 80 turns (67 battles, 51 of them with no regiments), and
+turns are identical to the TASK-409 code over 50 runs of 80 turns (67 battles, 51 of them with no regiments), and
 that comparison catches a deliberately broken copy (34 runs differ). Declined knowledge entry (in a no-dice mode,
 replace only the dice, keeping certain outcomes): one prototype instance; production designs its own look-ahead.
-Found by the Orchestrator before cycle 5: TASK-410's working-notes fix had not been made (line 30 still credited
-"no person" to A3, the cycle-4 Codex blocker); made now, and the 23 owner quotes in RULES rechecked word for word.
+Found by the Orchestrator before cycle 5: TASK-410's working-notes fix had not been made (line 30 still credited "no
+person" to A3, the cycle-4 Codex blocker); made now, and RULES' 25 owner quotes (23 distinct) rechecked word for
+word.
+
+### TASK-412: cycle 5's findings
+
+Status complete · Agent: Orchestrator (`ui.js` under the small tasks exception) · Checklist items 1 and 9 pass ·
+Review: cycle 6 on this diff · Files: `prototype/ui.js`, `RULES.md` (a rewrap), this log, the working notes.
+Criteria: the screen's hints say what RULES says PASS (read side by side); smoke PASS; `npm run ci` PASS.
+Cycle 5: Codex BLOCKED (1/2/0; outside the fix diff 1 blocker), the reviewer APPROVED-WITH-WARNINGS (0/1/5; outside
+1 warning, 2 notes). Fixed: a rival city's panel said only "a general with regiments" fights it, but every army
+does, so a lone general is lost (Codex); the hunger tip says the look-ahead wins every battle fought with regiments.
+The log: TASK-410 overstated what Codex confirmed (the reviewer's W1); the TASK-411 plan row; "the TASK-409 code";
+the quote count; A3's parenthesis; two wraps. The gitignored working notes now say at line 30 "no person (eng.:
+Q3's option says only "(coin and production), with no limit")" and open with "Superseded by `prototype/RULES.md`".
+The handoff (Codex's blocker) is rewritten at the close. Declined notes: A4's timing (the quote covers the person,
+the prose the timing); "after its own battle" (an army fights only its own battle).
 
 ## Design conformance
 
@@ -352,12 +373,13 @@ builder's table and scratch checks and the Orchestrator's screenshots and spot c
 
 ## Handoff
 
-- **State:** on `sprint/4`: TASK-401 to 411 committed (TASK-411 and this handoff are this commit). Past the cap
-  twice on the owner's decisions; cycle 4: Codex BLOCKED, the reviewer APPROVED-WITH-WARNINGS.
+- **State:** on `sprint/4`: TASK-401 to 412 committed (TASK-412 and this handoff are the latest commit). Past the
+  cap three times on the owner's decisions; cycle 5: Codex BLOCKED, the reviewer APPROVED-WITH-WARNINGS; the owner
+  chose "Fix, tiny check, close" (TASK-412).
 - **In flight:** nothing.
-- **Waiting on:** cycle 5, both lenses, scoped to the fix diff since `3d3aba5`.
-- **Next action:** stamp; cycle 5. If both pass, close:
-  complete the log (review summary, test summary, a retrospective with the rulebook review that passing the cap
-  requires, WORKFLOW "Review cycles" and "Harness evolution"), route follow-ups to ROADMAP, `npm run ci` last,
+- **Waiting on:** cycle 6, both lenses, scoped to TASK-412's diff since `cba70e3`.
+- **Next action:** stamp; cycle 6. If both pass, close: complete the log (review summary, test summary, a
+  retrospective with the rulebook review that passing the cap requires, WORKFLOW "Review cycles" and "Harness
+  evolution"), route follow-ups to ROADMAP (the ten owner quotes resting on a gitignored file), `npm run ci` last,
   commit `S4 close: Prototype slice 2, armies and supply`, fast-forward `main`, push, watch GitHub CI once. If
-  cycle 5 blocks, back to the owner.
+  cycle 6 blocks, back to the owner.

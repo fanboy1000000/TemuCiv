@@ -122,15 +122,16 @@
   }
 
   /**
-   * When the army goes hungry if you give no more orders and it wins every battle: the same look-ahead as "Waiting
-   * for you", which never reveals how a battle will go.
+   * When the army goes hungry if you give no more orders and it wins every battle it fights with regiments: the same
+   * look-ahead as "Waiting for you", which never reveals how a battle will go.
    */
   function hungerText(g) {
     var h = ui.hunger[g.id];
     if (!h) return 'Playing the next ' + count(N.lowFoodTurns, 'end of turn', 'ends of turn') +
-      ' with no more orders (and every battle won), it stays fed.';
+      ' with no more orders (and every battle fought with regiments won), it stays fed.';
     return 'Playing ahead with no more orders, it goes hungry ' + (h.at ? 'at the end of turn ' + (S().turn + h.at) : 'when this turn ends') +
-      (h.ifWins ? ' if it wins its battle' : '') + '. (The look-ahead counts every battle as won, so it never tells you how one will go.)';
+      (h.ifWins ? ' if it wins its battle' : '') + '. (The look-ahead counts every battle fought with regiments as won, ' +
+      'so it never tells you how one will go; an army with no regiments loses, as always.)';
   }
 
   function baggageTip(g) {
@@ -540,7 +541,8 @@
     var near = s.generals.filter(function (g) {
       return G.dist(s, g.tile, r.tile) === 1 || (g.dest !== null && G.dist(s, g.dest, r.tile) === 1);
     });
-    if (!near.length) html += '<div class="muted">None. A general with regiments that ends a turn next to it fights it.</div>';
+    if (!near.length) html += '<div class="muted">None. Any army of yours that ends a turn next to it fights it; ' +
+      'a general with no regiments always loses.</div>';
     near.forEach(function (g) {
       html += '<div class="item link" data-act="goto" data-tile="' + g.tile + '">Army of ' + regs(g.regiments) + ' at ' + where(g.tile) +
         (G.dist(s, g.tile, r.tile) === 1 ? '' : ', heading next to it') + ' · win chance ' +

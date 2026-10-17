@@ -85,8 +85,8 @@ number is a starting value engineering proposed, kept in `numbers.js` where the 
 
 Every cost in the table and the Hall's price growth are eng. The four buildings are named by P10; farms and
 quarries are sites (P1); settlers appear in the map and borders ruling (S1 map: "ships carry armies, settlers and
-food"), and their rules are eng.;
-the general and the regiment are A2 to A4, as marked; everything else in the table not marked is eng.
+food"), and their rules are eng.; the general and the regiment are A2 to A4, as marked; everything else in the
+table not marked is eng.
 
 ## Sites
 - A site is ordered on a tile inside the city's borders or next to them, of the right terrain, with no site or
