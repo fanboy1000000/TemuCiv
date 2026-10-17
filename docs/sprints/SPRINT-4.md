@@ -46,8 +46,10 @@ generals, against a passive rival with one battle decided by luck, to feel the l
 | TASK-410 | Orchestrator | `prototype/RULES.md`, this log, the working notes | Cycle 4's findings on the rules and the log fixed → cycle 5, scoped to the fixes | no |
 | TASK-411 | the TASK-403 agent, resumed | `prototype/**` except `RULES.md` | In the look-ahead an army with no regiments loses; README's "if it wins" wording → checks; smoke; CI; cycle 5 | no (prototype) |
 
-Waves: 401 and 402 (Orchestrator), then 403; 404 and 405 follow the cycle-1 review, 406 and 407 the cycle-2 review, 408 and 409 the cycle-3 review, 410 and 411 the cycle-4 review (both past the cap, on the owner's decisions). TASK-403 uses a generic agent with the model named, as in Sprint 3:
-the simulation and presentation definitions carry standing instructions the prototype exception sets aside.
+Waves: 401 and 402 (Orchestrator), then 403; 404 and 405 follow the cycle-1 review, 406 and 407 the cycle-2
+review, 408 and 409 the cycle-3 review, 410 and 411 the cycle-4 review (both past the cap, on the owner's
+decisions). TASK-403 uses a generic agent with the model named, as in Sprint 3: the simulation and presentation
+definitions carry standing instructions the prototype exception sets aside.
 
 ## Plan review (step 2)
 
@@ -203,8 +205,8 @@ unused transit field, three unused exports, a smoke check that couldn't fail). N
 expectations, all PASS: an army of 3 at 10 tiles goes hungry exactly once before the first delivery and never in
 the next 30 turns; at 7, 8 and 9 tiles never; a marching army supplied before leaving never, from a well-stocked
 city (with an ordinary store it could still go hungry on turn 1: cycle 2, TASK-406); take and march in one turn
-leaves with full baggage, from a city holding enough food; leaving 2 of 3 regiments puts 12 food in the city; the size-1 garrison; each
-attention case; the forecast. Run against the cycle-1 code, the changed cases fail ("7 tiles: never hungry over 30
+leaves with full baggage, from a city holding enough food; leaving 2 of 3 regiments puts 12 food in the city;
+the size-1 garrison; each attention case; the forecast. Run against the cycle-1 code, the changed cases fail ("7 tiles: never hungry over 30
 turns: expected [], got [4,9,15]"). Earlier checks whose expectations changed with the rules were updated, each
 with its reason in the builder's report. Watch in play: a new supply line sends the baggage limit plus the trip's
 eating at once (24 for an army of 3 at 10 tiles), then about a turn's eating per turn; army orders now give
@@ -226,8 +228,8 @@ hunger warning is defined as playing the next two ends of turn on a copy of the 
 rules (TASK-407). Provenance: an owner's mark is used only where its record contains the words the rule rests on,
 quoted where not obvious; this log now records A1 to A5 and R1 with the option text the owner chose, word for
 word; "a few rival cities far away" and the captured city quote A1's chosen text; the legend covers "(owner,
-2026-10-15)" and says where the placeholder texts are; A3's "no person" quotes its option (wrong: the option says only "coin and production"; corrected in TASK-408); stability and
-sanitation are P7, the battle map and initiative eng. Handoff: from now on it is rewritten in the same commit as
+2026-10-15)" and says where the placeholder texts are; A3's "no person" quotes its option (wrong: the option says
+only "coin and production"; corrected in TASK-408); stability and sanitation are P7, the battle map and initiative eng. Handoff: from now on it is rewritten in the same commit as
 the work it describes. Declined (the reviewer's note, twice): keeping the scratch checks in the repository, since
 they hard-code today's numbers and would fail CI whenever the owner tunes `numbers.js`.
 
