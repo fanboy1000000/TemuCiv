@@ -328,12 +328,13 @@ var Game = (function () {
   }
 
   /**
-   * Which armies go hungry at the next N.lowFoodTurns ends of turn if no more orders are given and every battle is won
-   * ("Waiting for you"), as { generalId: { at: 0 for this turn's end, 1 for the next, ..., ifWins: true when the army
-   * fought a battle in the look-ahead before it went hungry } }. It plays those ends of turn on a copy of the state,
-   * made as undo makes it, in which every battle is won without rolling the dice, and reads the notes: the warning
-   * follows the same rules as the turn itself but never reveals how a battle will go. The real state, its dice and the
-   * undo list are not touched. It costs a couple of ends of turn: call it once per redraw.
+   * Which armies go hungry at the next N.lowFoodTurns ends of turn if no more orders are given and every battle that
+   * can be won is won ("Waiting for you"), as { generalId: { at: 0 for this turn's end, 1 for the next, ..., ifWins:
+   * true when the army fought a battle in the look-ahead before it went hungry } }. It plays those ends of turn on a
+   * copy of the state, made as undo makes it, in which every battle an army with regiments fights is won without
+   * rolling the dice (an army with no regiments loses, as always), and reads the notes: the warning follows the same
+   * rules as the turn itself but never reveals how a battle will go. The real state, its dice and the undo list are
+   * not touched. It costs a couple of ends of turn: call it once per redraw.
    */
   function hungerAhead(s) {
     var copy = { state: JSON.parse(JSON.stringify(s)), undo: [] }, out = {}, fought = {};
@@ -874,7 +875,10 @@ var Game = (function () {
   // Each step runs over the cities in founding order (the order of s.cities) and the armies oldest first (the
   // order of s.generals) before the next step starts.
 
-  /** Ends the turn. `opts.winEveryBattle` (only the hunger look-ahead passes it) wins every battle without dice. */
+  /**
+   * Ends the turn. `opts.winEveryBattle` (only the hunger look-ahead passes it) settles battles without dice: a battle
+   * with a win chance above 0 is won, and an army with no regiments (chance 0) loses, as always.
+   */
   function endTurn(game, opts) {
     var s = game.state, turn = s.turn, log = [], winAll = !!(opts && opts.winEveryBattle);
     function note(text, tile, kind, general) {
@@ -1055,7 +1059,7 @@ var Game = (function () {
       var a = g.regiments, d = foe.garrison, chance = winChance(a, d);
       var head = 'Battle at ' + foe.name + ': your ' + regs(a) + ' against ' + d + ' (win chance ' +
         fmt(chance * 100) + '%): ';
-      if (winAll || rollDice(s) < chance) {
+      if (winAll ? chance > 0 : rollDice(s) < chance) {
         g.regiments = winnerLeft(a, d);
         s.rivals.splice(s.rivals.indexOf(foe), 1);
         s.cities.push(makeCity(foe.id, foe.name, foe.tile, foe.size));

@@ -306,6 +306,23 @@ cap requires (the reviewer's W2). Declined, with reasons: the smoke running the 
 checks exercise it and a crash would show on the page at once); "1 turn left (if it wins)" reading ambiguously
 (a light-bar note, left for the owner's playtest).
 
+### TASK-411: cycle 4's findings (code)
+
+Status complete · Agent: general-purpose (Opus, named at spawn), a fresh agent: the TASK-403 agent ended with the
+previous session · Checklist items 1 and 9 pass · Review: sprint-end cycle 5 (light bar) · Files:
+`prototype/game.js`, `README.md`; `ui.js` (one code comment, by the Orchestrator under the small tasks exception).
+Criteria: the code follows TASK-410's rules PASS; checks PASS; smoke PASS; `npm run ci` 4/4 PASS (rerun by the
+Orchestrator).
+
+In the look-ahead a battle is won only when its win chance is above 0, so an army with no regiments loses, as
+always; real turns roll the dice exactly as before. The README's "Waiting for you" says what RULES says. Checks:
+a general with no regiments next to a rival city, look-ahead turn, on 5 seeds: the TASK-410 code captured the city
+every time (20 failures), the new code loses the general with the garrison unchanged; the Orchestrator's own check
+on 5 other seeds agrees (5 failures before, all pass after); 1 regiment against a garrison of 8 is still won; real
+turns are identical to the TASK-410 code over 50 runs of 80 turns (67 battles, 51 of them with no regiments), and
+that comparison catches a deliberately broken copy (34 runs differ). Declined knowledge entry (in a no-dice mode,
+replace only the dice, keeping certain outcomes): one prototype instance; production designs its own look-ahead.
+
 ## Design conformance
 
 For the prototype, conforming means matching `prototype/RULES.md` (WORKFLOW, "Prototype phase"). Checked by the
@@ -317,7 +334,7 @@ builder's table and scratch checks and the Orchestrator's screenshots and spot c
 | The start; the rival | `game.js` `newGame`, `placeRivals`, end-of-turn step 10 | spot check; scratch checks (garrison 3/4/4/5/8/8) | PASS |
 | Moves (army orders, undo) | `game.js` check and order functions for general, regiment, march, take, leave, supply; `undo` | scratch checks (one move each, undo exact); smoke | PASS |
 | Cities, food; generals and regiments | `eats` (garrison first), `makeGeneral`, `armyBlocked`, steps 4, 5, 7 | scratch checks (regiment takes a person, waits at size 1; garrison eating) | PASS |
-| Feeding armies: baggage and supply | `armyReserve`, `baggageCap`, `supplyPlan`, `foodOnWay`, `hungerAhead` (with `endTurn`'s look-ahead option), steps 2, 3, 4, 8 | scratch checks (fill, arrival turn, lands where the general is, supply before routes, size-8 city ships, hunger; TASK-405: lines of 7 to 10 tiles held 30 turns, take and march, leaving regiments; TASK-407: an army raised and supplied in one city, two armies in a size-1 city, the look-ahead against 1,500 random turns) | PASS |
+| Feeding armies: baggage and supply | `armyReserve`, `baggageCap`, `supplyPlan`, `foodOnWay`, `hungerAhead` (with `endTurn`'s look-ahead option), steps 2, 3, 4, 8 | scratch checks (fill, arrival turn, lands where the general is, supply before routes, size-8 city ships, hunger; TASK-405: lines of 7 to 10 tiles held 30 turns, take and march, leaving regiments; TASK-407: an army raised and supplied in one city, two armies in a size-1 city, the look-ahead against 1,500 random turns; TASK-411: an army with no regiments loses in the look-ahead) | PASS |
 | Battles, coin (plunder) | `winChance`, `winnerLeft`, `foeAt`, `rollDice`, step 9 | scratch checks under a fixed seed; capture screenshot (64%, 6 left, 30 plunder) | PASS |
 | Sites, settlers (rival borders) | `siteProblem`, `foundProblemAt` | scratch checks; smoke | PASS |
 | A turn | `endTurn`, one block per step, in RULES order | builder's table; review | PASS |
@@ -331,12 +348,11 @@ builder's table and scratch checks and the Orchestrator's screenshots and spot c
 
 ## Handoff
 
-- **State:** on `sprint/4`: TASK-401 to 410 committed (TASK-410 and this handoff are this commit). Past the cap
+- **State:** on `sprint/4`: TASK-401 to 411 committed (TASK-411 and this handoff are this commit). Past the cap
   twice on the owner's decisions; cycle 4: Codex BLOCKED, the reviewer APPROVED-WITH-WARNINGS.
-- **In flight:** TASK-411 (the TASK-403 agent: a look-ahead army with no regiments loses; README wording),
-  uncommitted.
-- **Waiting on:** TASK-411; then cycle 5, both lenses, scoped to the fix diff since `3d3aba5`.
-- **Next action:** verify and commit TASK-411 with this handoff rewritten; stamp; cycle 5. If both pass, close:
+- **In flight:** nothing.
+- **Waiting on:** cycle 5, both lenses, scoped to the fix diff since `3d3aba5`.
+- **Next action:** stamp; cycle 5. If both pass, close:
   complete the log (review summary, test summary, a retrospective with the rulebook review that passing the cap
   requires, WORKFLOW "Review cycles" and "Harness evolution"), route follow-ups to ROADMAP, `npm run ci` last,
   commit `S4 close: Prototype slice 2, armies and supply`, fast-forward `main`, push, watch GitHub CI once. If

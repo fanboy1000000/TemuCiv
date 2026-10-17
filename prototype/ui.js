@@ -609,7 +609,7 @@
   }
 
   function render() {
-    ui.hunger = G.hungerAhead(S()); // the next ends of turn played on a copy (every battle won), once per redraw
+    ui.hunger = G.hungerAhead(S()); // the next ends of turn played on a copy (every battle with regiments won), once per redraw
     renderTop();
     renderSide();
     renderWaiting();

@@ -29,9 +29,10 @@ is sent anywhere. There is no saving: reloading the page starts a new game.
 - **Waiting for you** (bottom left) lists cities with nothing to build, idle sites, settlers without orders,
   cities whose food is falling, generals without orders outside your cities, and armies that will go hungry at
   one of the next two ends of turn if you give no more orders (the screen finds them by quietly playing those two
-  turns ahead on a copy of the game, with the same rules, counting every battle as won so it never gives away how
-  a battle will go; an army with a battle ahead is listed as going hungry "if it wins"). Click a line to go there. The **turn log** (bottom
-  right) says what happened at the end of the last few turns, battles included.
+  turns ahead on a copy of the game, with the same rules, counting every battle an army with regiments fights as
+  won, so it never gives away how a battle will go; an army with no regiments loses, as always. An army whose
+  hunger would come after a battle is listed as going hungry "if it wins"). Click a line to go there. The **turn
+  log** (bottom right) says what happened at the end of the last few turns, battles included.
 - **Seed** (top right): the number the map is made from. Type another number and press Enter (or New game),
   or press Random.
 
