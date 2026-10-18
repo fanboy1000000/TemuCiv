@@ -29,6 +29,7 @@ var NUMBERS = {
     stone: 10, // stone in your first city's store
     settlers: 1, // settlers standing next to your first city
     generals: 1, // generals standing in your first city
+    regiments: 3, // regiments your first general leads, baggage full; they take no person (0 = a general alone)
   },
 
   // ---- Moves ----

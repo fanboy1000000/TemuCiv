@@ -118,6 +118,21 @@ the general 3 regiments (eng.) under G1's two quotes. The regiments take no pers
 with no extra food. The marks paragraph names G1 and was rewrapped. CLAUDE.md's phase line and the ROADMAP's M0.5
 row now name slice 3 as the web and the starting army, with the category scores later (W1). `check-docs` PASS.
 
+### TASK-502: the starting army
+
+Status complete · Agent: general-purpose (Opus, named at spawn) · Checklist items 1 and 9 pass · Review:
+sprint-end · Files: `prototype/numbers.js`, `game.js`, `README.md`. A new number `start.regiments` (3). `newGame`
+gives the first general those regiments and full baggage. The README's "Armies" opens with the starting army and
+what it can do with the starting numbers. Criteria: a new game on five seeds has 3 regiments, baggage 18, and a
+size-2 capital with 10 food and 10 stone PASS. With 0, the new-game state is identical to the committed code on
+200 seeds, and a control with 3 fails as it should PASS. Smoke PASS, `npm run ci` PASS (Orchestrator's run).
+Screenshots checked by the Orchestrator: the army marker "3" in the capital, the general's panel showing 18
+food, 3 turns left. Brief contradiction, settled: "build food first" doesn't save the capital (a farm ordered on
+turn 1 finishes on turn 5, after the capital starves on turn 3), so the README says to decide on turn 1. Raised
+by the builder and taken into TASK-504: the city's food forecast leaves out the baggage refill ("−2 per turn"
+while the store drops from 8 to 0), and the smoke check now gives few take and leave orders (3 and 4). The
+proposed PAT (prove a "0 means as before" number against the committed code) was declined as prototype-only.
+
 ### TASK-503: the web's rules
 
 Status complete · Agent: Orchestrator · Checklist items 1 and 9 pass (self-check) · Review: sprint-end, normal

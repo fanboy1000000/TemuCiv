@@ -38,12 +38,20 @@ is sent anywhere. There is no saving: reloading the page starts a new game.
 
 ## Armies
 
-You start with one general in your first city. A city can build more generals, and regiments: a regiment is one
-of the city's people turned soldier, so it takes a person when it is finished (and waits while the city has only
-one). Regiments stay in their city as its garrison, eating from the city's food, until a general takes them: only
-a general moves regiments. If a city of size 1 can't feed its garrison, a regiment is lost instead of a person. A
-general and its regiments are an army, the dark square with a gold edge and the number of regiments on it.
-Taking or leaving regiments gives that city attention, like a build; sending the army somewhere gives none.
+You start with a general in your first city, leading a small army of 3 regiments; they took no one from the city.
+Its baggage is full, 3 turns of the army's food, and there is no other food for it anywhere. With the starting
+numbers the capital can't feed this army for long: kept at home, the army refills its baggage from the capital's
+store, and the capital starves to size 1 at the end of turn 3, even with a farm ordered on turn 1 (the farm is
+finished too late); sent off at once, it spares the capital but lives on those 3 turns of food, and the nearest
+rival city is usually 5 turns away, so it gets there with 1 regiment of 3. So decide on turn 1 what the army is
+for.
+
+A city can build more generals, and regiments: a regiment is one of the city's people turned soldier, so it
+takes a person when it is finished (and waits while the city has only one). Regiments stay in their city as its
+garrison, eating from the city's food, until a general takes them: only a general moves regiments. If a city of
+size 1 can't feed its garrison, a regiment is lost instead of a person. A general and its regiments are an army,
+the dark square with a gold edge and the number of regiments on it. Taking or leaving regiments gives that city
+attention, like a build; sending the army somewhere gives none.
 
 Away from your cities an army lives on its baggage. Its limit is 3 turns of the army's food: filling and supply
 aim at it, and food already carried is kept even above it until eaten. While an army stands in one of your

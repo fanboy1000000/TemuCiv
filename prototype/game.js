@@ -1135,6 +1135,12 @@ var Game = (function () {
       s.settlers.push({ id: s.nextId++, tile: spots[k % spots.length], dest: null });
     }
     for (var j = 0; j < N.start.generals; j++) s.generals.push(makeGeneral(s, start.tile));
+    // The first general leads the starting army, its baggage full; its regiments take no person (RULES, The start).
+    var first = s.generals[0];
+    if (first) {
+      first.regiments = N.start.regiments;
+      first.baggage = baggageCap(first);
+    }
     s.moves = movesPerTurn(s);
     return { state: s, undo: [] };
   }
