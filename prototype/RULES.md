@@ -1,21 +1,24 @@
-# Prototype slices 1 and 2: the rules
+# Prototype slices 1 to 3: the rules
 
 The rules the throwaway prototype follows (WORKFLOW, "Prototype phase"). Written by the Orchestrator from the
 owner's rulings: the slice 1 placeholders P1 to P12 and the earlier rulings (Sprint 1 to 3 logs), and the slice 2
-answers A1 to A5 (Sprint 4 log), all under "Owner design rulings". The builder may not change this file, and reports
-any rule that can't work as written. Each rule ends with its source; "(eng.)" marks engineering's own proposal,
-which the owner may flag, and a rule with two parts may carry two marks. An owner's mark is used only where the
-record it points to contains the words the rule rests on; a quote in the mark gives those words where they are not
-obvious; anything else is (eng.). The owner's marks: K1 to K6 (the moves budget), C2 (the economy), D1 to D3 and P1
-to P12 (the first playable and slice 1's placeholders), all in the Sprint 2 log, with the placeholder texts as put
-to the owner in the working notes `.claude/refinements/REFINEMENT-first-playable.md`; "(owner, 2026-10-15)", the
-Sprint 3 log's "Production and coin" ruling; A1 to A5 and R1 in the Sprint 4 log, and G1 in the Sprint 5 log, with
-the exact option text the owner chose; "S1" with an entry name points to the Sprint 1 log's rulings: "S1 logistics"
-(logistics is a major feature), "S1 combat" (the owner's combat concept, still to be matured) and "S1 map" (map and
-borders). A number is the owner's when its rule's mark says so, for example one move per order (P3) or one person
-per regiment (A4); four more were shown to the owner as examples and kept: 4 moves per turn and a cap of about 8
-(P4), a Hall's one move (P10), and attention's quarter more for five turns (P5). Every other number is a starting
-value engineering proposed, kept in `numbers.js` where the owner can change it and reload.
+answers A1 to A5 (Sprint 4 log), and slice 3's G1 and W1 to W3 (Sprint 5 log), all under "Owner design rulings". The
+builder may not change this file, and reports any rule that can't work as written. Each rule ends with its source;
+"(eng.)" marks engineering's own proposal, which the owner may flag, and a rule with two parts may carry two marks.
+An owner's mark is used only where the record it points to contains the words the rule rests on; a quote in the mark
+gives those words where they are not obvious; anything else is (eng.). The owner's marks: K1 to K6 (the moves
+budget), C2 (the economy), D1 to D3 and P1 to P12 (the first playable and slice 1's placeholders), all in the Sprint
+2 log, with the placeholder texts as put to the owner in the working notes
+`.claude/refinements/REFINEMENT-first-playable.md`; "(owner, 2026-10-15)", the Sprint 3 log's "Production and coin"
+ruling; A1 to A5 and R1 in the Sprint 4 log, and G1 and W1 to W3 in the Sprint 5 log, with the exact option text the
+owner chose and, for W1 and W3, the text shown with the question; "S1" with an entry name points to the Sprint 1
+log's rulings: "S1 logistics" (logistics is a major feature), "S1 combat" (the owner's combat concept, still to be
+matured), "S1 map" (map and borders), "S1 web" (the progression web and its branches), "S1 progression"
+("Progression, revised") and "S1 web pricing" ("Web pricing"). A number is the owner's when its rule's mark says so,
+for example one move per order (P3) or one person per regiment (A4); four more were shown to the owner as examples
+and kept: 4 moves per turn and a cap of about 8 (P4), a Hall's one move (P10), and attention's quarter more for five
+turns (P5). Every other number is a starting value engineering proposed, kept in `numbers.js` where the owner can
+change it and reload.
 
 ## The map
 - A hex grid, 24 × 18 tiles, one landmass surrounded by water, made from a seed number: the same seed always
@@ -38,7 +41,8 @@ value engineering proposed, kept in `numbers.js` where the owner can change it a
 - Every order costs one move (P3). Army orders and empire orders draw on the same moves (K5). The orders: give a
   city something to build (a building, a site on a chosen tile, a settler, a general or a regiment); send a
   settler to a tile; found a city with a settler; set up, change or cancel a route; send a general to a tile; a
-  general takes or leaves regiments; set, change or cancel a general's supply. Looking at anything is free (P3).
+  general takes or leaves regiments; set, change or cancel a general's supply; buy a node in the web. Looking at
+  anything is free (P3).
   An order you can't afford is shown disabled, with the reason (eng.).
 - Undo takes back the most recent order given this turn, and can be repeated back to the start of the turn: the
   order's move, coin, stone and food come back, so correcting a misclick costs nothing (eng.). Changing an order
@@ -50,7 +54,7 @@ value engineering proposed, kept in `numbers.js` where the owner can change it a
   starts there; setting, changing or cancelling a supply line that it feeds (for a change, the city named; for a
   cancel, the city that was feeding); a general taking or leaving regiments there (the list is eng.). A new order
   restarts the 5 turns (eng.). Sending a settler or a general is an order to a unit, not to a city, and gives no
-  attention (eng.).
+  attention; nor does buying a node (eng.).
 - The Hall adds one move per turn, at a rising price (P10: "+1 move per turn, rising price, up to the cap"). Each
   further Hall costs half as much again as the one before, counting Halls finished or being built, so ordering
   several at once doesn't get the first price; one per city (eng.). Moves per turn never exceed 8 (P4: "a building
@@ -80,15 +84,15 @@ value engineering proposed, kept in `numbers.js` where the owner can change it a
 | Settler | 0 | 0 | 20 | 15 food when ordered; 1 person when finished (the build waits while the city is size 1) | founds a city |
 | General | 30 | 0 | 20 | no limit (A3: "the way it builds a regiment (coin and production), with no limit"); no person (eng.) | leads regiments; only a general moves them (A2) |
 | Regiment | 15 | 5 | 20 | 1 person when finished (A4: "Like a settler, each regiment takes one person from the city"); the build waits while the city is size 1 | a soldier who eats like a person |
-| Hall | 40 | 20 | 40 | one per city; coin and stone × 1.5 for each Hall finished or being built | +1 move per turn (P10) |
-| Granary | 20 | 10 | 25 | one per city | growth needs a quarter less food (see Cities) |
-| Market | 25 | 10 | 30 | one per city | coin from people and arriving trade +50% (see Coin) |
-| Workshop | 20 | 15 | 30 | one per city | production +50% (see Production) |
+| Hall | 40 | 20 | 40 | needs its web node (W2); one per city; coin and stone × 1.5 for each Hall finished or being built | +1 move per turn (P10) |
+| Granary | 20 | 10 | 25 | needs its web node (W2); one per city | growth needs a quarter less food (see Cities) |
+| Market | 25 | 10 | 30 | needs its web node (W2); one per city | coin from people and arriving trade +50% (see Coin) |
+| Workshop | 20 | 15 | 30 | needs its web node (W2); one per city | production +50% (see Production) |
 
-Every cost in the table and the Hall's price growth are eng. The four buildings are named by P10; farms and
-quarries are sites (P1); settlers appear in the map and borders ruling (S1 map: "ships carry armies, settlers and
-food"), and their rules are eng.; the general and the regiment are A2 to A4, as marked; everything else in the
-table not marked is eng.
+Every cost in the table and the Hall's price growth are eng. Some nodes in the web change these numbers (see "The
+web"). The four buildings are named by P10; farms and quarries are sites (P1); settlers appear in the map and
+borders ruling (S1 map: "ships carry armies, settlers and food"), and their rules are eng.; the general and the
+regiment are A2 to A4, as marked; everything else in the table not marked is eng.
 
 ## Sites
 - A site is ordered on a tile inside the city's borders or next to them, of the right terrain, with no site or
@@ -176,6 +180,61 @@ table not marked is eng.
 - Supply runs every turn until you change or cancel it (K4); each is one move (P3). It earns no trade coin (eng.).
 - An army whose baggage can't feed it this turn eats what there is and loses one regiment, a person lost (eng.).
 
+## The web
+- The web builds your leader and is also the tech tree (S1 web: "Progression is a Path of Exile-style web that also
+  builds the leader"; S1 progression: "the leader web is also the tech tree, so new units, buildings and
+  improvements sit on its nodes and are bought"). This one is a draft: its shape, branches, rates, prices and nodes
+  are placeholders (W3: "Build the list as shown. Every name, price and effect sits in numbers.js, so you can retune
+  it after playing").
+- The shape: one ring (W1, shown with the question: "and one ring"). You start owning a centre; four branches run
+  out from it, with four nodes each, inner to outer; you can buy any node linked to one you already own; the outer
+  nodes of neighbouring branches are linked, so you can cross between branches (W3: "you start owning a centre. Four
+  branches run out from it, with four nodes each. You can buy any node linked to one you already own. The outer
+  nodes of neighbouring branches are linked, so you can cross between branches"). The branches stand around the
+  centre in the order Agriculture, Engineering, Economy, Military, then Agriculture again, so each outer node is
+  linked to two others; the centre does nothing else (eng.).
+- The branches: Agriculture, Engineering, Economy and Military (W3; W1, shown with the question: "four branches that
+  the prototype already has activities for (Military, Engineering, Agriculture, Economy)"). Military, Engineering
+  and Agriculture are in the owner's branch set, and Economy was proposed there (S1 web). The other branches named
+  there are left out (eng.).
+- Each branch has its own experience, earned by activity in that branch (S1 web pricing: "each branch of the web has
+  its own experience, earned by activity in that branch"), at these rates (W3):
+  - Agriculture: 1 per 4 food your farms grow, counted when a working farm sends its output, attention included
+    (the counting is eng.).
+  - Engineering: 1 per stone your quarries cut, counted the same way (eng.).
+  - Economy: 1 per 4 coin you collect: the coin your people pay, trade coin when it lands and plunder (eng.).
+  - Military: 3 per regiment raised and 10 per battle: a regiment counts when it is finished, a battle whether you
+    win or lose (eng.).
+  Experience keeps its fractions and is shown rounded down (eng.).
+- Buying a node is an order: one move (P3: "every order costs one move"), taken back by undo like any order (W1,
+  shown with the question: "Buying a node costs one move and can be undone, like any other order"). A node costs
+  10, 20, 30 and 40 experience, from the inner node out, and each missing point of experience costs 2 coin (W3; S1
+  web pricing: "coin makes up any shortfall at a premium"). The branch's experience pays first, then coin (eng.). A
+  node you can't buy is shown disabled, with the reason (eng.).
+- The Hall, Granary, Market and Workshop sit on nodes, and a city can build one only once you own its node; farms,
+  quarries, settlers, generals and regiments stay available to everyone (W2: "The Hall, Granary, Market and
+  Workshop move onto nodes, while farms, quarries, settlers, generals and regiments stay available to everyone";
+  "you have to earn the four buildings"). The other nodes give leader bonuses (W2: "The other nodes give leader
+  bonuses").
+- A bonus works from the moment its node is bought; a cost it changes counts for orders given from then on, and
+  goods and food already on their way keep their arrival turn (eng.).
+
+| Branch | Nodes, inner to outer: what each does |
+|---|---|
+| Agriculture | Granary: the building · Rich soil: farms make 5 food, not 4 · Hardy settlers: a settler costs 10 food, not 15 · Field kitchens: an army's baggage limit is 4 turns of its eating, not 3 |
+| Engineering | Workshop: the building · Deep quarries: quarries make 3 stone, not 2 · Roads: site output, routes and supply travel 4 tiles a turn, not 3 · Master builders: the Hall, Granary, Market and Workshop cost a quarter less stone, rounded up |
+| Economy | Hall: the building · Market: the building · Tolls: trade earns 0.75 coin per unit, not 0.5 · Tax rolls: each person pays 1.5 coin, not 1 |
+| Military | Drill: a regiment needs 15 production, not 20 · Foraging: an army not standing in one of your cities eats a quarter less · Forced march: armies march 3 tiles a turn, not 2 · Siege craft: a rival city's walls count 1.25, not 1.5 |
+
+The names, their order and these amounts are W3's list: farms 5 food, a settler 10 food, quarries 3 stone, a quarter
+less stone, 1.5 coin a person, 3 tiles a turn, a quarter less eaten, and Field kitchens' "armies carry 4 turns of
+food, not 3", read as the baggage limit (the reading is eng.). Where the list named only a direction, the amount is
+eng.: Roads' 4 tiles ("goods and supply travel faster"; that site output and routes count as goods is eng.), Tolls'
+0.75 ("more coin from trade"), Drill's 15 ("regiments build faster") and Siege craft's 1.25 ("weaker rival walls").
+Also eng.: which buildings Master builders covers and its rounding, applied after the Hall's price growth; that
+"away from home" (Foraging) means not standing in one of your cities; and that a foraging army's baggage limit,
+and what supply counts it eating on the way, stay at its full eating.
+
 ## The rival
 - One rival (A1), with "a few rival cities far away" (A1, from the option text the owner chose), always at war
   with you (S1 map: every player is at war with every other from the moment they meet). It has 3 cities, placed
@@ -216,6 +275,9 @@ When you end the turn, in this order (eng.), city by city in founding order and 
 10. Rival garrisons grow.
 11. Attention counts down; this turn's moves are added.
 
+Experience is earned at the step where its activity happens: farm food and quarry stone at 1, trade coin at 3, a
+regiment at 5, people's coin at 6, a battle and its plunder at 9 (eng.).
+
 ## The screen
 - The map: drag to scroll, wheel to zoom, click a tile, city or army to inspect it, free (P3). Buildings are simple
   shapes (D3: "buildings are simple shapes"), and so are cities and sites; borders are a coloured outline; routes
@@ -223,7 +285,11 @@ When you end the turn, in this order (eng.), city by city in founding order and 
 - An army is a marker with its regiment count; a city shows its garrison; rival cities and borders have their own
   colour and show their garrison. A supply line is a dashed line from its city to the general, with the amount
   on it (eng.).
-- A top bar: turn, coin, moves (available / per turn / saved), End Turn (eng.).
+- A top bar: turn, coin, moves (available / per turn / saved), each branch's experience, a button that opens the
+  web, End Turn (eng.).
+- The web opens over the map: the centre, the nodes and their links, the nodes you own filled and the ones you can
+  buy outlined. Hover over a node to see what it does and its price in experience and coin; click it to buy it;
+  Esc closes the web (eng.).
 - A city panel: size, garrison, food (store, eaten, needed to grow), stone, goods on the way, production and the
   current build with its progress, buildings, sites (working or idle), routes, supply lines it feeds, the
   attention left. Orders are buttons that show their cost (eng.).
@@ -243,6 +309,8 @@ When you end the turn, in this order (eng.), city by city in founding order and 
 
 ## Left out
 Left out of the prototype so far: a rival that moves (A1: "never move"); a rival that attacks, builds or grows
-(eng.); the battle map and initiative (eng.; A1 has battles settled automatically); the web and the category scores,
-which wait for slice 3 (D2); stability and sanitation, which wait for a later slice (P7); hidden parts of the map,
-ships and sea, saving, sound and art (eng.).
+(eng.); the battle map and initiative (eng.; A1 has battles settled automatically); the category scores, which wait
+for a slice in which the rival acts (W1: "The scores wait until the rival does something"); from the web, more rings
+and the gate that opens them, cheaper ideas that neighbours know, science and rising node prices (eng.); stability
+and sanitation, which wait for a later slice (P7); hidden parts of the map, ships and sea, saving, sound and art
+(eng.).

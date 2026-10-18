@@ -118,6 +118,17 @@ the general 3 regiments (eng.) under G1's two quotes. The regiments take no pers
 with no extra food. The marks paragraph names G1 and was rewrapped. CLAUDE.md's phase line and the ROADMAP's M0.5
 row now name slice 3 as the web and the starting army, with the category scores later (W1). `check-docs` PASS.
 
+### TASK-503: the web's rules
+
+Status complete · Agent: Orchestrator · Checklist items 1 and 9 pass (self-check) · Review: sprint-end, normal
+bar · Files: `prototype/RULES.md`, this log. RULES.md gains "The web". The shape, branches, rates, prices and the
+node table come from W3's list. The four buildings on nodes and the bonus nodes come from W2. The one ring and undo
+come from W1's shown text, and the tech tree, leader and experience from the Sprint 1 rulings ("S1 web", "S1
+progression", "S1 web pricing", now named in the marks paragraph). Every amount the list gave only as a direction
+is marked eng. Also updated: the orders list and attention (buying a node, no attention), the building table
+(needs its node), the top bar and the web screen, the turn's experience steps, and "Left out". Every quoted mark
+was checked word for word against this log and the Sprint 1 log.
+
 ## Design conformance
 
 | RULES.md section | Implemented in (`prototype/`) | Verified by | Status |
