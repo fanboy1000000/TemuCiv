@@ -2,20 +2,20 @@
 
 The rules the throwaway prototype follows (WORKFLOW, "Prototype phase"). Written by the Orchestrator from the
 owner's rulings: the slice 1 placeholders P1 to P12 and the earlier rulings (Sprint 1 to 3 logs), and the slice 2
-answers A1 to A5 (Sprint 4 log), all under "Owner design rulings". The builder may not change this file, and
-reports any rule that can't work as written. Each rule ends with its source; "(eng.)" marks engineering's own
-proposal, which the owner may flag, and a rule with two parts may carry two marks. An owner's mark is used only
-where the record it points to contains the words the rule rests on; a quote in the mark gives those words where
-they are not obvious; anything else is (eng.). The owner's marks: K1 to K6 (the moves budget), C2 (the economy),
-D1 to D3 and P1 to P12 (the first playable and slice 1's placeholders), all in the Sprint 2 log, with the
-placeholder texts as put to the owner in the working notes `.claude/refinements/REFINEMENT-first-playable.md`;
-"(owner, 2026-10-15)", the Sprint 3 log's "Production and coin" ruling; A1 to A5 and R1 in the Sprint 4 log, with
-the exact option text the owner chose; "S1" with an entry name points to the Sprint 1 log's rulings: "S1
-logistics" (logistics is a major feature), "S1 combat" (the owner's combat concept, still to be matured) and "S1
-map" (map and borders). A number is the owner's when its rule's mark says so, for example one move per order
-(P3) or one person per regiment (A4); four more were shown to the owner as examples and kept: 4 moves per turn and
-a cap of about 8 (P4), a Hall's one move (P10), and attention's quarter more for five turns (P5). Every other
-number is a starting value engineering proposed, kept in `numbers.js` where the owner can change it and reload.
+answers A1 to A5 (Sprint 4 log), all under "Owner design rulings". The builder may not change this file, and reports
+any rule that can't work as written. Each rule ends with its source; "(eng.)" marks engineering's own proposal,
+which the owner may flag, and a rule with two parts may carry two marks. An owner's mark is used only where the
+record it points to contains the words the rule rests on; a quote in the mark gives those words where they are not
+obvious; anything else is (eng.). The owner's marks: K1 to K6 (the moves budget), C2 (the economy), D1 to D3 and P1
+to P12 (the first playable and slice 1's placeholders), all in the Sprint 2 log, with the placeholder texts as put
+to the owner in the working notes `.claude/refinements/REFINEMENT-first-playable.md`; "(owner, 2026-10-15)", the
+Sprint 3 log's "Production and coin" ruling; A1 to A5 and R1 in the Sprint 4 log, and G1 in the Sprint 5 log, with
+the exact option text the owner chose; "S1" with an entry name points to the Sprint 1 log's rulings: "S1 logistics"
+(logistics is a major feature), "S1 combat" (the owner's combat concept, still to be matured) and "S1 map" (map and
+borders). A number is the owner's when its rule's mark says so, for example one move per order (P3) or one person
+per regiment (A4); four more were shown to the owner as examples and kept: 4 moves per turn and a cap of about 8
+(P4), a Hall's one move (P10), and attention's quarter more for five turns (P5). Every other number is a starting
+value engineering proposed, kept in `numbers.js` where the owner can change it and reload.
 
 ## The map
 - A hex grid, 24 × 18 tiles, one landmass surrounded by water, made from a seed number: the same seed always
@@ -27,7 +27,9 @@ number is a starting value engineering proposed, kept in `numbers.js` where the 
 
 ## The start
 - You start with one city of size 2 on grassland, 30 coin, 10 food and 10 stone in its store, one settler next
-  to it, and one general in the city (eng.).
+  to it, and one general in the city (eng.). The general leads a small army (G1: "I want the general to start with
+  a small army") of 3 regiments, which take no person from the city (eng.). Its baggage is full, 3 turns of the
+  army's eating, with no extra food anywhere (G1: "The army has the usual 3 turns of food and nothing else").
 - The rival starts with its cities placed as "The rival" says (A1; the placing is eng.).
 
 ## Moves
