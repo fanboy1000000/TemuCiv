@@ -1,4 +1,4 @@
-// TemuCiv prototype, slices 1 and 2: the game rules (prototype/RULES.md).
+// TemuCiv prototype, slices 1 to 3: the game rules (prototype/RULES.md).
 //
 // No DOM, canvas or clock in this file, so the page (ui.js) and the smoke check (smoke.js) both run it.
 // Every balance number comes from NUMBERS (numbers.js). Throwaway code: nothing outside prototype/ uses it
@@ -256,6 +256,77 @@ var Game = (function () {
 
   function where(s, tile) { return '(' + col(s, tile) + ', ' + row(s, tile) + ')'; }
 
+  // ---- The web (RULES, The web) ----
+  // Every node, from numbers.js: its id ("branch-tier": "0-1" is the first branch's second node), its branch (its
+  // place in N.web.branches), its tier (0 = the inner node) and its entry in numbers.js. You own the centre from the
+  // start. The links: the centre to each inner node, each node to the next one out, and each outer node to the outer
+  // nodes of the branches next to its own around the centre. The state keeps the nodes bought (s.web.owned) and
+  // each branch's experience (s.web.xp, in branch order).
+  var CENTRE = 'centre';
+  var NODES = [], LINKS = [];
+  N.web.branches.forEach(function (branch, i) {
+    branch.nodes.forEach(function (spec, k) {
+      NODES.push({ id: i + '-' + k, branch: i, tier: k, spec: spec });
+      LINKS.push([k ? i + '-' + (k - 1) : CENTRE, i + '-' + k]);
+    });
+  });
+  N.web.branches.forEach(function (branch, i) {
+    var next = (i + 1) % N.web.branches.length;
+    if (next !== i) LINKS.push([outerNode(i), outerNode(next)]);
+  });
+
+  function outerNode(i) { return i + '-' + (N.web.branches[i].nodes.length - 1); }
+  function nodeById(id) { return NODES.find(function (n) { return n.id === id; }) || null; }
+  function owns(s, id) { return id === CENTRE || s.web.owned.indexOf(id) >= 0; }
+
+  function linksOf(id) {
+    var out = [];
+    LINKS.forEach(function (l) {
+      if (l[0] === id) out.push(l[1]);
+      else if (l[1] === id) out.push(l[0]);
+    });
+    return out;
+  }
+
+  /** The node a city needs you to own before it can build this kind, or null when every city can build it (W2). */
+  function nodeFor(kind) { return NODES.find(function (n) { return n.spec.building === kind; }) || null; }
+
+  /**
+   * The numbers the web's bonuses change, as the nodes you own leave them: each is the usual number from numbers.js
+   * unless a node you own sets it. They come from the state alone, never from changing NUMBERS, so undo, the
+   * look-ahead and a new game stay exact. `by` names the node behind each changed number.
+   */
+  function rates(s) {
+    var r = { farmMakes: N.builds.farm.amount, quarryMakes: N.builds.quarry.amount, settlerFood: N.builds.settler.food,
+      baggageTurns: N.baggageTurns, tilesPerTravelTurn: N.tilesPerTravelTurn, stoneShare: 1, stoneFor: [],
+      tradeCoinPerUnit: N.tradeCoinPerUnit, coinPerPerson: N.coinPerPerson,
+      regimentProduction: N.builds.regiment.production, awayEating: 1, armySteps: N.armySteps, walls: N.walls, by: {} };
+    s.web.owned.forEach(function (id) {
+      var spec = nodeById(id).spec;
+      for (var k in r) {
+        if (spec[k] !== undefined) {
+          r[k] = spec[k];
+          r.by[k] = spec.name;
+        }
+      }
+    });
+    return r;
+  }
+
+  /** Experience for an activity, to each branch that earns from it, at that branch's rate. */
+  function earn(s, activity, amount) {
+    N.web.branches.forEach(function (branch, i) {
+      var rate = branch.earns[activity];
+      if (rate) s.web.xp[i] += amount * rate;
+    });
+  }
+
+  /** What buying a node costs now: its price, paid from its branch's experience first, then coin for each point short. */
+  function nodePrice(s, node) {
+    var price = N.web.prices[node.tier], xp = Math.min(price, s.web.xp[node.branch]);
+    return { price: price, xp: xp, coin: (price - xp) * N.web.coinPerPoint };
+  }
+
   // ---- Numbers derived from the rules (the page shows them, with what they are made of) ----
 
   function hallsBuilt(s) {
@@ -288,13 +359,16 @@ var Game = (function () {
   /** What a city eats each turn: its garrison and its people, from one store (RULES, Generals and regiments). */
   function eats(city) { return city.garrison * N.foodPerRegiment + city.size * N.foodPerPerson; }
 
-  // An army's food (RULES, Feeding armies): its regiments eat from the baggage; the general eats nothing.
+  // An army's food (RULES, Feeding armies): its regiments eat from the baggage; the general eats nothing. armyEats is
+  // its full eating, which the baggage limit and supply count; armyEatsNow is what it eats at the end of a turn
+  // standing where it is: less when it is not standing in one of your cities and a node you own says so (Foraging).
   function armyEats(g) { return g.regiments * N.foodPerRegiment; }
-  function baggageCap(g) { return armyEats(g) * N.baggageTurns; }
+  function armyEatsNow(s, g) { return armyEats(g) * (cityAt(s, g.tile) ? 1 : rates(s).awayEating); }
+  function baggageCap(s, g) { return armyEats(g) * rates(s).baggageTurns; }
 
-  /** Whole turns the baggage feeds the army, not counting food on its way. */
-  function turnsOfFood(g) {
-    var eat = armyEats(g);
+  /** Whole turns the baggage feeds the army where it stands, not counting food on its way. */
+  function turnsOfFood(s, g) {
+    var eat = armyEatsNow(s, g);
     return eat ? Math.floor(g.baggage / eat) : Infinity;
   }
 
@@ -319,7 +393,7 @@ var Game = (function () {
       .map(function (g) {
         var city = cityById(s, g.supply), onWay = foodOnWay(s, g.id), travel = travelTurns(s, city.tile, g.tile);
         if (left[city.id] === undefined) left[city.id] = Math.max(0, city.food - armyReserve(city));
-        var need = Math.max(0, baggageCap(g) + armyEats(g) * travel - g.baggage - onWay), spare = left[city.id];
+        var need = Math.max(0, baggageCap(s, g) + armyEats(g) * travel - g.baggage - onWay), spare = left[city.id];
         var inCity = g.tile === city.tile, amount = inCity ? 0 : Math.min(need, spare);
         left[city.id] -= amount;
         return { general: g, city: city, need: need, onWay: onWay, spare: spare, amount: amount, travel: travel,
@@ -328,24 +402,29 @@ var Game = (function () {
   }
 
   /**
-   * Which armies go hungry at the next N.lowFoodTurns ends of turn if no more orders are given and every battle that
-   * can be won is won ("Waiting for you"), as { generalId: { at: 0 for this turn's end, 1 for the next, ..., ifWins:
-   * true when the army fought a battle in the look-ahead before it went hungry } }. It plays those ends of turn on a
-   * copy of the state, made as undo makes it, in which every battle an army with regiments fights is won without
-   * rolling the dice (an army with no regiments loses, as always), and reads the notes: the warning follows the same
-   * rules as the turn itself but never reveals how a battle will go. The real state, its dice and the undo list are
-   * not touched. It costs a couple of ends of turn: call it once per redraw.
+   * The next N.lowFoodTurns ends of turn, played on a copy of the state as if no more orders are given and every
+   * battle that can be won is won, for the screen: { hunger, filled }.
+   * `hunger`: the armies that go hungry ("Waiting for you"), as { generalId: { at: 0 for this turn's end, 1 for the
+   * next, ..., ifWins: true when the army fought a battle in the look-ahead before it went hungry } }.
+   * `filled`: the food each city gives the baggage of the armies standing in it at this turn's end, { cityId: food },
+   * for the city's food forecast.
+   * The copy is made as undo makes it; every battle an army with regiments fights is won without rolling the dice (an
+   * army with no regiments loses, as always), so the warning follows the same rules as the turn itself but never
+   * reveals how a battle will go. The real state, its dice and the undo list are not touched. It costs a couple of
+   * ends of turn: call it once per redraw.
    */
-  function hungerAhead(s) {
-    var copy = { state: JSON.parse(JSON.stringify(s)), undo: [] }, out = {}, fought = {};
+  function lookAhead(s) {
+    var copy = { state: JSON.parse(JSON.stringify(s)), undo: [] }, hunger = {}, fought = {}, filled = {};
     for (var k = 0; k < N.lowFoodTurns; k++) {
+      var res = endTurn(copy, { winEveryBattle: true });
+      if (k === 0) filled = res.filled;
       // The notes come in turn order: an army's hunger (step 8) comes before its battle (step 9) in the same turn.
-      endTurn(copy, { winEveryBattle: true }).log.forEach(function (e) {
+      res.log.forEach(function (e) {
         if (e.kind === 'battle') fought[e.general] = true;
-        if (e.kind === 'hunger' && out[e.general] === undefined) out[e.general] = { at: k, ifWins: !!fought[e.general] };
+        if (e.kind === 'hunger' && hunger[e.general] === undefined) hunger[e.general] = { at: k, ifWins: !!fought[e.general] };
       });
     }
-    return out;
+    return { hunger: hunger, filled: filled };
   }
 
   /** Supply food a city sends when the turn ends, before its routes ship. */
@@ -356,12 +435,12 @@ var Game = (function () {
   }
 
   /**
-   * The chance an army of `a` regiments beats a garrison (RULES, Battles): A^2 / (A^2 + D^2), D = garrison x walls.
-   * The battle rolls against this same number.
+   * The chance an army of `a` regiments beats a garrison (RULES, Battles): A^2 / (A^2 + D^2), D = garrison x walls
+   * (Siege craft lowers the walls). The battle rolls against this same number.
    */
-  function winChance(a, garrison) {
+  function winChance(s, a, garrison) {
     if (a <= 0) return 0;
-    var A = Math.pow(a, N.battlePower), D = Math.pow(garrison * N.walls, N.battlePower);
+    var A = Math.pow(a, N.battlePower), D = Math.pow(garrison * rates(s).walls, N.battlePower);
     return A / (A + D);
   }
 
@@ -392,15 +471,20 @@ var Game = (function () {
     return { list: list, free: free };
   }
 
-  /** What a working site makes each turn, with the attention bonus. */
-  function siteOutput(s, city, site) {
-    var spec = N.builds[site.type];
-    return spec.amount * (city.attention > 0 ? 1 + N.attentionBonus : 1);
+  /** What a worked farm or quarry makes each turn before attention (Rich soil and Deep quarries raise it). */
+  function siteAmount(s, type) {
+    var r = rates(s);
+    return type === 'farm' ? r.farmMakes : r.quarryMakes;
   }
 
-  /** Turns goods take over a distance: 1 per 3 tiles, rounded up, at least 1 (RULES, Sites and Routes). */
+  /** What a working site makes each turn, with the attention bonus. */
+  function siteOutput(s, city, site) {
+    return siteAmount(s, site.type) * (city.attention > 0 ? 1 + N.attentionBonus : 1);
+  }
+
+  /** Turns goods take over a distance: 1 per 3 tiles (4 with Roads), rounded up, at least 1 (RULES, Sites and Routes). */
   function travelTurns(s, a, b) {
-    return Math.max(N.minTravelTurns, Math.ceil(dist(s, a, b) / N.tilesPerTravelTurn));
+    return Math.max(N.minTravelTurns, Math.ceil(dist(s, a, b) / rates(s).tilesPerTravelTurn));
   }
 
   /** What a route leaves in the sending city: for food the city's eating for 3 turns, for stone 10. */
@@ -426,8 +510,12 @@ var Game = (function () {
     return surplus / mates.length;
   }
 
-  /** A good's flow for a city each turn, from what it has now: the page's "per turn" numbers and "falling". */
-  function flow(s, city, good) {
+  /**
+   * A good's flow for a city each turn, from what it has now: the page's "per turn" numbers and "falling". `ahead` is
+   * lookAhead(s): for food, the flow counts what the armies standing in the city take for their baggage at this
+   * turn's end, as the turn itself will take it.
+   */
+  function flow(s, city, good, ahead) {
     var made = 0;
     staffing(s, city).list.forEach(function (st) {
       if (st.working && N.builds[st.site.type].makes === good) made += siteOutput(s, city, st.site);
@@ -441,32 +529,40 @@ var Game = (function () {
     var tile = good === 'food' ? N.cityTileFood : 0;
     var eaten = good === 'food' ? eats(city) : 0;
     var supplyOut = good === 'food' ? suppliedFrom(s, city.id) : 0;
+    var baggage = good === 'food' ? ahead.filled[city.id] || 0 : 0;
     // Shipping out only takes what is above a reserve (routes 3 turns of eating, supply 1), so it never makes the
     // store run dry before the city eats: "net" leaves it out.
     return { tile: tile, sites: made, routesIn: routesIn, routesOut: routesOut, supplyOut: supplyOut, eaten: eaten,
-      net: tile + made + routesIn - eaten };
+      baggage: baggage, net: tile + made + routesIn - eaten - baggage };
   }
 
   /** Coin the next end of turn will pay: people (with Markets) and trade landing then. */
   function coinNext(s) {
-    var people = 0, trade = 0;
-    s.cities.forEach(function (c) { people += c.size * N.coinPerPerson * marketFactor(c); });
+    var people = 0, trade = 0, r = rates(s);
+    s.cities.forEach(function (c) { people += c.size * r.coinPerPerson * marketFactor(c); });
     s.transit.forEach(function (g) {
-      if (g.trade && g.arrives <= s.turn) trade += g.amount * N.tradeCoinPerUnit * marketFactor(cityById(s, g.to));
+      if (g.trade && g.arrives <= s.turn) trade += g.amount * r.tradeCoinPerUnit * marketFactor(cityById(s, g.to));
     });
     return { people: people, trade: trade, total: people + trade };
   }
 
-  /** What a build costs in this city now. A Hall costs 1.5 times more for each Hall you already have. */
+  /**
+   * What a build costs in this city now. A Hall costs 1.5 times more for each Hall you already have. Web nodes you own
+   * change some costs: Hardy settlers a settler's food, Drill a regiment's production, Master builders the stone of
+   * the buildings it names, rounded up, after the Hall's price growth.
+   */
   function buildCost(s, city, kind) {
-    var spec = N.builds[kind];
+    var spec = N.builds[kind], r = rates(s);
     var factor = kind === 'hall' ? Math.pow(spec.priceGrowth, hallsCounted(s, city)) : 1;
-    return { coin: spec.coin * factor, stone: spec.stone * factor, food: spec.food || 0, production: spec.production };
+    var stone = spec.stone * factor;
+    if (r.stoneFor.indexOf(kind) >= 0) stone = Math.ceil(stone * r.stoneShare);
+    return { coin: spec.coin * factor, stone: stone, food: kind === 'settler' ? r.settlerFood : spec.food || 0,
+      production: kind === 'regiment' ? r.regimentProduction : spec.production };
   }
 
-  /** Things waiting for the player (RULES, The screen); `hunger` is hungerAhead(s), which the page computes once. */
-  function waiting(s, hunger) {
-    var out = [];
+  /** Things waiting for the player (RULES, The screen); `ahead` is lookAhead(s), which the page computes once. */
+  function waiting(s, ahead) {
+    var out = [], hunger = ahead.hunger;
     s.cities.forEach(function (city) {
       if (!city.build) out.push({ kind: 'build', tile: city.tile, text: city.name + ' has nothing to build' });
       staffing(s, city).list.forEach(function (st) {
@@ -475,7 +571,7 @@ var Game = (function () {
             ' stands idle (needs ' + st.need + (st.need === 1 ? ' person)' : ' people)') });
         }
       });
-      var f = flow(s, city, 'food');
+      var f = flow(s, city, 'food', ahead);
       if (f.net < 0) out.push({ kind: 'food', tile: city.tile, text: city.name + ': food store falling (' + fmt(f.net) + ' per turn)' });
     });
     s.settlers.forEach(function (st) {
@@ -531,7 +627,10 @@ var Game = (function () {
     var city = cityById(s, cityId), spec = N.builds[kind];
     if (!city || !spec) return no('Unknown order');
     var cost = buildCost(s, city, kind), b = city.build;
-    var extra = { cost: cost };
+    var extra = { cost: cost }, node = nodeFor(kind);
+    if (node && !owns(s, node.id)) {
+      return no('Needs the ' + node.spec.name + ' node in the web (' + N.web.branches[node.branch].name + ')', extra);
+    }
     if (spec.onePerCity && has(city, kind)) return no('Already built in this city', extra);
     if (b && b.kind === kind && (!spec.site || b.tile === tile)) return no('Already building this', extra);
     if (kind === 'hall' && N.movesPerTurn + (hallsCounted(s, city) + 1) * spec.moves > N.movesCap) {
@@ -692,6 +791,27 @@ var Game = (function () {
     return mp ? no(mp) : { ok: true };
   }
 
+  /**
+   * Can this node of the web be bought now? It must be linked to a node you own (RULES, The web). A refusal says
+   * `why`: 'owned', 'unlinked', 'moves' or 'coin'.
+   */
+  function checkBuy(s, id) {
+    var node = nodeById(id);
+    if (!node) return no('Unknown node');
+    var cost = nodePrice(s, node);
+    if (owns(s, id)) return no('Already yours', { cost: cost, why: 'owned' });
+    if (!linksOf(id).some(function (l) { return owns(s, l); })) {
+      return no('Not linked to a node you own', { cost: cost, why: 'unlinked' });
+    }
+    var mp = moveProblem(s);
+    if (mp) return no(mp, { cost: cost, why: 'moves' });
+    if (cost.coin > s.coin) {
+      return no('Needs ' + fmt(cost.coin) + ' coin for the experience it is short; you have ' + fmt(s.coin),
+        { cost: cost, why: 'coin' });
+    }
+    return { ok: true, cost: cost };
+  }
+
   // ---- Orders: each costs one move and can be undone this turn ----
 
   /** Save the state for undo and spend the order's move. */
@@ -835,7 +955,7 @@ var Game = (function () {
     var s = begin(game), g = generalById(s, generalId), city = cityAt(s, g.tile);
     g.regiments -= n;
     city.garrison += n;
-    var extra = Math.max(0, g.baggage - baggageCap(g));
+    var extra = Math.max(0, g.baggage - baggageCap(s, g));
     g.baggage -= extra;
     city.food += extra;
     attend(city);
@@ -864,6 +984,20 @@ var Game = (function () {
     return { ok: true };
   }
 
+  /**
+   * Buy a node of the web: its branch's experience pays first, then coin for each point short. An order to no city:
+   * it gives no attention (RULES, Moves). Its bonus works at once, because every rule reads the nodes you own.
+   */
+  function orderBuy(game, id) {
+    var check = checkBuy(game.state, id);
+    if (!check.ok) return check;
+    var s = begin(game), node = nodeById(id);
+    s.web.xp[node.branch] -= check.cost.xp;
+    s.coin -= check.cost.coin;
+    s.web.owned.push(id);
+    return { ok: true };
+  }
+
   /** Take back the most recent order of this turn: everything returns to how it was before it. */
   function undo(game) {
     if (!game.undo.length) return no('No orders given this turn');
@@ -876,11 +1010,13 @@ var Game = (function () {
   // order of s.generals) before the next step starts.
 
   /**
-   * Ends the turn. `opts.winEveryBattle` (only the hunger look-ahead passes it) settles battles without dice: a battle
-   * with a win chance above 0 is won, and an army with no regiments (chance 0) loses, as always.
+   * Ends the turn. `opts.winEveryBattle` (only the look-ahead passes it) settles battles without dice: a battle with
+   * a win chance above 0 is won, and an army with no regiments (chance 0) loses, as always. Experience is earned at
+   * the step where its activity happens (RULES, A turn). Returns the turn's notes and `filled`, the food each city
+   * gave the baggage of the armies standing in it ({ cityId: food }).
    */
   function endTurn(game, opts) {
-    var s = game.state, turn = s.turn, log = [], winAll = !!(opts && opts.winEveryBattle);
+    var s = game.state, turn = s.turn, log = [], winAll = !!(opts && opts.winEveryBattle), nums = rates(s), filled = {};
     function note(text, tile, kind, general) {
       var e = { text: text, tile: tile };
       if (kind) e.kind = kind;
@@ -889,7 +1025,8 @@ var Game = (function () {
     }
     function regs(n) { return n + (n === 1 ? ' regiment' : ' regiments'); }
 
-    // 1. Working sites send their output to their city; it arrives after its travel time.
+    // 1. Working sites send their output to their city; it arrives after its travel time. Farms and quarries earn
+    // experience on what they send, attention included.
     s.cities.forEach(function (city) {
       staffing(s, city).list.forEach(function (st) {
         var spec = N.builds[st.site.type];
@@ -898,7 +1035,9 @@ var Game = (function () {
             (st.need === 1 ? ' person)' : ' people)'), st.site.tile);
           return;
         }
-        s.transit.push({ good: spec.makes, amount: siteOutput(s, city, st.site), to: city.id,
+        var amount = siteOutput(s, city, st.site);
+        earn(s, st.site.type, amount);
+        s.transit.push({ good: spec.makes, amount: amount, to: city.id,
           from: spec.name + ' ' + where(s, st.site.tile), arrives: turn + travelTurns(s, st.site.tile, city.tile),
           trade: false });
       });
@@ -932,6 +1071,7 @@ var Game = (function () {
 
     // 3. Goods arriving this turn land: in a city (route deliveries earn trade coin) or, for supply, in the
     // baggage wherever the general is now. Supply for a general who is gone is lost. The city tile's food lands too.
+    // Trade coin earns experience as it lands.
     var trade = 0;
     s.transit = s.transit.filter(function (g) {
       if (g.arrives > turn) return true;
@@ -942,10 +1082,11 @@ var Game = (function () {
       }
       var city = cityById(s, g.to);
       city[g.good] += g.amount;
-      if (g.trade) trade += g.amount * N.tradeCoinPerUnit * marketFactor(city);
+      if (g.trade) trade += g.amount * nums.tradeCoinPerUnit * marketFactor(city);
       return false;
     });
     s.coin += trade;
+    earn(s, 'coin', trade);
     s.cities.forEach(function (city) { city.food += N.cityTileFood; });
 
     // 4. In each city: the garrison eats; armies standing there fill their baggage up to its limit, oldest first, from
@@ -956,9 +1097,10 @@ var Game = (function () {
       if (city.food >= eats(city)) {
         city.food -= city.garrison * N.foodPerRegiment;
         generalsAt(s, city.tile).forEach(function (g) {
-          var take = Math.min(Math.max(0, baggageCap(g) - g.baggage), Math.max(0, city.food - armyReserve(city)));
+          var take = Math.min(Math.max(0, baggageCap(s, g) - g.baggage), Math.max(0, city.food - armyReserve(city)));
           city.food -= take;
           g.baggage += take;
+          filled[city.id] = (filled[city.id] || 0) + take;
         });
         city.food -= city.size * N.foodPerPerson;
         var need = growthNeed(city);
@@ -982,6 +1124,7 @@ var Game = (function () {
     });
 
     // 5. Production advances the build. A finished settler or regiment waits while the city can't spare a person.
+    // A finished regiment earns experience.
     s.cities.forEach(function (city) {
       var b = city.build;
       if (!b) return;
@@ -1004,6 +1147,7 @@ var Game = (function () {
       } else if (b.kind === 'regiment') {
         city.size -= spec.people;
         city.garrison += 1;
+        earn(s, 'regiment', 1);
         note(city.name + ' finished a regiment (garrison ' + city.garrison + '; the city is now size ' + city.size + ')', city.tile);
       } else if (b.kind === 'general') {
         s.generals.push(makeGeneral(s, city.tile));
@@ -1014,10 +1158,11 @@ var Game = (function () {
       }
     });
 
-    // 6. Coin is paid: every person pays, more with a Market.
+    // 6. Coin is paid: every person pays, more with a Market; it earns experience.
     var people = 0;
-    s.cities.forEach(function (city) { people += city.size * N.coinPerPerson * marketFactor(city); });
+    s.cities.forEach(function (city) { people += city.size * nums.coinPerPerson * marketFactor(city); });
     s.coin += people;
+    earn(s, 'coin', people);
     s.lastIncome = { people: people, trade: trade, plunder: 0 };
 
     // 7. Settlers walk and armies march towards their tile, around mountains and water (armies around rival cities).
@@ -1037,11 +1182,12 @@ var Game = (function () {
     }
     s.settlers.forEach(function (st) { walk(st, N.settlerSteps, null, 'A settler'); });
     var blocked = armyBlocked(s);
-    s.generals.forEach(function (g) { walk(g, N.armySteps, blocked, 'An army'); });
+    s.generals.forEach(function (g) { walk(g, nums.armySteps, blocked, 'An army'); });
 
-    // 8. Armies eat from their baggage. An army that can't eat fully eats what there is and loses a regiment.
+    // 8. Armies eat from their baggage, where they stand after marching. An army that can't eat fully eats what there
+    // is and loses a regiment.
     s.generals.forEach(function (g) {
-      var eat = armyEats(g);
+      var eat = armyEatsNow(s, g);
       if (g.baggage >= eat) {
         g.baggage -= eat;
         return;
@@ -1052,11 +1198,13 @@ var Game = (function () {
         g.id);
     });
 
-    // 9. Battles: each army next to a rival city fights it, oldest first; next to two, the smaller garrison.
+    // 9. Battles: each army next to a rival city fights it, oldest first; next to two, the smaller garrison. Every
+    // battle earns experience, won or lost, and so does the plunder.
     s.generals.slice().forEach(function (g) {
       var foe = foeAt(s, g.tile);
       if (!foe) return;
-      var a = g.regiments, d = foe.garrison, chance = winChance(a, d);
+      var a = g.regiments, d = foe.garrison, chance = winChance(s, a, d);
+      earn(s, 'battle', 1);
       var head = 'Battle at ' + foe.name + ': your ' + regs(a) + ' against ' + d + ' (win chance ' +
         fmt(chance * 100) + '%): ';
       if (winAll ? chance > 0 : rollDice(s) < chance) {
@@ -1065,6 +1213,7 @@ var Game = (function () {
         s.cities.push(makeCity(foe.id, foe.name, foe.tile, foe.size));
         var plunder = foe.size * N.plunderPerPerson;
         s.coin += plunder;
+        earn(s, 'coin', plunder);
         s.lastIncome.plunder += plunder;
         g.tile = foe.tile;
         g.dest = null;
@@ -1094,7 +1243,7 @@ var Game = (function () {
     s.turn += 1;
     s.log = log;
     game.undo = [];
-    return { ok: true, log: log };
+    return { ok: true, log: log, filled: filled };
   }
 
   // ---- A new game (RULES, The start) ----
@@ -1120,7 +1269,7 @@ var Game = (function () {
       seed: seed, turn: 1, w: N.map.width, h: N.map.height, coin: N.start.coin,
       moves: 0, movesSaved: 0, nextId: 1, dice: (seed ^ DICE_SALT) | 0,
       terrain: [], owner: [], cities: [], sites: [], settlers: [], routes: [], transit: [], log: [],
-      generals: [], rivals: [],
+      generals: [], rivals: [], web: { owned: [], xp: N.web.branches.map(function () { return 0; }) },
       lastIncome: { people: 0, trade: 0, plunder: 0 },
     };
     makeMap(s, makeRng(seed));
@@ -1139,7 +1288,7 @@ var Game = (function () {
     var first = s.generals[0];
     if (first) {
       first.regiments = N.start.regiments;
-      first.baggage = baggageCap(first);
+      first.baggage = baggageCap(s, first);
     }
     s.moves = movesPerTurn(s);
     return { state: s, undo: [] };
@@ -1158,8 +1307,10 @@ var Game = (function () {
     travelTurns: travelTurns, reserve: reserve, armyReserve: armyReserve, routeShare: routeShare, flow: flow,
     coinNext: coinNext,
     waiting: waiting,
-    armyEats: armyEats, baggageCap: baggageCap, turnsOfFood: turnsOfFood, foodOnWay: foodOnWay, hungerAhead: hungerAhead,
-    supplyPlan: supplyPlan, winChance: winChance,
+    armyEats: armyEats, armyEatsNow: armyEatsNow, baggageCap: baggageCap, turnsOfFood: turnsOfFood, foodOnWay: foodOnWay,
+    lookAhead: lookAhead, supplyPlan: supplyPlan, winChance: winChance, siteAmount: siteAmount, rates: rates,
+    WEB: { centre: CENTRE, nodes: NODES, links: LINKS }, nodeById: nodeById, owns: owns, linksOf: linksOf,
+    checkBuy: checkBuy, orderBuy: orderBuy,
     checkBuild: checkBuild, siteTiles: siteTiles, checkSend: checkSend,
     checkFound: checkFound, foundProblemAt: foundProblemAt, checkRoute: checkRoute, checkCancelRoute: checkCancelRoute,
     checkMarch: checkMarch, checkTake: checkTake, checkLeave: checkLeave, checkSupply: checkSupply,

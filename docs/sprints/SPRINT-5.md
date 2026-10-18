@@ -151,6 +151,45 @@ is marked eng. Also updated: the orders list and attention (buying a node, no at
 (needs its node), the top bar and the web screen, the turn's experience steps, and "Left out". Every quoted mark
 was checked word for word against this log and the Sprint 1 log.
 
+### TASK-504: the draft web
+
+Status complete · Agent: the TASK-502 builder, resumed · Checklist items 1 and 9 pass · Review: sprint-end ·
+Files: `prototype/numbers.js`, `game.js`, `ui.js`, `index.html`, `smoke.js`, `README.md`.
+
+What was built:
+- `numbers.js`: a `web` section with prices, coin per point, and the four branches in ring order with their rates
+  and nodes. A building node names its building; a bonus node sets one named number.
+- `game.js`: the nodes and links; `rates(s)`, every bonus-changed number derived from the nodes owned (`NUMBERS`
+  never changes); experience at steps 1, 3, 5, 6 and 9; the buy order; the building locks; and a `lookAhead`
+  that also gives the food forecast the baggage refill.
+- `ui.js`: experience and a Web button in the top bar, and the web overlay (hover, click to buy, Esc).
+- `smoke.js`: buys, refused buys, and a minimum of 10 per order kind.
+
+Criteria:
+- The builder's scratch checks, with expected values from RULES.md PASS: 59 on experience, buying, links and locks;
+  53 on the 12 bonuses and the forecast. Among them: Siege craft 3 against 3 = 39.0%, and Master builders' Granary
+  8, Hall 15 and second Hall 23.
+- Smoke PASS: 17 order kinds, each at least 45 times; 16 of 16 nodes owned.
+- `npm run ci` PASS (Orchestrator's run); 40 seeds of smoke copies PASS.
+- Screenshots checked by the Orchestrator PASS: the opening's experience block and the locked Hall and Granary
+  reasons; the web with owned, buyable and unlinked nodes and the ring.
+- The Orchestrator read `rates`, `earn` and its five call sites, `nodePrice`, `checkBuy`, `buildCost`,
+  `armyEatsNow` and `winChance` against RULES.md: no mismatch.
+
+Brief contradictions, settled: found was also under 10 on many seeds, so smoke now favours the least-given kind
+half the time. Declared deviations, accepted (eng.): that order choice; no smoke buys refused for lack of moves
+(the scratch checks cover them); a "to baggage" readout; a two-decimal rate formatter.
+
+Kept as notes, not put to the owner (neither changes a rule):
+- With 14.5 experience the screen shows 14, while the coin for a 20 node is 11. That's RULES' "fractions kept,
+  shown rounded down", and the hover states the exact amounts.
+- Below about 1440 px the top bar wraps once saved moves add pips.
+
+Proposed entries declined:
+- The PAT (measure smoke coverage across many seeds) is prototype-only for now. Its lesson is added to the
+  ROADMAP's soak-games item.
+- The FAIL (backslashes lost in scripts written through tool input) names no guard to add.
+
 ### TASK-505: the harness review and the review fixes
 
 Status complete · Agent: Orchestrator · Checklist pass (self-check) · Review: sprint-end, normal bar · Files:
@@ -191,8 +230,19 @@ Criteria:
 
 ## Design conformance
 
+For the prototype, conforming means matching `prototype/RULES.md` (WORKFLOW, "Prototype phase"). The sprint-end
+review (RULES.md at the normal bar) and the owner's playtest come after this table.
+
 | RULES.md section | Implemented in (`prototype/`) | Verified by | Status |
 |---|---|---|---|
+| The start (G1) | `game.js` `newGame` | TASK-502 scratch checks (5 seeds; 0 identical to before on 200 seeds); screenshot | PASS |
+| The web: shape, links, branches | `game.js` `NODES`, `LINKS`, `linksOf`, `owns` | scratch checks (20 links, cross-links); web screenshot | PASS |
+| The web: experience, its steps | `earn` at steps 1, 3, 5, 6, 9 | scratch checks (farm with and without attention, quarry, coin, trade, plunder, regiment, battle won and lost) | PASS |
+| The web: buying, undo, no attention | `nodePrice`, `checkBuy`, `orderBuy` | scratch checks (experience then coin, refusals, undo exact); smoke | PASS |
+| The web: locked buildings (W2) | `checkBuild`, `nodeFor` | scratch checks (reason texts); screenshot | PASS |
+| The web: the 12 bonuses | `rates`, `buildCost`, `armyEatsNow`, `winChance`, `travelTurns` | scratch checks, one or more per bonus | PASS |
+| Moves, production table, a turn | `game.js` as above | scratch checks; Orchestrator's read | PASS |
+| The screen: top bar, the web overlay, food forecast | `ui.js`, `index.html` | screenshots; owner's playtest | pending playtest |
 
 ## Sprint-end review (step 7)
 

@@ -1,4 +1,4 @@
-// TemuCiv prototype, slices 1 and 2: the screen. It draws the map and the panels from the game state and sends the
+// TemuCiv prototype, slices 1 to 3: the screen. It draws the map and the panels from the game state and sends the
 // player's orders to game.js; it never works out a rule itself. Throwaway code (docs/WORKFLOW.md, "Prototype
 // phase").
 
@@ -22,7 +22,7 @@
 
   var game = null, history = [];
   var ui = { sel: -1, shownSel: null, pick: null, msg: null, hover: -1, cam: { x: 0, y: 0, zoom: 1 }, down: null,
-    labels: [], hunger: {} };
+    labels: [], ahead: null, web: false };
   var $ = function (id) { return document.getElementById(id); };
   var canvas = $('map'), ctx = canvas.getContext('2d'), tip = $('tip');
 
@@ -35,6 +35,8 @@
   function num(value, text) { return '<span class="num" data-tip="' + attr(text) + '">' + value + '</span>'; }
   function count(n, one, many) { return fmt(n) + ' ' + (n === 1 ? one : many); }
   function signed(n) { return (n > 0 ? '+' : '') + fmt(n); }
+  /** A rate or share from numbers.js (0.75, 1.25), with up to two decimals, where fmt would round it to one. */
+  function fmt2(n) { return String(+Number(n).toFixed(2)); }
   function where(t) { return '(' + G.col(S(), t) + ', ' + G.row(S(), t) + ')'; }
   function cityColor(city) { return CITY_COLORS[S().cities.indexOf(city) % CITY_COLORS.length]; }
   /** The colour of whoever holds a tile: one of your cities, or the rival. */
@@ -68,10 +70,12 @@
   }
 
   function foodTip(city) {
-    var s = S(), f = G.flow(s, city, 'food'), need = G.growthNeed(city);
+    var s = S(), f = G.flow(s, city, 'food', ui.ahead), need = G.growthNeed(city), armies = G.generalsAt(s, city.tile).length;
     return 'Food store: ' + fmt(city.food) + '\n\nEach end of turn:\n+' + fmt(f.tile) + ' from the city tile\n+' +
       fmt(f.sites) + ' from working farms' + (city.attention > 0 ? ' (with attention +' + fmt(N.attentionBonus * 100) + '%)' : '') +
-      '\n+' + fmt(f.routesIn) + ' by routes (last delivery)\n−' + fmt(f.eaten) + ' eaten (' + eatText(city) + ')\n= ' +
+      '\n+' + fmt(f.routesIn) + ' by routes (last delivery)\n−' + fmt(f.eaten) + ' eaten (' + eatText(city) + ')' +
+      (armies ? '\n−' + fmt(f.baggage) + ' into the baggage of the ' + (armies === 1 ? 'army' : 'armies') + ' standing here, ' +
+        'this end of turn (refilling what ' + (armies === 1 ? 'it' : 'they') + ' ate, up to the limit)' : '') + '\n= ' +
       signed(f.net) + ' per turn' +
       (f.supplyOut ? '\n\nSupply lines send ' + fmt(f.supplyOut) + ' when this turn ends, before routes, from the food above ' +
         fmt(G.armyReserve(city)) + ' (what the city eats in ' + count(N.armyReserveTurns, 'turn', 'turns') + ').' : '') +
@@ -88,7 +92,7 @@
   }
 
   function stoneTip(city) {
-    var f = G.flow(S(), city, 'stone');
+    var f = G.flow(S(), city, 'stone', ui.ahead);
     return 'Stone store: ' + fmt(city.stone) + '\n\nEach end of turn:\n+' + fmt(f.sites) + ' from working quarries' +
       '\n+' + fmt(f.routesIn) + ' by routes (last delivery)\n= ' + signed(f.net) + ' per turn' +
       (f.routesOut ? '\nRoutes shipped out ' + fmt(f.routesOut) + ' last turn (only stone above ' + N.stoneReserve + ').' : '') +
@@ -99,18 +103,32 @@
     var s = S(), from = G.cityById(s, r.from), to = G.cityById(s, r.to);
     var mates = s.routes.filter(function (x) { return x.from === r.from && x.good === r.good; }).length;
     var market = G.has(to, 'market') ? ' (' + to.name + "'s Market: +" + fmt(N.builds.market.coinBonus * 100) + '%)' : '';
-    var supplied = r.good === 'food' ? G.flow(s, from, 'food').supplyOut : 0;
+    var supplied = r.good === 'food' ? G.flow(s, from, 'food', ui.ahead).supplyOut : 0;
     return from.name + ' → ' + to.name + ': ' + r.good + '\nShips at the end of this turn: ' + fmt(G.routeShare(s, r)) +
       '\n(' + from.name + "'s " + r.good + ' ' + fmt(from[r.good]) + ' − route reserve ' + fmt(G.reserve(from, r.good)) +
       (supplied ? ' − ' + fmt(supplied) + ' for supply lines, which ship first' : '') +
       (mates > 1 ? ', shared by ' + mates + ' routes' : '') + ')\nLast turn it shipped ' + fmt(r.last) +
       '.\nTakes ' + count(G.travelTurns(s, from.tile, to.tile), 'turn', 'turns') + ' (' + G.dist(s, from.tile, to.tile) +
-      ' tiles).\nEach unit delivered earns ' + N.tradeCoinPerUnit + ' coin' + market + '.';
+      ' tiles, ' + perTravelTurn() + ').\nEach unit delivered earns ' + fmt2(G.rates(s).tradeCoinPerUnit) + ' coin' +
+      byNode('tradeCoinPerUnit') + market + '.';
+  }
+
+  /** "1 turn per 3 tiles", with the node that changed it. */
+  function perTravelTurn() {
+    return '1 turn per ' + G.rates(S()).tilesPerTravelTurn + ' tiles' + byNode('tilesPerTravelTurn');
+  }
+
+  /** " (Roads)" when a node you own changed this number, else nothing. */
+  function byNode(field) {
+    var name = G.rates(S()).by[field];
+    return name ? ' (' + name + ')' : '';
   }
 
   function buildEffect(kind) {
     var b = N.builds[kind];
-    if (b.site) return '+' + fmt(b.amount) + ' ' + b.makes + '/turn · ' + b.terrain + ' · ' + count(b.people, 'person', 'people');
+    if (b.site) {
+      return '+' + fmt(G.siteAmount(S(), kind)) + ' ' + b.makes + '/turn · ' + b.terrain + ' · ' + count(b.people, 'person', 'people');
+    }
     if (kind === 'settler') return 'founds a city · takes ' + count(b.people, 'person', 'people');
     if (kind === 'general') return 'leads regiments: only a general moves them';
     if (kind === 'regiment') return 'a soldier · takes ' + count(b.people, 'person', 'people') + ' · eats ' + N.foodPerRegiment + ' food';
@@ -126,7 +144,7 @@
    * look-ahead as "Waiting for you", which never reveals how a battle will go.
    */
   function hungerText(g) {
-    var h = ui.hunger[g.id];
+    var h = ui.ahead.hunger[g.id];
     if (!h) return 'Playing the next ' + count(N.lowFoodTurns, 'end of turn', 'ends of turn') +
       ' with no more orders (and every battle fought with regiments won), it stays fed.';
     return 'Playing ahead with no more orders, it goes hungry ' + (h.at ? 'at the end of turn ' + (S().turn + h.at) : 'when this turn ends') +
@@ -134,12 +152,20 @@
       'so it never tells you how one will go; an army with no regiments loses, as always.)';
   }
 
+  /** What the army eats per turn where it stands, part by part. */
+  function armyEatText(g) {
+    var s = S(), now = G.armyEatsNow(s, g);
+    return regs(g.regiments) + ' × ' + N.foodPerRegiment + (now < G.armyEats(g) ? ' × ' + fmt2(G.rates(s).awayEating) +
+      byNode('awayEating') + ', as it is not standing in one of your cities' : '') + ' = ' + fmt(now) + '; the general eats nothing';
+  }
+
   function baggageTip(g) {
-    var eat = G.armyEats(g), cap = G.baggageCap(g), left = G.turnsOfFood(g);
-    return 'Baggage: ' + fmt(g.baggage) + ' food\n\nThe army eats ' + fmt(eat) + ' per turn (' + regs(g.regiments) + ' × ' +
-      N.foodPerRegiment + '; the general eats nothing)' + (eat ? ': ' + count(left, 'full turn', 'full turns') + ' left in the baggage.' : '.') +
+    var s = S(), eat = G.armyEatsNow(s, g), full = G.armyEats(g), cap = G.baggageCap(s, g), left = G.turnsOfFood(s, g);
+    return 'Baggage: ' + fmt(g.baggage) + ' food\n\nThe army eats ' + fmt(eat) + ' per turn where it stands (' + armyEatText(g) + ')' +
+      (eat ? ': ' + count(left, 'full turn', 'full turns') + ' left in the baggage.' : '.') +
       (eat ? '\n' + hungerText(g) : '') +
-      '\nIts limit is ' + fmt(cap) + ' (' + N.baggageTurns + ' turns of eating): filling and supply aim at it; food above it is kept ' +
+      '\nIts limit is ' + fmt(cap) + ' (' + G.rates(s).baggageTurns + ' turns of its full eating, ' + fmt(full) + byNode('baggageTurns') +
+      '): filling and supply aim at it; food above it is kept ' +
       'until eaten, except that regiments left in a city leave the food above the smaller army\'s limit there.' +
       '\n\nIn one of your cities it fills up to the limit at the end of the turn, after the city\'s garrison eats and before its ' +
       'people eat and the city grows, so before it marches, from the food above what the city eats in ' +
@@ -151,22 +177,23 @@
     var s = S(), g = p.general, keep = G.armyReserve(p.city), above = Math.max(0, p.city.food - keep);
     return p.city.name + ' supplies the army at ' + where(g.tile) + '.\nShips at the end of this turn: ' + fmt(p.amount) +
       (p.inCity ? '\n\nThe general stands in ' + p.city.name + ', so the line sends nothing: the baggage fills here instead.' : '') +
-      '\n\nWhat keeps the baggage at its limit when this food lands: ' + fmt(G.baggageCap(g)) + ' limit + ' +
-      fmt(G.armyEats(g) * p.travel) + ' eaten while it travels (' + fmt(G.armyEats(g)) + ' × ' + count(p.travel, 'turn', 'turns') +
+      '\n\nWhat keeps the baggage at its limit when this food lands: ' + fmt(G.baggageCap(s, g)) + ' limit + ' +
+      fmt(G.armyEats(g) * p.travel) + ' eaten while it travels (' + fmt(G.armyEats(g)) + ' full eating × ' + count(p.travel, 'turn', 'turns') +
       ') − ' + fmt(g.baggage) + ' in the baggage − ' + fmt(p.onWay) + ' on its way = ' + fmt(p.need) + ' (never below 0)' +
       '\n' + p.city.name + ' has ' + fmt(p.city.food) + ' food and keeps ' +
       fmt(keep) + ' (what it eats in ' + count(N.armyReserveTurns, 'turn', 'turns') + '), so it can spare ' + fmt(above) +
       (p.spare !== above ? '; ' + fmt(p.spare) + ' is left after supply lines set before this one' : '') + '.' +
       '\n\nIt takes ' + count(p.travel, 'turn', 'turns') + ' (' + G.dist(s, p.city.tile, g.tile) + ' tiles from ' + p.city.name +
-      ' to where the general stands when it is sent; 1 turn per ' + N.tilesPerTravelTurn + ' tiles) and lands in the baggage' +
+      ' to where the general stands when it is sent; ' + perTravelTurn() + ') and lands in the baggage' +
       ' wherever the general is then.\nSupply ships before routes and earns no trade coin.';
   }
 
   /** Why the win chance against a rival city is what it is: the same number the battle rolls against. */
   function chanceTip(a, r) {
-    var p = N.battlePower, sq = p === 2 ? '²' : '^' + p, D = r.garrison * N.walls, chance = G.winChance(a, r.garrison);
+    var s = S(), walls = G.rates(s).walls, p = N.battlePower, sq = p === 2 ? '²' : '^' + p, D = r.garrison * walls;
+    var chance = G.winChance(s, a, r.garrison);
     return 'Win chance against ' + r.name + ': ' + pct(chance) + '\n\nA = your ' + regs(a) + '\nD = garrison ' + r.garrison +
-      ' × ' + N.walls + ' for its walls = ' + fmt(D) + '\nChance = A' + sq + ' ÷ (A' + sq + ' + D' + sq + ')' +
+      ' × ' + fmt2(walls) + ' for its walls' + byNode('walls') + ' = ' + fmt2(D) + '\nChance = A' + sq + ' ÷ (A' + sq + ' + D' + sq + ')' +
       (a > 0 ? ' = ' + fmt(Math.pow(a, p)) + ' ÷ (' + fmt(Math.pow(a, p)) + ' + ' + fmt(Math.pow(D, p)) + ')' : ': an army with no regiments always loses') +
       '\n\nOne battle at the end of the turn, decided by the game\'s dice.\nThe loser loses every regiment; if you lose, the general is gone too.' +
       '\nThe winner loses half the loser\'s regiments, rounded down, and keeps at least ' + N.winnerKeeps + '.' +
@@ -186,8 +213,29 @@
 
   // ---- Top bar ----
 
+  // What each activity that earns experience is, for the hover text (the rates are in numbers.js, web.branches).
+  var EARNS = {
+    farm: 'food your working farms send, attention included',
+    quarry: 'stone your working quarries send, attention included',
+    coin: 'coin you collect: what your people pay, trade coin as it lands, plunder',
+    regiment: 'regiment finished',
+    battle: 'battle, won or lost',
+  };
+
+  function earnText(activity, rate) {
+    return (rate < 1 ? '1 per ' + fmt(1 / rate) : fmt(rate) + ' per') + ' ' + EARNS[activity];
+  }
+
+  function xpTip(i) {
+    var b = N.web.branches[i];
+    return b.name + ' experience: ' + Math.floor(S().web.xp[i]) + ' (fractions are kept; shown rounded down)\n\nEarned:\n' +
+      Object.keys(b.earns).map(function (a) { return '• ' + earnText(a, b.earns[a]); }).join('\n') +
+      '\n\nIt pays first when you buy a ' + b.name + ' node in the web; coin makes up what is short, ' +
+      N.web.coinPerPoint + ' coin per point. Press Web to open it.';
+  }
+
   function renderTop() {
-    var s = S(), per = G.movesPerTurn(s), saved = G.movesSaved(s), next = G.coinNext(s);
+    var s = S(), per = G.movesPerTurn(s), saved = G.movesSaved(s), next = G.coinNext(s), rates = G.rates(s);
     var spent = Math.max(0, s.movesSaved + per - s.moves);
     var halls = G.hallsBuilt(s);
     var pips = '';
@@ -195,15 +243,15 @@
     for (var k = 0; k < total; k++) pips += '<span class="pip' + (k < saved ? ' saved' : k < s.moves ? ' on' : '') + '"></span>';
     if (s.moves + spent > MAX_PIPS) pips += '<span class="muted">…</span>';
     var peopleLines = s.cities.map(function (c) {
-      return c.name + ': ' + count(c.size, 'person', 'people') + ' × ' + N.coinPerPerson +
+      return c.name + ': ' + count(c.size, 'person', 'people') + ' × ' + fmt2(rates.coinPerPerson) + byNode('coinPerPerson') +
         (G.has(c, 'market') ? ' + Market ' + fmt(N.builds.market.coinBonus * 100) + '%' : '');
     }).join('\n');
     var coinTip = 'Your purse: ' + fmt(s.coin) + ' coin, one for the whole empire.\n\nNext end of turn: +' +
       fmt(next.people) + ' from people, +' + fmt(next.trade) + ' trade landing\n' + peopleLines +
       '\n\nLast turn: +' + fmt(s.lastIncome.people) + ' from people, +' + fmt(s.lastIncome.trade) + ' trade' +
       (s.lastIncome.plunder ? ', +' + fmt(s.lastIncome.plunder) + ' plunder' : '') + '.' +
-      '\nTrade: each unit a route delivers earns ' + N.tradeCoinPerUnit + ' coin.\nTaking a rival city plunders ' +
-      N.plunderPerPerson + ' coin per person in it.';
+      '\nTrade: each unit a route delivers earns ' + fmt2(rates.tradeCoinPerUnit) + ' coin' + byNode('tradeCoinPerUnit') +
+      '.\nTaking a rival city plunders ' + N.plunderPerPerson + ' coin per person in it.\nCoin you collect earns Economy experience.';
     var movesTip = 'Moves you can spend now: ' + s.moves + '\nEvery order costs ' + moveCost() + '; looking is free.' +
       '\n\nEach turn adds ' + per + ' (' + N.movesPerTurn + ' base + ' + halls * N.builds.hall.moves +
       ' from Halls; never above ' + N.movesCap + ').\n' + saved + ' of your moves were saved from earlier turns:' +
@@ -216,7 +264,13 @@
         '</span><span class="muted">' + num(signed(next.total), coinTip) + ' next turn</span></span>' +
       '<span class="stat"><span class="label">Moves</span><span class="big">' + num(s.moves, movesTip) + '</span>' +
         '<span class="pips">' + pips + '</span><span class="muted">' +
-        num(per + ' per turn', movesTip) + ' · ' + num(saved + ' saved', movesTip) + '</span></span>';
+        num(per + ' per turn', movesTip) + ' · ' + num(saved + ' saved', movesTip) + '</span></span>' +
+      '<span class="xpstat"><span class="label">Experience</span><span class="xp">' + N.web.branches.map(function (b, i) {
+        return '<span>' + b.name + ' ' + num(Math.floor(s.web.xp[i]), xpTip(i)) + '</span>';
+      }).join('') + '</span></span>' +
+      '<span class="ow" data-tip="The web: buy nodes with experience (and coin for what is short) to earn the Hall, Granary, ' +
+        'Market and Workshop and leader bonuses. Looking is free; each node bought costs ' + moveCost() + '.">' +
+        '<button data-act="web">Web</button></span>';
     var undo = $('undo');
     undo.disabled = !game.undo.length;
     undo.textContent = 'Undo' + (game.undo.length ? ' (' + game.undo.length + ')' : '');
@@ -249,7 +303,7 @@
     var html = '<h2>Your empire</h2><p class="muted">Click a tile or a city on the map to look at it. Looking is free; ' +
       'every order costs ' + moveCost() + '.</p><h3>Cities</h3>';
     s.cities.forEach(function (c) {
-      var f = G.flow(s, c, 'food');
+      var f = G.flow(s, c, 'food', ui.ahead);
       html += '<div class="item link" data-act="goto" data-tile="' + c.tile + '"><b>' + c.name + '</b> · size ' + c.size +
         ' · food ' + num(signed(f.net) + '/turn', foodTip(c)) + ' · ' + (c.build ? 'building ' + lower(N.builds[c.build.kind].name) : '<span class="gold">nothing to build</span>') + '</div>';
     });
@@ -279,12 +333,12 @@
   }
 
   function cityPanel(city) {
-    var s = S(), prod = G.production(s, city), food = G.flow(s, city, 'food'), stone = G.flow(s, city, 'stone');
+    var s = S(), prod = G.production(s, city), food = G.flow(s, city, 'food', ui.ahead), stone = G.flow(s, city, 'stone', ui.ahead);
     var staff = G.staffing(s, city), need = G.growthNeed(city), eat = G.eats(city);
     var atSites = city.size - staff.free;
     var html = '<h2><span class="swatch" style="background:' + cityColor(city) + '"></span>' + city.name +
       ' <span class="sub">size ' + num(city.size, 'People: ' + city.size + '. Each one eats ' + N.foodPerPerson +
-        ' food, pays ' + N.coinPerPerson + ' coin and adds ' + N.productionPerPerson + ' production each turn, at a site or not.') + '</span></h2>';
+        ' food, pays ' + fmt2(G.rates(s).coinPerPerson) + ' coin and adds ' + N.productionPerPerson + ' production each turn, at a site or not.') + '</span></h2>';
     html += '<div>' + (city.attention > 0
       ? '<span class="gold">Attention: ' + num(count(city.attention, 'turn', 'turns') + ' left', 'An order given here (a build, founding it, a route starting here, ' +
           'a supply line it feeds, a general taking or leaving regiments here) gave the city attention: its sites make ' +
@@ -300,7 +354,8 @@
         (city.garrison ? ' · eat ' + num(fmt(city.garrison * N.foodPerRegiment) + ' food per turn', regs(city.garrison) + ' × ' +
           N.foodPerRegiment + ' food, from the city\'s store, before the people.') : '') + '</td></tr>' +
       '<tr><th>Food</th><td>store ' + num(fmt(city.food), foodTip(city)) + ' · eats ' +
-        num(fmt(eat), eatText(city) + ' food each turn') + ' · grows at ' +
+        num(fmt(eat), eatText(city) + ' food each turn') +
+        (G.generalsAt(s, city.tile).length ? ' · to baggage ' + num(fmt(food.baggage), foodTip(city)) : '') + ' · grows at ' +
         num(fmt(need), 'Food needed to grow: ' + N.growthBase + ' + ' + N.growthPerSize + ' × size ' + city.size + ' = ' +
           fmt(N.growthBase + N.growthPerSize * city.size) + (G.has(city, 'granary') ? '\nGranary −' + fmt(N.builds.granary.growthDiscount * 100) + '% = ' + fmt(need) : '') +
           '\nWhen the store reaches it, the city gains a person and that food is used up.') +
@@ -362,10 +417,10 @@
       var travel = G.travelTurns(s, st.site.tile, city.tile);
       html += '<div class="item link" data-act="goto" data-tile="' + st.site.tile + '"><b>' + spec.name + '</b> ' + where(st.site.tile) + ' · ' +
         (st.working
-          ? '<span class="good">working</span> · ' + num(fmt(out) + ' ' + spec.makes + '/turn', spec.amount + ' ' + spec.makes +
+          ? '<span class="good">working</span> · ' + num(fmt(out) + ' ' + spec.makes + '/turn', fmt(G.siteAmount(s, st.site.type)) + ' ' + spec.makes +
               (city.attention > 0 ? ' + attention ' + fmt(N.attentionBonus * 100) + '% = ' + fmt(out) : '') + ' each turn') +
-            ' · ' + num(count(travel, 'turn', 'turns') + ' to the city', 'Output travels to the city by itself: 1 turn per ' +
-              N.tilesPerTravelTurn + ' tiles, rounded up, at least ' + N.minTravelTurns + ' (' + G.dist(s, st.site.tile, city.tile) + ' tiles).')
+            ' · ' + num(count(travel, 'turn', 'turns') + ' to the city', 'Output travels to the city by itself: ' + perTravelTurn() +
+              ', rounded up, at least ' + N.minTravelTurns + ' (' + G.dist(s, st.site.tile, city.tile) + ' tiles).')
           : '<span class="bad">idle</span>: needs ' + count(st.need, 'person', 'people') + ', ' + staff.free + ' free') + '</div>';
     });
 
@@ -412,7 +467,7 @@
     coming.forEach(function (g) {
       var what = g.trade
         ? ' shipped by the route from ' + g.from + ': everything above its reserve, shared among its routes with this good.\nEarns ' +
-          N.tradeCoinPerUnit + ' coin per unit when it lands.'
+          fmt2(G.rates(s).tradeCoinPerUnit) + ' coin per unit' + byNode('tradeCoinPerUnit') + ' when it lands.'
         : ' made by the ' + g.from + ', with the attention bonus if the city had attention when it was sent.';
       html += '<div>' + num(fmt(g.amount) + ' ' + g.good, fmt(g.amount) + ' ' + g.good + what +
         '\nIt lands in the store at the end of turn ' + g.arrives + '.') + ' from ' + g.from + (g.trade ? ' (route)' : '') + ' · ' +
@@ -454,7 +509,7 @@
   }
 
   function generalPanel(g) {
-    var s = S(), here = G.cityAt(s, g.tile), eat = G.armyEats(g), left = G.turnsOfFood(g);
+    var s = S(), here = G.cityAt(s, g.tile), eat = G.armyEatsNow(s, g), left = G.turnsOfFood(s, g), hunger = ui.ahead.hunger[g.id];
     var plan = G.supplyPlan(s).filter(function (p) { return p.general === g; })[0];
     var coming = s.transit.filter(function (x) { return x.general === g.id; }), onWay = G.foodOnWay(s, g.id);
     var html = '<h2><span class="swatch" style="background:' + ARMY_COLOR + ';border-color:#ffc94d;border-radius:3px"></span>General' +
@@ -471,18 +526,20 @@
     var orders = '<span class="gold">none: it stands here</span>';
     if (g.dest !== null) {
       var path = G.findPath(s, g.tile, g.dest, G.armyBlocked(s)), steps = path ? path.length : 0;
-      orders = 'marching to ' + where(g.dest) + ', about ' + num(count(Math.ceil(steps / N.armySteps), 'turn', 'turns'),
-        steps + ' tiles to march around mountains, water and rival cities, ' + N.armySteps + ' per turn.') + ' left';
+      var marchSteps = G.rates(s).armySteps;
+      orders = 'marching to ' + where(g.dest) + ', about ' + num(count(Math.ceil(steps / marchSteps), 'turn', 'turns'),
+        steps + ' tiles to march around mountains, water and rival cities, ' + marchSteps + ' per turn' + byNode('armySteps') + '.') + ' left';
     }
     html += '<table class="stats">' +
       '<tr><th>Regiments</th><td>' + num(regs(g.regiments), 'The general and the regiments with it are an army: one marker on one tile.' +
         '\nOnly a general moves regiments. Each regiment eats ' + N.foodPerRegiment + ' food per turn from the baggage; the general eats nothing.') +
-        ' · eat ' + num(fmt(eat) + ' food per turn', regs(g.regiments) + ' × ' + N.foodPerRegiment + ' food, from the baggage.') + '</td></tr>' +
+        ' · eat ' + num(fmt(eat) + ' food per turn', armyEatText(g) + '. From the baggage.') + '</td></tr>' +
       '<tr><th>Baggage</th><td>' + num(fmt(g.baggage) + ' food', baggageTip(g)) + ' · ' + (eat
-        ? '<span class="' + (ui.hunger[g.id] ? 'bad' : 'good') + '">' + num(count(left, 'turn', 'turns') + ' left', baggageTip(g)) +
-          (ui.hunger[g.id] && ui.hunger[g.id].ifWins ? ' (if it wins)' : '') + '</span>'
-        : 'no one to feed') + ' · limit ' + num(fmt(G.baggageCap(g)), 'The baggage limit is ' + N.baggageTurns + ' turns of eating: ' +
-        fmt(eat) + ' × ' + N.baggageTurns + ' = ' + fmt(G.baggageCap(g)) + '. Filling and supply aim at it.') + '</td></tr>' +
+        ? '<span class="' + (hunger ? 'bad' : 'good') + '">' + num(count(left, 'turn', 'turns') + ' left', baggageTip(g)) +
+          (hunger && hunger.ifWins ? ' (if it wins)' : '') + '</span>'
+        : 'no one to feed') + ' · limit ' + num(fmt(G.baggageCap(s, g)), 'The baggage limit is ' + G.rates(s).baggageTurns +
+        ' turns of its full eating' + byNode('baggageTurns') + ': ' + fmt(G.armyEats(g)) + ' × ' + G.rates(s).baggageTurns + ' = ' +
+        fmt(G.baggageCap(s, g)) + '. Filling and supply aim at it.') + '</td></tr>' +
       '<tr><th>Supply</th><td>' + supply + '</td></tr>' +
       '<tr><th>Marching</th><td>' + orders + '</td></tr>' +
       '</table>';
@@ -494,7 +551,7 @@
       var foe = G.foeAt(s, tile);
       G.rivalsNext(s, tile).forEach(function (r) {
         lines.push('<div class="item link" data-act="goto" data-tile="' + r.tile + '">' + label + ': <b>' + r.name + '</b> (garrison ' +
-          r.garrison + ') · win chance ' + num(pct(G.winChance(g.regiments, r.garrison)), chanceTip(g.regiments, r)) +
+          r.garrison + ') · win chance ' + num(pct(G.winChance(s, g.regiments, r.garrison)), chanceTip(g.regiments, r)) +
           (r !== foe ? ' · <span class="muted">it would fight the city with the smaller garrison</span>'
             : now ? ' · <span class="gold">it fights when this turn ends</span>' : '') + '</div>');
       });
@@ -517,8 +574,8 @@
       '<p class="muted" style="font-size:13px">Regiments are only taken or left in your cities; regiments left behind leave the ' +
       'food above the smaller army\'s baggage limit in the city. Supply: the city you name sends what keeps the baggage at ' +
       'its limit when the food lands (its eating during the trip included), from its food above what it eats in ' +
-      count(N.armyReserveTurns, 'turn', 'turns') + ', before its routes ship; the food takes 1 turn per ' + N.tilesPerTravelTurn +
-      ' tiles and lands wherever the general is then. While the general stands in the city that feeds it, the line sends ' +
+      count(N.armyReserveTurns, 'turn', 'turns') + ', before its routes ship; the food takes ' + perTravelTurn() +
+      ' and lands wherever the general is then. While the general stands in the city that feeds it, the line sends ' +
       'nothing: the baggage fills there.<br>Attention: taking or leaving regiments gives the city the army stands in ' +
       'attention; setting, changing or cancelling supply gives it to the city that feeds (or fed) the army; sending the army gives none.</p>';
     return html;
@@ -534,7 +591,8 @@
       '<tr><th>Garrison</th><td>' + num(regs(r.garrison), 'Regiments defending ' + r.name + ': ' + r.garrison + '.\nIt gains ' +
         N.rival.garrisonGrowth + ' every ' + N.rival.garrisonEvery + ' turns, up to ' + most +
         (r.garrison < most ? '; next at the end of turn ' + next : '; it is at its most') + '.\nDefending costs the rival nothing.') + '</td></tr>' +
-      '<tr><th>Defence</th><td>' + num(fmt(r.garrison * N.walls), 'D = garrison ' + r.garrison + ' × ' + N.walls + ' for its walls.') + '</td></tr>' +
+      '<tr><th>Defence</th><td>' + num(fmt2(r.garrison * G.rates(s).walls), 'D = garrison ' + r.garrison + ' × ' + fmt2(G.rates(s).walls) +
+        ' for its walls' + byNode('walls') + '.') + '</td></tr>' +
       '<tr><th>Plunder</th><td>' + num(fmt(r.size * N.plunderPerPerson) + ' coin', N.plunderPerPerson + ' coin × ' +
         count(r.size, 'person', 'people') + ', yours when you capture it.') + '</td></tr>' +
       '</table><h3>Your armies near it</h3>';
@@ -546,7 +604,7 @@
     near.forEach(function (g) {
       html += '<div class="item link" data-act="goto" data-tile="' + g.tile + '">Army of ' + regs(g.regiments) + ' at ' + where(g.tile) +
         (G.dist(s, g.tile, r.tile) === 1 ? '' : ', heading next to it') + ' · win chance ' +
-        num(pct(G.winChance(g.regiments, r.garrison)), chanceTip(g.regiments, r)) + '</div>';
+        num(pct(G.winChance(s, g.regiments, r.garrison)), chanceTip(g.regiments, r)) + '</div>';
     });
     return html;
   }
@@ -562,10 +620,10 @@
       var st = G.staffing(s, c).list.find(function (x) { return x.site === site; });
       html += '<div class="item"><b>' + spec.name + '</b> of ' + c.name + ' · ' + (st.working ? '<span class="good">working</span>' :
         '<span class="bad">idle</span> (needs ' + count(spec.people, 'person', 'people') + ')') + '<br>Makes ' +
-        num(fmt(G.siteOutput(s, c, site)) + ' ' + spec.makes, spec.amount + ' ' + spec.makes + ' per turn' + (c.attention > 0
+        num(fmt(G.siteOutput(s, c, site)) + ' ' + spec.makes, fmt(G.siteAmount(s, site.type)) + ' ' + spec.makes + ' per turn' + (c.attention > 0
           ? ' + attention ' + fmt(N.attentionBonus * 100) + '%' : '') + ', only while it has its people.') +
         ' per turn when worked; it reaches ' + c.name + ' after ' + num(count(G.travelTurns(s, t, c.tile), 'turn', 'turns'),
-          G.dist(s, t, c.tile) + ' tiles: 1 turn per ' + N.tilesPerTravelTurn + ' tiles, rounded up, at least ' + N.minTravelTurns + '.') +
+          G.dist(s, t, c.tile) + ' tiles: ' + perTravelTurn() + ', rounded up, at least ' + N.minTravelTurns + '.') +
         '.<div class="acts"><button data-act="goto" data-tile="' + c.tile + '">Open ' + c.name + '</button></div></div>';
     }
     if (builder) {
@@ -575,10 +633,124 @@
     return html;
   }
 
+  // ---- The web ----
+
+  var BRANCH_COLORS = ['#8bc34a', '#ff9800', '#fdd835', '#9575cd']; // in branch order; red stays the rival's
+  var WEB_HEAD = 46; // pixels the web's title row takes above the drawing
+
+  function branchColor(i) { return BRANCH_COLORS[i % BRANCH_COLORS.length]; }
+
+  /** What a node does, in words, from its numbers in numbers.js. */
+  function nodeEffect(spec) {
+    var b = N.builds;
+    function less(share) { return fmt((1 - share) * 100) + '% less'; }
+    if (spec.building) return 'Your cities can build the ' + b[spec.building].name + ': ' + buildEffect(spec.building) + '.';
+    if (spec.farmMakes !== undefined) return 'Farms make ' + fmt(spec.farmMakes) + ' food a turn, not ' + fmt(b.farm.amount) + '.';
+    if (spec.settlerFood !== undefined) {
+      return 'A settler costs ' + fmt(spec.settlerFood) + ' food, not ' + fmt(b.settler.food) + ', for settlers ordered from then on.';
+    }
+    if (spec.baggageTurns !== undefined) {
+      return 'An army\'s baggage limit is ' + spec.baggageTurns + ' turns of its eating, not ' + N.baggageTurns + '.';
+    }
+    if (spec.quarryMakes !== undefined) return 'Quarries make ' + fmt(spec.quarryMakes) + ' stone a turn, not ' + fmt(b.quarry.amount) + '.';
+    if (spec.tilesPerTravelTurn !== undefined) {
+      return 'Site output, routes and supply travel ' + spec.tilesPerTravelTurn + ' tiles a turn, not ' + N.tilesPerTravelTurn +
+        '. Goods and food already on their way keep their arrival turn.';
+    }
+    if (spec.stoneShare !== undefined) {
+      var names = spec.stoneFor.map(function (k) { return b[k].name; });
+      return 'The ' + names.slice(0, -1).join(', ') + (names.length > 1 ? ' and ' : '') + names[names.length - 1] + ' cost ' +
+        less(spec.stoneShare) + ' stone, rounded up (after the Hall\'s price growth), for orders given from then on.';
+    }
+    if (spec.tradeCoinPerUnit !== undefined) {
+      return 'Trade earns ' + fmt2(spec.tradeCoinPerUnit) + ' coin per unit delivered, not ' + fmt2(N.tradeCoinPerUnit) + '.';
+    }
+    if (spec.coinPerPerson !== undefined) return 'Each person pays ' + fmt2(spec.coinPerPerson) + ' coin a turn, not ' + fmt2(N.coinPerPerson) + '.';
+    if (spec.regimentProduction !== undefined) {
+      return 'A regiment needs ' + spec.regimentProduction + ' production, not ' + b.regiment.production +
+        ', for regiments ordered from then on.';
+    }
+    if (spec.awayEating !== undefined) {
+      return 'An army not standing in one of your cities eats ' + less(spec.awayEating) + ' food. Its baggage limit, and what ' +
+        'supply counts it eating on the way, stay at its full eating.';
+    }
+    if (spec.armySteps !== undefined) return 'Armies march ' + spec.armySteps + ' tiles a turn, not ' + N.armySteps + '.';
+    return 'A rival city\'s walls count ' + fmt2(spec.walls) + ', not ' + fmt2(N.walls) + ', in its defence and in the win chance.';
+  }
+
+  function nodeName(id) { return id === G.WEB.centre ? 'the centre' : G.nodeById(id).spec.name; }
+
+  /** A node's price, short: "10 xp" or "7 xp + 6 coin" (experience shown rounded down). */
+  function priceText(cost) {
+    return cost.coin ? Math.floor(cost.xp) + ' xp + ' + fmt(cost.coin) + ' coin' : cost.price + ' xp';
+  }
+
+  function nodeTip(node, check) {
+    var s = S(), branch = N.web.branches[node.branch], have = s.web.xp[node.branch], cost = check.cost;
+    var text = node.spec.name + ' · ' + branch.name + ', node ' + (node.tier + 1) + ' of ' + branch.nodes.length +
+      '\n' + nodeEffect(node.spec) + '\n\nLinked to ' + G.linksOf(node.id).map(nodeName).join(', ') + '.';
+    if (G.owns(s, node.id)) return text + '\n\nYours: it works now.';
+    text += '\n\nPrice: ' + cost.price + ' experience. ' + (!cost.coin
+      ? 'It takes ' + cost.price + ' of your ' + Math.floor(have) + ' ' + branch.name + ' experience.'
+      : (cost.xp ? 'It takes all your ' + branch.name + ' experience (' + Math.floor(have) + ') and ' : 'You have no ' + branch.name +
+        ' experience, so it takes ') + fmt(cost.coin) + ' coin for the rest, ' + N.web.coinPerPoint + ' coin per point short.');
+    return text + (check.ok ? '\nClick to buy it: ' + moveCost() + '. Undo takes it back this turn.' : '\n\nCan\'t now: ' + check.reason);
+  }
+
+  /** Where each node sits, in pixels from the drawing's middle: the branches run out like spokes, clockwise. */
+  function webPos(id, rx, ry) {
+    if (id === G.WEB.centre) return { x: 0, y: 0, side: false };
+    var node = G.nodeById(id), angle = -Math.PI / 2 + 2 * Math.PI * node.branch / N.web.branches.length;
+    var f = (node.tier + 1.5) / (N.web.branches[node.branch].nodes.length + 0.5); // the inner node a third of the way out
+    // Labels go beside the nodes of up-and-down branches and under those of sideways ones.
+    return { x: Math.cos(angle) * rx * f, y: Math.sin(angle) * ry * f, side: Math.abs(Math.cos(angle)) < 0.5 };
+  }
+
+  function renderWeb() {
+    var box = $('web');
+    box.className = ui.web ? 'show' : '';
+    if (!ui.web) return;
+    var s = S(), w = $('mapwrap').clientWidth, h = $('mapwrap').clientHeight - WEB_HEAD;
+    var rx = Math.max(120, w / 2 - 120), ry = Math.max(100, h / 2 - 46), svg = '';
+    G.WEB.links.forEach(function (l) {
+      var a = webPos(l[0], rx, ry), b = webPos(l[1], rx, ry), lit = G.owns(s, l[0]) || G.owns(s, l[1]);
+      var cross = l[0] !== G.WEB.centre && G.nodeById(l[0]).branch !== G.nodeById(l[1]).branch;
+      // The outer nodes' links follow the ring around the centre.
+      svg += '<path d="M' + fmt(a.x) + ' ' + fmt(a.y) + (cross ? ' A' + fmt(rx) + ' ' + fmt(ry) + ' 0 0 1 ' : ' L') + fmt(b.x) + ' ' +
+        fmt(b.y) + '" class="link' + (lit ? ' lit' : '') + '"/>';
+    });
+    svg += '<g class="node owned" data-tip="The centre: yours from the start. It is linked to the inner node of every branch.">' +
+      '<circle r="16" fill="#eef2f6"/><text class="lbl" x="22" y="-24">Centre</text></g>';
+    G.WEB.nodes.forEach(function (node) {
+      var p = webPos(node.id, rx, ry), check = G.checkBuy(s, node.id), owned = G.owns(s, node.id), color = branchColor(node.branch);
+      var sub = owned ? 'owned' : check.ok ? priceText(check.cost) : check.why === 'unlinked' ? 'not linked'
+        : check.why === 'moves' ? 'no moves left' : 'needs ' + fmt(check.cost.coin) + ' coin';
+      var state = owned ? 'owned' : check.ok ? 'buy' : check.why === 'unlinked' ? 'off' : 'short';
+      var lx = p.side ? 28 : 0, ly = p.side ? -3 : 36, anchor = p.side ? 'start' : 'middle';
+      svg += '<g class="node ' + state + '" transform="translate(' + fmt(p.x) + ' ' + fmt(p.y) + ')" data-tip="' +
+        attr(nodeTip(node, check)) + '"' + (check.ok ? ' data-act="buy" data-node="' + node.id + '"' : '') + '>' +
+        '<circle r="20" fill="' + (owned ? color : '#1b222b') + '" stroke="' + (check.ok ? '#ffc94d' : color) + '"/>' +
+        '<text class="in" y="4.5" text-anchor="middle"' + (owned ? ' fill="#111"' : '') + '>' + (owned ? '✓' : check.cost.price) + '</text>' +
+        '<text class="lbl" x="' + lx + '" y="' + ly + '" text-anchor="' + anchor + '">' + node.spec.name + '</text>' +
+        '<text class="sub ' + state + '" x="' + lx + '" y="' + (ly + 16) + '" text-anchor="' + anchor + '">' + sub + '</text></g>';
+    });
+    box.innerHTML = '<div class="webhead"><b>The web</b><span class="muted">Click a node with a gold outline to buy it (' +
+      moveCost() + '): its branch\'s experience pays first, then ' + N.web.coinPerPoint + ' coin per point short. Hover a ' +
+      'node to see what it does.</span><span class="spacer"></span><button data-act="web">Close (Esc)</button></div>' +
+      '<svg width="' + w + '" height="' + h + '"><g transform="translate(' + fmt(w / 2) + ' ' + fmt(h / 2) + ')">' + svg + '</g></svg>';
+  }
+
+  function toggleWeb(open) {
+    ui.web = open;
+    ui.pick = null;
+    ui.msg = null;
+    render();
+  }
+
   // ---- Waiting for you, and the turn log ----
 
   function renderWaiting() {
-    var items = G.waiting(S(), ui.hunger);
+    var items = G.waiting(S(), ui.ahead);
     var html = '<h3>Waiting for you <span class="sub">(' + items.length + ')</span></h3>';
     if (!items.length) html += '<div class="muted">Nothing. Everything follows its last orders.</div>';
     items.forEach(function (it) {
@@ -611,12 +783,13 @@
   }
 
   function render() {
-    ui.hunger = G.hungerAhead(S()); // the next ends of turn played on a copy (every battle with regiments won), once per redraw
+    ui.ahead = G.lookAhead(S()); // the next ends of turn played on a copy (every battle with regiments won), once per redraw
     renderTop();
     renderSide();
     renderWaiting();
     renderLog();
     renderBanner();
+    renderWeb();
     draw();
   }
 
@@ -678,6 +851,7 @@
   }
 
   function startPick(p) {
+    ui.web = false; // a pick needs the map
     ui.pick = p;
     ui.msg = null;
     render();
@@ -1153,7 +1327,7 @@
       if (!why && ui.pick.kind === 'march') {
         var g = G.generalById(s, ui.pick.general), foe = G.foeAt(s, t);
         if (foe) {
-          lines.push('Next to ' + foe.name + ' (garrison ' + foe.garrison + '): win chance ' + pct(G.winChance(g.regiments, foe.garrison)) +
+          lines.push('Next to ' + foe.name + ' (garrison ' + foe.garrison + '): win chance ' + pct(G.winChance(s, g.regiments, foe.garrison)) +
             ' with ' + regs(g.regiments) + ' now.\nIt fights when it ends a turn here.');
         }
       }
@@ -1187,6 +1361,7 @@
   }
 
   function select(t, centreOn) {
+    if (centreOn) ui.web = false; // going to a place on the map shows the map
     ui.sel = t;
     ui.msg = null;
     if (centreOn && t >= 0) {
@@ -1258,6 +1433,8 @@
         newGameFromInput();
         break;
       case 'goto': select(+d.tile, true); break;
+      case 'web': toggleWeb(!ui.web); break;
+      case 'buy': result(G.orderBuy(game, d.node)); break;
       case 'build':
         if (N.builds[d.kind].site) startPick({ kind: 'site', city: +d.city, build: d.kind });
         else result(G.orderBuild(game, +d.city, d.kind));
@@ -1299,7 +1476,8 @@
       e.preventDefault();
       if (!e.repeat) endTurn();
     } else if (e.key === 'Escape') {
-      if (ui.pick) cancelPick();
+      if (ui.web) toggleWeb(false);
+      else if (ui.pick) cancelPick();
       else select(-1, false);
     } else if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z')) {
       e.preventDefault();
@@ -1360,11 +1538,14 @@
     e.preventDefault();
     if (ui.pick) cancelPick();
   });
-  window.addEventListener('resize', draw);
+  window.addEventListener('resize', function () {
+    renderWeb();
+    draw();
+  });
 
   // ---- Start ----
 
-  $('top').innerHTML = '<span class="title">TemuCiv · slice 2</span><span id="stats" style="display:contents"></span>' +
+  $('top').innerHTML = '<span class="title">TemuCiv · slice 3</span><span id="stats" style="display:contents"></span>' +
     '<span class="spacer"></span>' +
     '<span class="ow"><button id="undo" data-act="undo">Undo</button></span>' +
     '<span class="ow" data-tip="End the turn (Enter or Space). Everything follows its last orders; unused moves are saved.">' +

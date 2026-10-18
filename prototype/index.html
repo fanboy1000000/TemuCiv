@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TemuCiv prototype: slice 2</title>
+<title>TemuCiv prototype: slice 3</title>
 <style>
   :root {
     --bg: #12171d; --bar: #0c1015; --panel: #1b222b; --card: #232c37; --line: #36424f;
@@ -20,9 +20,10 @@
   input { font: inherit; color: var(--text); background: #1b222b; border: 1px solid #4a5a6b; border-radius: 6px;
     padding: 4px 6px; width: 90px; }
   input.n { width: 64px; }
+  #seed { width: 72px; }
 
   /* Top bar */
-  #top { display: flex; align-items: center; gap: 16px; padding: 8px 14px; background: var(--bar);
+  #top { display: flex; align-items: center; gap: 14px; padding: 8px 14px; background: var(--bar);
     border-bottom: 1px solid var(--line); flex-wrap: wrap; }
   #top .title { font-weight: 600; color: var(--muted); }
   .stat { display: flex; align-items: baseline; gap: 6px; }
@@ -35,12 +36,37 @@
   #endturn { background: #2f6f4f; border-color: #4caf7d; font-weight: 600; padding: 7px 16px; }
   #endturn:hover { background: #3a8a62; }
   .spacer { flex: 1; }
+  .xpstat { display: flex; flex-direction: column; font-size: 13px; line-height: 1.2; }
+  .xpstat .label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .xp { display: grid; grid-template-columns: auto auto; column-gap: 10px; }
+
+  /* The web, over the map */
+  #web { position: absolute; z-index: 2; inset: 0; background: rgba(10, 14, 20, 0.96); display: none; flex-direction: column; }
+  #web.show { display: flex; }
+  #web .webhead { display: flex; align-items: center; gap: 12px; height: 46px; padding: 0 14px; border-bottom: 1px solid var(--line);
+    font-size: 14px; }
+  #web .webhead b, #web .webhead button { white-space: nowrap; }
+  #web .webhead b { font-size: 17px; }
+  #web svg { display: block; }
+  #web .link { fill: none; stroke: #4a5a6b; stroke-width: 3; }
+  #web .link.lit { stroke: #8fa3b8; }
+  #web .node circle { stroke-width: 3; }
+  #web .node.buy { cursor: pointer; }
+  #web .node.buy circle { stroke-width: 4; }
+  #web .node.off { opacity: 0.45; }
+  #web text { fill: var(--text); font-family: "Segoe UI", system-ui, sans-serif; }
+  #web text.in { font-size: 13px; font-weight: 700; }
+  #web text.lbl { font-size: 13px; font-weight: 600; }
+  #web text.sub { font-size: 12px; fill: var(--muted); }
+  #web text.sub.buy { fill: var(--gold); }
+  #web text.sub.owned { fill: var(--good); }
+  #web text.sub.short { fill: var(--bad); }
 
   /* Main area */
   main { display: grid; grid-template-columns: 1fr 420px; grid-template-rows: 1fr clamp(150px, 24vh, 230px); min-height: 0; }
   #mapwrap { position: relative; min-height: 0; min-width: 0; overflow: hidden; }
   #map { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: grab; }
-  #banner { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); max-width: 90%;
+  #banner { position: absolute; z-index: 3; top: 10px; left: 50%; transform: translateX(-50%); max-width: 90%;
     background: rgba(12, 16, 21, 0.92); border: 1px solid var(--accent); border-radius: 8px; padding: 8px 14px;
     display: none; align-items: center; gap: 12px; }
   #banner.show { display: flex; }
@@ -96,6 +122,7 @@
   <main>
     <section id="mapwrap">
       <canvas id="map"></canvas>
+      <div id="web"></div>
       <div id="banner"></div>
       <div id="hint">Drag to scroll · wheel to zoom · click to look (free) · Enter or Space: end turn · Ctrl+Z: undo · Esc: cancel</div>
     </section>

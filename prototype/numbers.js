@@ -1,4 +1,4 @@
-// TemuCiv prototype, slices 1 and 2: every number the rules use (prototype/RULES.md says where each one comes from).
+// TemuCiv prototype, slices 1 to 3: every number the rules use (prototype/RULES.md says where each one comes from).
 //
 // To try a different number: change it here, save the file, and reload the page (F5). The game starts over.
 // Only change the numbers (and the names in quotes, if you like); keep the commas, colons and brackets as they are.
@@ -102,6 +102,7 @@ var NUMBERS = {
   // ---- What cities can build ----
   // coin is paid from your purse, stone (and food) from the city's store, all when you give the order.
   // production is how much production the build needs before it is finished.
+  // The Hall, Granary, Market and Workshop can only be built once you own their node in the web (see web, below).
   builds: {
     farm: {
       name: 'Farm',
@@ -179,5 +180,61 @@ var NUMBERS = {
       production: 30,
       productionBonus: 0.5, // extra production (0.5 = half more)
     },
+  },
+
+  // ---- The web (a draft: every name, price and effect here can be retuned) ----
+  web: {
+    prices: [10, 20, 30, 40], // experience each node costs, one price per node of a branch, from the inner node out
+    coinPerPoint: 2, // coin for each point of experience you are short when you buy a node
+    // The branches, in their order around the centre: you own the centre from the start, and it is linked to each
+    // branch's inner node; each node is linked to the next one out; each branch's outer node is linked to the outer
+    // nodes of the branches before and after it in this list (the last one is next to the first again).
+    // "earns": the experience the branch gets for each unit of its activity (0.25 = 1 per 4).
+    // A node either lets your cities build a building, or changes one number, as its note says.
+    branches: [
+      {
+        name: 'Agriculture',
+        earns: { farm: 0.25 }, // for each food your working farms send, attention included
+        nodes: [
+          { name: 'Granary', building: 'granary' }, // your cities can build the Granary
+          { name: 'Rich soil', farmMakes: 5 }, // a farm makes this much food each turn
+          { name: 'Hardy settlers', settlerFood: 10 }, // a settler costs this much food
+          { name: 'Field kitchens', baggageTurns: 4 }, // an army's baggage limit, in turns of its eating
+        ],
+      },
+      {
+        name: 'Engineering',
+        earns: { quarry: 1 }, // for each stone your working quarries send, attention included
+        nodes: [
+          { name: 'Workshop', building: 'workshop' }, // your cities can build the Workshop
+          { name: 'Deep quarries', quarryMakes: 3 }, // a quarry makes this much stone each turn
+          { name: 'Roads', tilesPerTravelTurn: 4 }, // site output, routes and supply travel this many tiles a turn
+          // these buildings cost this share of their stone, rounded up (after the Hall's price growth):
+          { name: 'Master builders', stoneShare: 0.75, stoneFor: ['hall', 'granary', 'market', 'workshop'] },
+        ],
+      },
+      {
+        name: 'Economy',
+        earns: { coin: 0.25 }, // for each coin you collect: what your people pay, trade coin as it lands, plunder
+        nodes: [
+          { name: 'Hall', building: 'hall' }, // your cities can build the Hall
+          { name: 'Market', building: 'market' }, // your cities can build the Market
+          { name: 'Tolls', tradeCoinPerUnit: 0.75 }, // coin earned for each unit of goods a route delivers
+          { name: 'Tax rolls', coinPerPerson: 1.5 }, // coin each person pays each turn
+        ],
+      },
+      {
+        name: 'Military',
+        earns: { regiment: 3, battle: 10 }, // for each regiment finished, and for each battle, won or lost
+        nodes: [
+          { name: 'Drill', regimentProduction: 15 }, // production a regiment needs
+          // an army not standing in one of your cities eats this share of its food (0.75 = a quarter less);
+          // its baggage limit, and what supply counts it eating on the way, stay at its full eating:
+          { name: 'Foraging', awayEating: 0.75 },
+          { name: 'Forced march', armySteps: 3 }, // tiles an army marches each turn
+          { name: 'Siege craft', walls: 1.25 }, // a rival city's defence is its garrison times this
+        ],
+      },
+    ],
   },
 };
