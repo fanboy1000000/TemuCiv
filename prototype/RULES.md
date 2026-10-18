@@ -6,19 +6,20 @@ answers A1 to A5 (Sprint 4 log), and slice 3's G1 and W1 to W3 (Sprint 5 log), a
 builder may not change this file, and reports any rule that can't work as written. Each rule ends with its source;
 "(eng.)" marks engineering's own proposal, which the owner may flag, and a rule with two parts may carry two marks.
 An owner's mark is used only where the record it points to contains the words the rule rests on; a quote in the mark
-gives those words where they are not obvious; anything else is (eng.). The owner's marks: K1 to K6 (the moves
-budget), C2 (the economy), D1 to D3 and P1 to P12 (the first playable and slice 1's placeholders), all in the Sprint
-2 log, with the placeholder texts as put to the owner in the working notes
-`.claude/refinements/REFINEMENT-first-playable.md`; "(owner, 2026-10-15)", the Sprint 3 log's "Production and coin"
-ruling; A1 to A5 and R1 in the Sprint 4 log, and G1 and W1 to W3 in the Sprint 5 log, with the exact option text the
-owner chose and, for W1 and W3, the text shown with the question; "S1" with an entry name points to the Sprint 1
-log's rulings: "S1 logistics" (logistics is a major feature), "S1 combat" (the owner's combat concept, still to be
-matured), "S1 map" (map and borders), "S1 web" (the progression web and its branches), "S1 progression"
-("Progression, revised") and "S1 web pricing" ("Web pricing"). A number is the owner's when its rule's mark says so,
-for example one move per order (P3) or one person per regiment (A4); four more were shown to the owner as examples
-and kept: 4 moves per turn and a cap of about 8 (P4), a Hall's one move (P10), and attention's quarter more for five
-turns (P5). Every other number is a starting value engineering proposed, kept in `numbers.js` where the owner can
-change it and reload.
+gives those words where they are not obvious; anything else is (eng.). A quote of the owner's words always sits in
+its mark, as in (P3: "every order costs one move"), and `npm run check-docs` checks each one word for word against
+the record the mark points to (owner, H1, Sprint 5 log). The owner's marks: K1 to K6 (the moves budget), C2 (the
+economy), D1 to D3 and P1 to P12 (the first playable and slice 1's placeholders), all in the Sprint 2 log, with the
+placeholder texts as put to the owner copied into `RULINGS.md`; "(owner, 2026-10-15)", the Sprint 3 log's
+"Production and coin" ruling; A1 to A5 and R1 in the Sprint 4 log, and G1 and W1 to W3 in the Sprint 5 log, with the
+exact option text the owner chose and, for W1 and W3, the text shown with the question; "S1" with an entry name
+points to the Sprint 1 log's rulings: "S1 logistics" (logistics is a major feature), "S1 combat" (the owner's combat
+concept, still to be matured), "S1 map" (map and borders), "S1 web" (the progression web and its branches), "S1
+progression" ("Progression, revised") and "S1 web pricing" ("Web pricing"). A number is the owner's when its rule's
+mark says so, for example one move per order (P3) or one person per regiment (A4); four more were shown to the owner
+as examples and kept: 4 moves per turn and a cap of about 8 (P4), a Hall's one move (P10), and attention's quarter
+more for five turns (P5). Every other number is a starting value engineering proposed, kept in `numbers.js` where
+the owner can change it and reload.
 
 ## The map
 - A hex grid, 24 × 18 tiles, one landmass surrounded by water, made from a seed number: the same seed always
@@ -226,20 +227,20 @@ regiment are A2 to A4, as marked; everything else in the table not marked is eng
 | Economy | Hall: the building · Market: the building · Tolls: trade earns 0.75 coin per unit, not 0.5 · Tax rolls: each person pays 1.5 coin, not 1 |
 | Military | Drill: a regiment needs 15 production, not 20 · Foraging: an army not standing in one of your cities eats a quarter less · Forced march: armies march 3 tiles a turn, not 2 · Siege craft: a rival city's walls count 1.25, not 1.5 |
 
-The names, their order and these amounts are W3's list: farms 5 food, a settler 10 food, quarries 3 stone, a quarter
-less stone, 1.5 coin a person, 3 tiles a turn, a quarter less eaten, and Field kitchens' "armies carry 4 turns of
-food, not 3", read as the baggage limit (the reading is eng.). Where the list named only a direction, the amount is
-eng.: Roads' 4 tiles ("goods and supply travel faster"; that site output and routes count as goods is eng.), Tolls'
-0.75 ("more coin from trade"), Drill's 15 ("regiments build faster") and Siege craft's 1.25 ("weaker rival walls").
-Also eng.: which buildings Master builders covers and its rounding, applied after the Hall's price growth; that
-"away from home" (Foraging) means not standing in one of your cities; and that a foraging army's baggage limit,
-and what supply counts it eating on the way, stay at its full eating.
+The names, their order and these amounts are W3's list (W3: "farms make 5 food, not 4"; "10 food, not 15"; "3 stone,
+not 2"; "buildings cost a quarter less stone"; "each person pays 1.5 coin, not 1"; "3 tiles a turn, not 2"; "armies
+away from home eat a quarter less"; "armies carry 4 turns of food, not 3"). Engineering's (eng.): reading Field
+kitchens' 4 turns as the baggage limit; the amounts where the list named only a direction, Roads' 4 tiles (W3:
+"goods and supply travel faster"), Tolls' 0.75 (W3: "more coin from trade"), Drill's 15 (W3: "regiments build
+faster") and Siege craft's 1.25 (W3: "weaker rival walls"); that site output and routes count as goods for Roads;
+which buildings Master builders covers and its rounding, applied after the Hall's price growth; that away from home
+(Foraging) means not standing in one of your cities; and that a foraging army's baggage limit, and what supply
+counts it eating on the way, stay at its full eating.
 
 ## The rival
-- One rival (A1), with "a few rival cities far away" (A1, from the option text the owner chose), always at war
-  with you (S1 map: every player is at war with every other from the moment they meet). It has 3 cities, placed
-  on the land farthest from your first city, at least 3 tiles from each other, each of size 3 with a new city's
-  borders (eng.).
+- One rival (A1), with a few cities far away (A1: "a few rival cities far away"), always at war with you (S1 map:
+  every player is at war with every other from the moment they meet). It has 3 cities, placed on the land farthest
+  from your first city, at least 3 tiles from each other, each of size 3 with a new city's borders (eng.).
 - The rival's cities defend themselves but never move (A1). They never build or grow (eng.).
 - Each rival city has a garrison of 3 regiments, which gains one every 5 turns, up to 8 (eng.).
 

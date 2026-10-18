@@ -7,6 +7,7 @@
 //   3. sprint index  - every sprint log is listed in docs/sprints/INDEX.md, numbered without gaps
 //   4. agent roster  - every .claude/agents definition is in the docs/AGENTS.md roster with the same model
 //   5. links         - every relative markdown link points at a file that exists
+//   6. owner quotes  - every quote of the owner's words in prototype/RULES.md is in the record its mark points to
 // Exit code 1 on any finding.
 
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
@@ -115,6 +116,55 @@ for (const p of files.filter((f) => f.endsWith('.md'))) {
     const path = normalize(join(dirname(p), decodeURI(target.split('#')[0])));
     if (relative(root, join(root, path)).startsWith('..') || !existsSync(join(root, path))) {
       errors.push(`links: ${p} links to "${target}", which does not exist`);
+    }
+  }
+}
+
+// --- 6. The owner's quoted words -----------------------------------------------------------------
+// prototype/RULES.md cites the owner's rulings as marks such as (A4: "words"; "more words"). Each quote in a mark
+// must appear word for word in the tracked record the mark points to (owner, H1, Sprint 5 log). Add a line here
+// when a sprint records a new set of rulings; an unknown mark with a quote fails. Struck-out text is not a record.
+// Remove this check with the prototype/ folder when production starts (M1).
+const QUOTE_RECORDS = [
+  [/^S1 (logistics|combat|map|web|progression|web pricing)$/, ['docs/sprints/SPRINT-1.md']],
+  [/^(K\d|C2|D\d)$/, ['docs/sprints/SPRINT-2.md']],
+  [/^P\d{1,2}$/, ['docs/sprints/SPRINT-2.md', 'prototype/RULINGS.md']],
+  [/^owner, 2026-10-15$/, ['docs/sprints/SPRINT-3.md']],
+  [/^(A\d|R1)$/, ['docs/sprints/SPRINT-4.md']],
+  [/^(G1|W\d|H1)$/, ['docs/sprints/SPRINT-5.md']],
+];
+const MARK = /^\s*(S1 web pricing|S1 [a-z]+|owner, \d{4}-\d{2}-\d{2}|[A-Z]\d{1,2})\b/;
+const plain = (text) => text.replace(/~~[\s\S]*?~~/g, ' ').replace(/^\s*>\s?/gm, '').replace(/\*\*/g, '').replace(/\s+/g, ' ');
+const QUOTED = 'prototype/RULES.md';
+if (existsSync(join(root, QUOTED))) {
+  const text = read(QUOTED).replace(/\s+/g, ' ');
+  // Top-level parentheses, split at semicolons; quotes are opaque, so a quote may hold parentheses or semicolons.
+  const groups = [];
+  let depth = 0, inQuote = false, segment = '';
+  for (const c of text) {
+    if (c === '"') inQuote = !inQuote;
+    if (!inQuote && c === ')' && depth === 1) groups.at(-1).push(segment);
+    if (!inQuote && c === '(' && depth++ === 0) { groups.push([]); segment = ''; continue; }
+    if (!inQuote && c === ')' && depth > 0) { depth--; continue; }
+    if (depth === 0) continue;
+    if (!inQuote && c === ';' && depth === 1) { groups.at(-1).push(segment); segment = ''; continue; }
+    segment += c;
+  }
+  if (inQuote) errors.push(`quotes: ${QUOTED} has an unclosed quotation mark`);
+  const records = {};
+  const record = (p) => (records[p] ??= existsSync(join(root, p)) ? plain(read(p)) : '');
+  for (const segments of groups) {
+    let mark = null;
+    for (const seg of segments) {
+      mark = seg.match(MARK)?.[1] ?? mark;
+      for (const [, quote] of seg.matchAll(/"([^"]+)"/g)) {
+        if (!mark) continue;
+        const sources = QUOTE_RECORDS.find(([rx]) => rx.test(mark))?.[1];
+        if (!sources) errors.push(`quotes: ${QUOTED} quotes an unknown mark "${mark}"; add its record to check-docs`);
+        else if (!sources.some((p) => record(p).includes(plain(quote)))) {
+          errors.push(`quotes: ${QUOTED} quotes ${mark}: "${quote}", which is not word for word in ${sources.join(' or ')}`);
+        }
+      }
     }
   }
 }

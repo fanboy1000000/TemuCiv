@@ -115,7 +115,8 @@ complete and committed (the review covers them):
 3. Save each result as `.claude/reviews/SPRINT-N-codex.md` and `.claude/reviews/SPRINT-N-reviewer.md`, with the
    stamp lines at the top and the lens's `verdict:` line (`APPROVED`, `APPROVED-WITH-WARNINGS` or `BLOCKED`). The
    reviewer file also keeps the reviewer's `reviewed-by-model:` first line.
-4. BLOCKERs are fixed as follow-up tasks in the same sprint, then both lenses run again on a fresh stamp.
+4. BLOCKERs are fixed as follow-up tasks in the same sprint, then both lenses run again on a fresh stamp, over
+   the fixes (see "Review cycles").
 5. Any code change after a passing review needs a new review; the close gate enforces this through the scope
    hash.
 
@@ -149,7 +150,9 @@ rather than paper decide which ideas stay (owner rulings D1, 2026-10-15, and the
   code is ever moved into the game, and the folder is deleted when production (M1) starts fresh in `src/`.
 - **Its rules:** the owner's rulings and the slice's placeholders, written out by the Orchestrator in
   `prototype/RULES.md`. Conforming to the design means matching that file. Its numbers sit in one file the owner
-  can edit.
+  can edit. Every quote of the owner's words in it sits in its mark, and `check-docs` checks each one word for word
+  against the tracked record the mark points to; slice 1's placeholder answers are copied into
+  `prototype/RULINGS.md` for that (owner, H1, Sprint 5).
 - **Relaxed:** invariants 2 to 7 (determinism, the action pipeline, multiplayer-ready state, scale, tests written
   first), the plan review, the per-task review, `shortcut:` comments, and the constraint checklist except items 1
   (scope) and 9 (no secrets; no leftover debug output, dead code or unused imports).
@@ -172,6 +175,13 @@ rather than paper decide which ideas stay (owner rulings D1, 2026-10-15, and the
   discretion, and a declined WARNING gets a one-line reason in the log. **NOTE:** a suggestion, or an edge case
   nobody would plausibly hit.
 - **Every fix gets a verification review.** Cycles are counted per lens and per scope (plan, task or sprint).
+- **After a lens's first cycle, a verification cycle covers the fixes:** the diff since the commit that lens last
+  reviewed, named in its prompt, and whatever those fixes change elsewhere. A fix that changes the plan or a design
+  rule gets a full cycle again. (Owner, H1, Sprint 5: the full re-reviews of Sprints 2 and 4 found mostly new slips
+  in freshly written text, while Sprint 4's two fix-only cycles found nothing more in the game or the rules.)
+- **A fix task's log entry copies each finding's status** (fixed, or declined with the reason) from the review
+  file, finding by finding, and quotes any change it made to a gitignored file, which no lens and no CI can see
+  (H1; in Sprint 4 a log claimed a working-notes fix that hadn't been made).
 - **A decision record for a system not yet built** records the decision. Its details (formats, thresholds, exact
   sequences) are settled by the sprint that builds the system; until then a review treats a missing detail as a
   NOTE, unless an agent would act on it in the sprint under review (owner, 2026-10-15, after Sprint 2's review
@@ -188,7 +198,8 @@ rather than paper decide which ideas stay (owner rulings D1, 2026-10-15, and the
 
 Rules that matter are enforced by machines. Memory and good intentions are not enforcement.
 
-**`npm run ci`** (`tools/ci.mjs`) runs every check the project has: currently the docs check, a secret scan,
+**`npm run ci`** (`tools/ci.mjs`) runs every check the project has: currently the docs check (which also checks
+the owner's quotes in `prototype/RULES.md`, see "Prototype phase"), a secret scan,
 the governance tests (hooks and tools) and the prototype's smoke game (until M1). Type checks, unit tests, the determinism check, headless games and
 performance budgets are added as the code arrives. Each step's own exit code is checked. On success it records
 the HEAD commit and a hash of the content of every project file (tracked, plus untracked files that aren't

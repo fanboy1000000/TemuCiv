@@ -108,6 +108,13 @@ Asked "Go with this draft node list as placeholders?", the owner chose "Use it a
 Your playtest notes decide what changes." The exact amounts behind "faster", "more" and "weaker" are engineering's
 (RULES.md marks them eng.).
 
+**H1, the review fixes (process, from the harness review).** Asked "Which of Sprint 4's three process fixes
+should we adopt? They aim to stop the review rounds that drag on over small record slips.", the owner chose "All
+three (Recommended)": "(1) After each reviewer's first full round, later rounds check only the fixes. (2) The log
+copies each finding's status straight from the review file instead of retyping it. (3) A script checks that every
+quote of your words in the rules appears word for word in a saved record, so reviewers stop doing it by hand. Cost:
+a small script and its tests this sprint." (TASK-505.)
+
 ## Task log
 
 ### TASK-501: the starting army's rule, the phase line, the roadmap row
@@ -143,6 +150,44 @@ progression", "S1 web pricing", now named in the marks paragraph). Every amount 
 is marked eng. Also updated: the orders list and attention (buying a node, no attention), the building table
 (needs its node), the top bar and the web screen, the turn's experience steps, and "Left out". Every quoted mark
 was checked word for word against this log and the Sprint 1 log.
+
+### TASK-505: the harness review and the review fixes
+
+Status complete · Agent: Orchestrator · Checklist pass (self-check) · Review: sprint-end, normal bar · Files:
+`tools/check-docs.mjs`, `.claude/hooks/tests/docs-and-ci.test.mjs`, `docs/WORKFLOW.md`, `docs/AGENTS.md`,
+`docs/kb/failures/FAIL-002-review-tails-on-records.md`, `docs/kb/INDEX.md`, `ROADMAP.md`, `prototype/RULES.md`,
+`prototype/RULINGS.md` (new), this log. Scope widened from the plan row: `tools/check-docs.mjs` and the tests
+(H1's script), `prototype/RULES.md` and the new `prototype/RULINGS.md`.
+
+The harness review: what each mechanism caught in Sprints 1 to 5.
+
+| Mechanism | Caught | Cost | Verdict |
+|---|---|---|---|
+| Refinement gate | S2's six moves-budget challenges; S5's starving starting army | one skill run per request | keep |
+| Sprint-end review, first two cycles | real rule gaps every sprint (S3 a screen hint against the rules; S4 hunger on long supply lines and on turn 1) | two lenses per cycle | keep |
+| Sprint-end review, cycle 3 on | mostly slips in fresh records (S2 decision-record detail, S4 owner marks and log lines); 14, 4, 3 and 6 cycles; two waivers | days per sprint | changed by H1 (fix-only cycles) |
+| Owner marks checked by eye | S3 attribution took three passes; S4 cycles 3 to 6 | review cycles | replaced by H1's script |
+| Plan and per-task review | S1 and S2; skipped since under the prototype rules | none since S2 | keep for production |
+| Close gates | two waivers on the owner's say-so (S2, S4); no false block | seconds | keep |
+| Git hooks, sprint-close guard, model-routing guard, secret scan, GitHub CI | no recorded block since S1 | automatic | keep: cheap insurance for invariant 7 and the public repository |
+| Entropy scan | stale phase lines (S5) | minutes | keep |
+| Brief challenge | wrong brief claims settled each prototype sprint (S4 `smoke.js`; S5 "build food first") | a report section | keep |
+
+Nothing caught nothing at a real cost, so nothing is removed. H1's changes:
+- **(1) and (2)** are in WORKFLOW's "Review cycles", step 7.4 and "Prototype phase", and AGENTS' Codex FOCUS
+  gains a `[fixes]` line.
+- **(3)** is `check-docs` step 6. It checks each quote inside a mark in `prototype/RULES.md` word for word against
+  the tracked record that mark points to. An unknown mark fails, and struck-out text doesn't count.
+- Slice 1's placeholder answers were copied into `prototype/RULINGS.md`, identical to the working notes by diff.
+- RULES.md now keeps every owner quote inside its mark: A1's "a few rival cities far away", and the web table
+  paragraph's W3 quotes.
+- FAIL-002 records the failure, and the ROADMAP's rulebook item is done.
+
+Criteria:
+- `check-docs` PASS on the real RULES.md, and fails on a planted misquote and an unknown mark PASS.
+- The new governance test passes PASS.
+- Each of four named mutations made it fail for the right reason PASS: struck text counted; a mark not carried
+  to its second quote; the record never read; quotes not opaque to parentheses.
 
 ## Design conformance
 

@@ -40,7 +40,8 @@ every file the architecture doc marks as shared, and the **governance tooling** 
 hands them to `platform`.
 
 **The prototype (M0.5):** `prototype/**` is written by the agent its task names, under WORKFLOW's "Prototype
-phase", which its prompt includes word for word; `prototype/RULES.md` is Orchestrator-only. For prototype work
+phase", which its prompt includes word for word; `prototype/RULES.md` and `prototype/RULINGS.md` are
+Orchestrator-only. For prototype work
 only checklist items 1 and 9 apply, and reviews use that section's lighter bar for `prototype/`, except
 `RULES.md`, which gets the normal bar.
 
@@ -199,6 +200,8 @@ FOCUS:
         exist (a delete-list).
  [sprint] cross-task consistency; drift from the architecture and the design; gaps between goal and result;
         what didn't need to exist.
+ [fixes] (a verification cycle after a lens's first, WORKFLOW "Review cycles": git diff <last reviewed>..HEAD)
+        does each earlier finding hold as fixed; what the fixes broke or contradict elsewhere.
 THE BAR: a BLOCKER is an invariant at risk, a design mismatch, a claim the code doesn't support, or a gap an
 agent would plausibly hit by mistake; an edge case nobody would plausibly hit is a NOTE. [For prototype/ work,
 add the lighter bar from WORKFLOW, "Prototype phase", and that prototype/RULES.md keeps the normal bar.]

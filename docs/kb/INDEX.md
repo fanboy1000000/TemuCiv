@@ -29,5 +29,6 @@ None yet. Patterns are recorded once they've been validated in practice.
 | ID | Title | Guard added | Areas |
 |---|---|---|---|
 | [FAIL-001](failures/FAIL-001-close-gate-read-the-command.md) | The close gate read the command, not the commit | git commit-msg hook on the real message; gates fail closed; mutation-tested | governance tooling |
+| [FAIL-002](failures/FAIL-002-review-tails-on-records.md) | Review rounds kept finding slips in records, not in the game | check-docs checks every owner quote in `prototype/RULES.md` against its tracked record; verification rounds cover the fixes; fix records copied from the review file | governance, prototype rules, sprint logs |
 
 Lessons inherited from StatsTid are listed in `docs/WORKFLOW.md`, "Inherited lessons".
