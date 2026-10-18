@@ -207,7 +207,10 @@ Criteria:
 
 ## Handoff
 
-- **State:** `sprint/5` created from `main` at `af51d1d`. G1 and W1 to W3 recorded.
-- **In flight:** TASK-501 (RULES.md, the starting army).
-- **Waiting on:** nothing.
-- **Next action:** finish TASK-501, then spawn the builder for TASK-502.
+- **State:** on `sprint/5`: TASK-501 `a753b8f`, 503 `c43b479`, 502 `201fd8a`, 505 `6023729`. G1, W1 to W3 and H1
+  recorded.
+- **In flight:** TASK-504 (the web), by the TASK-502 builder, resumed in the shared tree (no worktree).
+- **Waiting on:** the builder's report; the owner's playtest of slice 2 with the starting army (a frozen copy of
+  `201fd8a` sits in the session scratchpad).
+- **Next action:** verify TASK-504 (CI, screenshots, RULES spot checks), then the sprint-end review: both lenses,
+  with fix-only verification cycles after cycle 1 (H1).
