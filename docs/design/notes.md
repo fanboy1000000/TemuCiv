@@ -29,3 +29,10 @@ I like the idea that there are multiple paths to victory: military, expansionist
 I love the skill tree from Path of Exile, which gives you endless possibilities. Instead of choosing a leader, you
 create your leader through the choices you make.
 
+**2026-10-19: Districts as a mix of buildings**
+Building a district on a tile should not just be building one building. Instead, you add different buildings to
+that area of the city. The optimal mix should depend on things like sanitation, population density, the natural
+yields on the tile (wood, stone, etc.), combinations of buildings and so on. These are still loose ideas.
+*(written down by the Orchestrator at the owner's request; brainstorm started 2026-10-19, working notes in
+`.claude/refinements/REFINEMENT-districts.md`)*
+
