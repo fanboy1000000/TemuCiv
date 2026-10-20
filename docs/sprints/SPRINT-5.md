@@ -42,16 +42,17 @@ do? This is also the fifth sprint, so it carries the harness review.
 | TASK-503 | Orchestrator | `prototype/RULES.md`, this log | The web's rules from W1 to W3 and the Sprint 1 web rulings. Every mark rests on the recorded words → sprint-end review at the normal bar | no |
 | TASK-504 | the TASK-502 agent, resumed | `prototype/**` except `RULES.md` | Plays as RULES.md's web section says. Every web number and node in `numbers.js`. The smoke check buys nodes and undoes them, and checks that experience is never negative and that undo restores it exactly. A web-locked building can't be ordered → the builder's scratch checks (expected values from RULES.md), smoke, `npm run ci`, screenshots, the owner's playtest | no (prototype) |
 | TASK-505 | Orchestrator | `docs/WORKFLOW.md`, `docs/AGENTS.md`, `ROADMAP.md`, this log | Harness review: each mechanism checked against the last five sprints. Sprint 4's three proposals decided with the owner, and the adopted ones written in → `check-docs`, sprint-end review | no |
+| TASK-506 | Orchestrator | `docs/WORKFLOW.md`, `docs/kb/decisions/ADR-006-ai-studio-governance.md`, this log | H2: the harness review weighs each mechanism's cost against the failure it guards against, over the whole project. Silence alone never removes one; removal needs a positive reason and the owner → `check-docs`, sprint-end review | no |
 
 Waves: 501, then 502 (the starting army, delivered to the owner first) while 503 is written; 504 after 503. 505
-runs alongside. The builder is a generic agent with the model named, as in Sprints 3 and 4: the simulation and
+runs alongside. 506 was added on 2026-10-20, after 504, from the owner's H2. The builder is a generic agent with the model named, as in Sprints 3 and 4: the simulation and
 presentation definitions carry standing instructions the prototype exception sets aside.
 
 ## Plan review (step 2)
 
 | Field | Value |
 |---|---|
-| **Trigger** | SKIP. TASK-502 and 504 are prototype work, which WORKFLOW exempts from plan review. TASK-501 and 503 write the owner's rulings into RULES.md, and TASK-505 is docs. The sprint-end review covers them all, RULES.md at the normal bar |
+| **Trigger** | SKIP. TASK-502 and 504 are prototype work, which WORKFLOW exempts from plan review. TASK-501 and 503 write the owner's rulings into RULES.md, and TASK-505 and 506 are docs. The sprint-end review covers them all, RULES.md at the normal bar |
 
 ## Owner design rulings
 
@@ -114,6 +115,21 @@ three (Recommended)": "(1) After each reviewer's first full round, later rounds 
 copies each finding's status straight from the review file instead of retyping it. (3) A script checks that every
 quote of your words in the rules appears word for word in a saved record, so reviewers stop doing it by hand. Cost:
 a small script and its tests this sprint." (TASK-505.)
+
+**H2, how the harness review judges a mechanism (2026-10-20).** Raised by the owner: "The five sprints limit seems
+arbitrary. A rule that is important every now and then will get deleted". Engineering agreed: five quiet sprints
+prove little for a rare failure, a working guard looks idle, and Sprint 5 kept the quiet guards by judgment, not by
+the written rule. Shown to the owner, word for word:
+
+> Keep a regular check; any fixed interval works, and five is just how often we look. Change the question it asks:
+> - Each mechanism names the failure it guards against and how bad that failure would be.
+> - Its cost is weighed against that risk, using the whole project's history, not the last five sprints.
+> - **Silence alone is never a reason to remove a rule.** Removal needs a positive reason: the risk is gone (the
+>   architecture changed, or a newer model no longer makes that mistake), or a cheaper guard now covers it.
+> - A rule that guards against a severe failure can be made cheaper, but it can't be removed for being quiet.
+> - Removing any mechanism goes to you for a decision, not just rules in CONVENTIONS.md.
+
+Asked "Should I go with A?", where A was "Fix it now (recommended)", the owner said "Yes, go with A". (TASK-506.)
 
 ## Task log
 
@@ -228,6 +244,19 @@ Criteria:
 - Each of four named mutations made it fail for the right reason PASS: struck text counted; a mark not carried
   to its second quote; the record never read; quotes not opaque to parentheses.
 
+### TASK-506: how the harness review judges a mechanism
+
+Status complete · Agent: Orchestrator · Checklist pass (self-check) · Review: sprint-end, normal bar · Files:
+`docs/WORKFLOW.md`, `docs/kb/decisions/ADR-006-ai-studio-governance.md`, this log. WORKFLOW's "Harness evolution"
+replaces "did it catch anything in the last five sprints?" with H2's test: a table row per mechanism (the failure
+it guards against, how bad it would be, what it caught over the whole project, its cost); silence alone never
+removes one; removal needs a positive reason; a guard against a severe failure can be made cheaper but is never
+removed for being quiet; removing any mechanism, or relaxing a CONVENTIONS rule, is the owner's decision. ADR-006's
+status, earned-governance line and consequence follow. TASK-505's verdicts stand under the new test: nothing was
+removed, and the quiet hooks, guards and secret scan were kept for the risk they cover, as H2 now requires.
+Criteria: the WORKFLOW bullet states all five rules (read) PASS; ADR-006 consistent with it (read) PASS;
+`check-docs` and `npm run ci` PASS.
+
 ## Design conformance
 
 For the prototype, conforming means matching `prototype/RULES.md` (WORKFLOW, "Prototype phase"). The sprint-end
@@ -257,10 +286,8 @@ review (RULES.md at the normal bar) and the owner's playtest come after this tab
 
 ## Handoff
 
-- **State:** on `sprint/5`: TASK-501 `a753b8f`, 503 `c43b479`, 502 `201fd8a`, 505 `6023729`. G1, W1 to W3 and H1
-  recorded.
-- **In flight:** TASK-504 (the web), by the TASK-502 builder, resumed in the shared tree (no worktree).
-- **Waiting on:** the builder's report; the owner's playtest of slice 2 with the starting army (a frozen copy of
-  `201fd8a` sits in the session scratchpad).
-- **Next action:** verify TASK-504 (CI, screenshots, RULES spot checks), then the sprint-end review: both lenses,
-  with fix-only verification cycles after cycle 1 (H1).
+- **State:** on `sprint/5`: TASK-501 `a753b8f`, 503 `c43b479`, 502 `201fd8a`, 505 `6023729`, 504 `15ead79`, and
+  506. G1, W1 to W3, H1 and H2 recorded.
+- **In flight:** nothing.
+- **Waiting on:** the owner's playtest of slice 2 with the starting army and of the draft web.
+- **Next action:** the sprint-end review: both lenses, with fix-only verification cycles after cycle 1 (H1).

@@ -302,8 +302,13 @@ FAIL entry that names the new guard. That's how the rules stay tied to reality.
 ## Harness evolution
 
 This governance is a harness around AI agents. It should be the **minimum that works**, not the maximum possible.
-- **Every fifth sprint**, review each mechanism: did it catch anything in the last five sprints? If a rule caught
-  nothing and costs effort, propose relaxing or removing it (an owner decision for anything in CONVENTIONS.md).
+- **Every fifth sprint**, review each mechanism in a table: the failure it guards against, how bad that failure
+  would be, what the mechanism has caught over the whole project, and what it costs. Weigh the cost against the
+  risk. **Silence alone is never a reason to remove one:** a quiet guard may be working, or guarding against
+  something rare. Removal needs a positive reason: the risk is gone (the architecture changed, or a newer model no
+  longer makes the mistake), or a cheaper guard covers it. A guard against a severe failure (a leaked secret,
+  unreviewed work on `main`, a broken save, a desync) can be made cheaper, but is never removed for being quiet.
+  Removing any mechanism, or relaxing a rule in CONVENTIONS.md, is the owner's decision (owner, H2, Sprint 5).
 - **When a review passes its cycle cap**, review the rulebook in that sprint's retrospective (Sprint 1 took 14
   Codex cycles before anyone stepped back).
 - **On a model upgrade**, reconsider rules that compensated for older model weaknesses.

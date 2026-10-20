@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| **Status** | accepted (owner rulings, 2026-09-30); review and testing rules amended in Sprint 2 (2026-10-08) |
+| **Status** | accepted (owner rulings, 2026-09-30); review and testing rules amended in Sprint 2 (2026-10-08); the harness review's test amended in Sprint 5 (2026-10-20) |
 | **Sprint** | S1 |
 | **Areas** | all |
 
@@ -43,7 +43,10 @@ StatsTid's own purpose is to test how far AI governance can go. TemuCiv's purpos
 - **Game-specific additions:** design conformance in place of legal/payroll verification, determinism checks,
   headless soak games, performance budgets, screenshot verification and the owner's playtest as the fun oracle.
 - **Earned governance:** new rules come from real failures, recorded as FAIL entries; every fifth sprint each
-  mechanism must justify itself.
+  mechanism must justify itself. *Amended (Sprint 5, owner, H2, 2026-10-20):* a mechanism is judged by its cost
+  against the failure it guards against, over the whole project. Silence alone never removes one, since a quiet
+  guard may be working or guarding against something rare; removal needs a positive reason and the owner's
+  decision (WORKFLOW, "Harness evolution").
 
 ## Public repository
 
@@ -54,5 +57,5 @@ StatsTid's own purpose is to test how far AI governance can go. TemuCiv's purpos
 
 ## Consequences
 
-- Every sprint pays the review cost, including Codex. If the harness review shows a mechanism catching nothing,
-  it's proposed for removal.
+- Every sprint pays the review cost, including Codex. If the harness review shows a mechanism costing more than
+  the risk it guards against, it's proposed for a cheaper form or for removal.
