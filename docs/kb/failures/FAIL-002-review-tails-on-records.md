@@ -33,11 +33,14 @@ hints in cycle 5), but most were about records.
 
 - **A machine checks the quotes.** `tools/check-docs.mjs` (step 6, in `npm run ci`) checks every quote in
   `prototype/RULES.md`, where double quotes hold only the owner's words, each inside a mark such as (A4: "words").
-  Each quote must appear word for word in the ruling its mark names: the paragraphs check-docs lists for that mark,
-  not the whole log. A quote outside a mark, an unknown mark, or a ruling whose opening words are missing fails,
-  and struck-out text doesn't count. Slice 1's placeholder answers were copied from the working notes into
-  `prototype/RULINGS.md`, so every ruling is tracked. Tests in `.claude/hooks/tests/docs-and-ci.test.mjs` cover 15
-  failures; the bypasses the Sprint 5 review found pass the checker as it was before TASK-507.
+  Each quote must appear word for word in the paragraphs check-docs lists for its mark, not anywhere in the log. A
+  quote outside a mark, an unknown mark, a mark that doesn't open its part of the parentheses, or a paragraph whose
+  opening words are missing fails, and struck-out text doesn't count. Slice 1's placeholder answers were copied
+  from the working notes into `prototype/RULINGS.md`, so every ruling is tracked. Tests in
+  `.claude/hooks/tests/docs-and-ci.test.mjs` plant each way around it the Sprint 5 review found.
+- **What the machine can't check stays with the review.** A paragraph can hold several rulings (P1 to P12, K1 to K6
+  and D1 to D3 share theirs) and engineering's narration, so a text match can't tell the owner's decision from its
+  neighbours. Whether a quote is the owner's, under the right mark, is checked by the review of RULES.md.
 - **Verification rounds cover the fixes.** After a lens's first round, the next ones review the diff since that
   lens last looked, plus whatever the fixes change (WORKFLOW, "Review cycles").
 - **Fix records are copied, not retyped.** A fix task copies each finding's status from the review file and quotes

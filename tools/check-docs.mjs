@@ -122,11 +122,14 @@ for (const p of files.filter((f) => f.endsWith('.md'))) {
 
 // --- 6. The owner's quoted words -----------------------------------------------------------------
 // In prototype/RULES.md, double quotes hold only the owner's words, each inside a mark such as (A4: "words"; "more
-// words"); other quoted names there are in italics. Each quote must appear word for word in the ruling its mark
-// names: the paragraphs listed below, each running from its opening words to the next blank line (for a list item,
-// to the next item). A quote outside a mark, under a mark not listed here, or whose ruling's opening words are
-// missing, fails. Struck-out text is not a record. The check is the owner's H1 (Sprint 5 log); add the marks here
-// when a sprint records new rulings. Remove it with the prototype/ folder when production starts (M1).
+// words"); other quoted names there are in italics. A mark opens its part of the parentheses, and a part holding
+// only a quote continues the part before it. Each quote must appear word for word in the paragraphs listed below for
+// its mark, each running from its opening words to the next blank line (for a list item, to the next item). A text
+// match proves only that: P1 to P12, K1 to K6 and D1 to D3 share their paragraphs, and a paragraph can also hold
+// engineering's narration, so whether a quote is the owner's decision under the right mark stays with the review of
+// RULES.md. A quote outside a mark, under a mark not listed here, or whose paragraph's opening words are missing,
+// fails. Struck-out text is not a record. The check is the owner's H1 (Sprint 5 log); add the marks here when a
+// sprint records new rulings. Remove it with the prototype/ folder when production starts (M1).
 const S1 = 'docs/sprints/SPRINT-1.md', S2 = 'docs/sprints/SPRINT-2.md', S4 = 'docs/sprints/SPRINT-4.md';
 const S5 = 'docs/sprints/SPRINT-5.md';
 const RULINGS = {
@@ -144,7 +147,6 @@ const RULINGS = {
   W2: [[S5, '**W2,']],
   W3: [[S5, '**W3,'], [S5, '> **Shape:**'], [S5, 'Asked "Go with this draft node list']],
   H1: [[S5, '**H1,']],
-  H2: [[S5, '**H2,'], [S5, '> Keep a regular check'], [S5, 'Asked "Should I go with A?"']],
 };
 const K = [[S2, '**Ruling a large empire'], [S2, '**Challenges, round one (2026-10-13).**'], [S2, '**Challenges, round one, continued']];
 for (let n = 1; n <= 6; n++) RULINGS[`K${n}`] = K;
@@ -153,7 +155,8 @@ for (let n = 1; n <= 5; n++) RULINGS[`A${n}`] = [[S4, `**A${n},`]];
 for (let n = 1; n <= 12; n++) RULINGS[`P${n}`] = [[S2, '**Slice 1 placeholders (2026-10-15).**'], ['prototype/RULINGS.md', `- P${n} `]];
 // A known mark, longest first so "S1 web pricing" beats "S1 web"; failing that, anything shaped like a mark.
 const MARK = new RegExp(`^\\s*(${Object.keys(RULINGS).sort((a, b) => b.length - a.length).join('|')})(?![\\w-])`);
-const MARK_SHAPED = /^\s*([A-Z]\d{1,2}|S1 [a-z]+|owner, \d{4}-\d{2}-\d{2})(?![\w-])/;
+const MARK_SHAPED = /^\s*(S1 [a-z]+|owner, \d{4}-\d{2}-\d{2}|[A-Z]\d{1,2})(?![\w-])/;
+const ANY_MARK = /(?<![\w-])(S1 [a-z]+|owner, \d{4}-\d{2}-\d{2}|[A-Z]\d{1,2})(?![\w-])/g;
 const plain = (text) => text.replace(/~~[\s\S]*?~~/g, ' ').replace(/^\s*>\s?/gm, '').replace(/\*\*/g, '').replace(/\s+/g, ' ');
 const section = (p, opening) => {
   const text = existsSync(join(root, p)) ? read(p) : '';
@@ -184,9 +187,14 @@ if (existsSync(join(root, QUOTED))) {
   for (const segments of groups) {
     let mark = null;
     for (const seg of segments) {
-      mark = seg.match(MARK)?.[1] ?? seg.match(MARK_SHAPED)?.[1] ?? mark;
+      // The words around the quotes: a mark first, or nothing at all (a bare quote continues the previous mark).
+      const words = seg.replace(/"[^"]*"/g, ' ').trim();
+      const head = words.match(MARK)?.[1] ?? words.match(MARK_SHAPED)?.[1];
+      mark = head ?? (words ? null : mark);
+      const late = [...words.slice(head?.length ?? 0).matchAll(ANY_MARK)].map((m) => m[1]);
       for (const [, quote] of seg.matchAll(/"([^"]+)"/g)) {
-        if (!mark) errors.push(`quotes: ${QUOTED} has "${quote}" in parentheses with no mark before it`);
+        if (late.length) errors.push(`quotes: ${QUOTED} has "${quote}" after "${late[0]}", a mark that doesn't open its part of the parentheses`);
+        else if (!mark) errors.push(`quotes: ${QUOTED} has "${quote}" in parentheses with no mark before it`);
         else if (!RULINGS[mark]) errors.push(`quotes: ${QUOTED} quotes an unknown mark "${mark}"; add its ruling to check-docs`);
         else {
           const parts = RULINGS[mark].map(([p, opening]) => [p, opening, section(p, opening)]);

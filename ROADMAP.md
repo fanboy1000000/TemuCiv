@@ -48,10 +48,9 @@ Deferred work with an owner and a reason. Items leave the backlog when a sprint 
 Loose ideas. Nothing here is committed; the owner decides what gets promoted.
 
 - Districts as a mix of buildings (owner's notes, 2026-10-19): a district on a tile holds several buildings, and
-  the best mix depends on sanitation, density, the tile's yields and combinations. Brainstorm paused: six
-  engineering challenges, to take one at a time; the first ("where do people live?", lean C: one population pool
-  per city, density and sanitation per district) is asked and unanswered. Working notes:
-  `.claude/refinements/REFINEMENT-districts.md`.
+  the best mix depends on sanitation, density, the tile's yields and combinations. Brainstorm paused on 2026-10-19:
+  engineering's six challenges, to take one at a time, and the first question put to the owner are in the Sprint 5
+  log ("Districts brainstorm").
 
 - Steam Deck and controller support: not a target for now (owner, 2026-10-08); it would mean reworking the
   interface and the performance budgets (ADR-005).

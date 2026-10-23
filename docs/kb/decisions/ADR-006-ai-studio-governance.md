@@ -58,4 +58,5 @@ StatsTid's own purpose is to test how far AI governance can go. TemuCiv's purpos
 ## Consequences
 
 - Every sprint pays the review cost, including Codex. If the harness review shows a mechanism costing more than
-  the risk it guards against, it's proposed for a cheaper form or for removal.
+  the risk it guards against, it's proposed for a cheaper form; removal needs a positive reason (the risk is gone,
+  or a cheaper guard covers it) and the owner's decision.

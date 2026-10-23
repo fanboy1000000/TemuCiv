@@ -200,7 +200,9 @@ FOCUS:
  [sprint] cross-task consistency; drift from the architecture and the design; gaps between goal and result;
         what didn't need to exist.
  [fixes] (a verification cycle after a lens's first, WORKFLOW "Review cycles": git diff <last reviewed>..HEAD)
-        does each earlier finding hold as fixed; what the fixes broke or contradict elsewhere.
+        does each earlier finding hold as fixed; what the fixes broke or contradict elsewhere; work in the diff
+        that isn't a fix gets its first review at the scope's bar. Don't hunt outside the fixes, but report a
+        contradiction you notice there, marked "outside the fixes".
 THE BAR: a BLOCKER is an invariant at risk, a design mismatch, a claim the code doesn't support, or a gap an
 agent would plausibly hit by mistake; an edge case nobody would plausibly hit is a NOTE. [For prototype/ work,
 add the lighter bar from WORKFLOW, "Prototype phase", and that prototype/RULES.md and RULINGS.md keep the

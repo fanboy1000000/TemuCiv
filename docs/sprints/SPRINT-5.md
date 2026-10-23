@@ -44,6 +44,7 @@ do? This is also the fifth sprint, so it carries the harness review.
 | TASK-505 | Orchestrator | `docs/WORKFLOW.md`, `docs/AGENTS.md`, `ROADMAP.md`, this log; widened during the task, as its entry declares: `tools/check-docs.mjs` and its test, FAIL-002 and the KB index, `prototype/RULES.md`, `prototype/RULINGS.md` (new) | Harness review: each mechanism checked against the last five sprints. Sprint 4's three proposals decided with the owner, and the adopted ones written in → `check-docs`, sprint-end review | no |
 | TASK-506 | Orchestrator | `docs/WORKFLOW.md`, `docs/kb/decisions/ADR-006-ai-studio-governance.md`, this log | H2: the harness review weighs each mechanism's cost against the failure it guards against, over the whole project. Silence alone never removes one; removal needs a positive reason and the owner → `check-docs`, sprint-end review | no |
 | TASK-507 | Orchestrator | `tools/check-docs.mjs`, `.claude/hooks/tests/docs-and-ci.test.mjs`, `prototype/RULES.md`, `prototype/README.md` (one line, small tasks exception), `docs/WORKFLOW.md`, `docs/AGENTS.md`, FAIL-002, `ROADMAP.md`, this log | Each sprint-end cycle 1 finding fixed, or declined with a reason. The quote check fails every bypass the lenses named → a test case per bypass, each seen failing against the old checker; `check-docs`, `npm run ci`; cycle 2 on the fixes | no |
+| TASK-508 | Orchestrator | `tools/check-docs.mjs`, `.claude/hooks/tests/docs-and-ci.test.mjs`, `.claude/agents/reviewer.md`, `prototype/RULES.md`, `docs/WORKFLOW.md`, `docs/AGENTS.md`, ADR-006, FAIL-002, `docs/design/notes.md` (a marker), `ROADMAP.md`, this log | Each sprint-end cycle 2 finding fixed, or declined with a reason. The docs claim only what a text match proves. A mark opens its part of the parentheses → a test case per carry-over bypass, each seen passing the checker at `68dc333`; `check-docs`, `npm run ci`; cycle 3 on the fixes | no |
 
 Waves: 501, then 502 (the starting army, delivered to the owner first) while 503 is written; 504 after 503. 505
 runs alongside. 506 was added on 2026-10-20, after 504, from the owner's H2, and 507 on 2026-10-23 for the
@@ -133,6 +134,24 @@ the written rule. Shown to the owner, word for word:
 
 Asked "Should I go with A?", where A was "Fix it now (recommended)", the owner said "Yes, go with A". (TASK-506.)
 
+**H3, what a fix-only round reports (2026-10-23).** Raised by the reviewer's cycle 2 (W3): the reason WORKFLOW gave
+for H1 said Sprint 4's fix-only rounds found nothing more in the game, which was false; Sprint 4's fix-only cycle 5
+noticed two in-game hints contradicting the rules, outside the fixes. Asked "Should a fix-only round still report a
+contradiction it happens to notice outside the fixes?", with that fact, the owner chose "Report what they notice
+(Recommended)": "Later rounds still look only at the fixes and don't go hunting. If a reviewer happens to see a
+contradiction elsewhere, it reports it, marked 'outside the fixes'. If it's about the game or the rules, I fix it,
+with a narrow check of that fix. If it's only a record slip, it waits for the next sprint. Cost: now and then one
+small extra fix. Sprint 4's wrong hint was caught this way." Turned down: "Keep H1 exactly". (TASK-508.)
+
+**Districts brainstorm (2026-10-19, paused; nothing ruled).** The owner's note, districts as a mix of buildings, was
+written into `docs/design/notes.md` at the owner's request and parked in the ROADMAP (commit `383b013`, not a task).
+Engineering's six challenges, to take one at a time: (1) an "optimal mix" gets solved and the choice dies; (2) where
+people live; (3) fixed slots or soft crowding as a district's limit; (4) a district against a site (P1); (5)
+combinations as a table or as local quantities (a new concept); (6) the moves budget, as every building is an order.
+Asked first, "Where do people live?": A, one population per city; B, residents per district; C, recommended, one
+city pool with density and sanitation per district. The owner stopped before answering. Working notes:
+`.claude/refinements/REFINEMENT-districts.md`.
+
 ## Task log
 
 ### TASK-501: the starting army's rule, the phase line, the roadmap row
@@ -217,25 +236,27 @@ pass (self-check) · Review: sprint-end, normal bar · Files: `tools/check-docs.
 `prototype/RULINGS.md` (new), this log. Scope widened from the plan row: `tools/check-docs.mjs` and the tests
 (H1's script), FAIL-002 and the KB index, `prototype/RULES.md` and the new `prototype/RULINGS.md`.
 
-The harness review: what each mechanism caught in Sprints 1 to 5.
+The harness review, in H2's form since TASK-508: each mechanism, the failure it guards against, how bad that would
+be, what it caught in Sprints 1 to 5, and its cost.
 
-| Mechanism | Caught | Cost | Verdict |
-|---|---|---|---|
-| Refinement gate | S2's six moves-budget challenges; S5's starving starting army | one skill run per request | keep |
-| Sprint-end review, first two cycles | real rule gaps every sprint (S3 a screen hint against the rules; S4 hunger on long supply lines and on turn 1) | two lenses per cycle | keep |
-| Sprint-end review, cycle 3 on | mostly slips in fresh records (S2 decision-record detail, S4 owner marks and log lines); 14, 4, 3 and 6 cycles; two waivers | days per sprint | changed by H1 (fix-only cycles) |
-| Owner marks checked by eye | S3 attribution took three passes; S4 cycles 3 to 6 | review cycles | replaced by H1's script |
-| Plan and per-task review | S1 and S2; skipped since under the prototype rules | none since S2 | keep for production |
-| Close gates | two waivers on the owner's say-so (S2, S4); no false block | seconds | keep |
-| Git hooks, sprint-close guard, model-routing guard, secret scan, GitHub CI | no recorded block since S1 | automatic | keep: cheap insurance for invariant 7 and the public repository |
-| Entropy scan | stale phase lines (S5) | minutes | keep |
-| Brief challenge | wrong brief claims settled each prototype sprint (S4 `smoke.js`; S5 "build food first") | a report section | keep |
+| Mechanism | Guards against | How bad | Caught | Cost | Verdict |
+|---|---|---|---|---|---|
+| Refinement gate | building from a misread request | a sprint's work | S2's six moves-budget challenges; S5's starving starting army | one skill run per request | keep |
+| Sprint-end review, first two cycles | rule gaps and design mismatches reaching `main` | high | real rule gaps every sprint (S3 a screen hint against the rules; S4 hunger on long supply lines and on turn 1) | two lenses per cycle | keep |
+| Sprint-end review, cycle 3 on | the same, in the fixes | high | mostly slips in fresh records (S2 decision-record detail, S4 owner marks and log lines); 14, 4, 3 and 6 cycles; two waivers | days per sprint | changed by H1 (fix-only cycles) |
+| Owner marks checked by eye | a ruling copied wrong, so the prototype tests the wrong idea (R1) | high | S3 attribution took three passes; S4 cycles 3 to 6 | review cycles | the words checked by H1's script; attribution stays with review |
+| Plan and per-task review | a flawed plan, or a high-risk change accepted unchecked | high once game code exists | S1 and S2; skipped since under the prototype rules | none since S2 | keep for production |
+| Close gates | a sprint closing unreviewed or red | severe: unreviewed work on `main` | two waivers on the owner's say-so (S2, S4); no false block | seconds | keep |
+| Review stamp | closing a state other than the one reviewed | severe: unreviewed work on `main` | none recorded | seconds | keep |
+| Git hooks, sprint-close guard, model-routing guard, secret scan, GitHub CI | a leaked secret; unreviewed work on `main`; a review on a cheaper model | severe | no recorded block since S1 | automatic | keep: severe, so never removed for being quiet (H2) |
+| `check-docs`: size budgets, indexes, roster, links | docs that drift, bloat or point nowhere, which agents then act on | medium | none recorded; every entropy scan CLEAN | seconds, in CI | keep |
+| Constraint checklist | work outside its scope; secrets or leftovers in a change | medium in the prototype (items 1 and 9) | none recorded; in S5 its self-check passed TASK-505's widened scope, which Codex caught | a line per task | keep; the constraint-validator takes it over once game code exists |
+| Entropy scan | docs that no longer describe the code | medium | stale phase lines (S5) | minutes | keep |
+| Brief challenge | agents acting on wrong claims in their brief | medium | wrong brief claims settled each prototype sprint (S4 `smoke.js`; S5 "build food first") | a report section | keep |
 
-Nothing caught nothing at a real cost, so nothing is removed. H1's changes:
-- **(1) and (2)** are in WORKFLOW's "Review cycles" and step 7.4, and AGENTS' Codex FOCUS gains a `[fixes]` line.
-- **(3)** is `check-docs` step 6, named in WORKFLOW's "Prototype phase". It checks each quote inside a mark in
-  `prototype/RULES.md` word for word against the tracked record that mark points to. An unknown mark fails, and
-  struck-out text doesn't count (tightened by TASK-507).
+No mechanism has a positive reason for removal: no risk is gone, and no cheaper guard covers one, so nothing is
+removed. H1's changes are in WORKFLOW ("Review cycles", step 7.4, "Prototype phase"), AGENTS' Codex FOCUS (a
+`[fixes]` line) and `check-docs` step 6. Also:
 - Slice 1's placeholder answers were copied into `prototype/RULINGS.md`, identical to the working notes by diff.
 - RULES.md now keeps every owner quote inside its mark: A1's "a few rival cities far away", and the web table
   paragraph's W3 quotes.
@@ -270,10 +291,10 @@ skipped: review fixes, each specified by its finding. Cycle 1 ran on 2026-10-18 
 BLOCKED (`.claude/reviews/SPRINT-5-codex-c1.md` and `SPRINT-5-reviewer-c1.md`, gitignored). The fixes waited until
 2026-10-23: the sessions between took H2 and the districts notes, and the handoff left out the open review.
 
-In plain words: the quote checker now ties each owner mark to the exact paragraphs of its ruling, so a quote can't
-borrow a neighbouring ruling's words. It fails a quote outside a mark, an unknown mark, and a ruling whose opening
-words have moved. RULES.md keeps double quotes for the owner's words only; names of screens and records are in
-italics.
+In plain words: the quote checker now checks each quote against the paragraphs it lists for the quote's mark, not
+the whole log (what that can't prove: TASK-508). It fails a quote outside a mark, an unknown mark, and a ruling
+whose opening words have moved. RULES.md keeps double quotes for the owner's words only; names of screens and
+records are in italics.
 
 Codex, cycle 1, each finding's status:
 - B1 (the checker approves wrongly attributed words): fixed. Each known mark lists its ruling's paragraphs; a quote
@@ -283,7 +304,7 @@ Codex, cycle 1, each finding's status:
 - B3 (RULINGS.md under the light bar): fixed in WORKFLOW's "Prototype phase" and both places in AGENTS.
 - B4 (TASK-505's scope): fixed. Its plan row names the widened scope, and its entry says item 1 was widened.
 - B5 (false smoke evidence): fixed. TASK-504 quotes the run: the fewest is "found 32".
-- B6 (stale handoff): fixed in TASK-506's commit, and refreshed again here.
+- B6 (stale handoff): fixed; the handoff is refreshed here.
 - Note (the README's "no other food for it anywhere"): fixed: "no extra food was added for it".
 
 Reviewer, cycle 1, each finding's status:
@@ -308,6 +329,29 @@ Criteria:
 - Each new case can fail PASS: against the checker before TASK-507 (a throwaway checkout of `04d3e41`), 7 passed
   outright (the bypasses) and 2 failed for the wrong reason.
 - `npm run ci` PASS.
+
+### TASK-508: the sprint-end review's cycle 2 findings
+
+Status complete · Agent: Orchestrator · Checklist items 1 and 9 pass (self-check) · Review: cycle 3 · Files: as its
+plan row. Cycle 2 at `68dc333`: both lenses BLOCKED. The checker's bypasses were the second round of the same kind,
+so the docs now claim only what a text match proves; whether a quote is the owner's decision stays with review.
+
+Codex, cycle 2: B1 (a mark carried past other words) fixed: a mark opens its part of the parentheses, and only a
+bare quote continues it. B2 (the harness table not in H2's form) fixed: TASK-505's table gains what each mechanism
+guards against, how bad that would be, and three rows. B3 (ADR-006's removal rule) fixed. B4 (where H1's changes
+went) fixed by naming the places, not item by item. B5 and B6 (the districts commit, its challenges) fixed:
+"Districts brainstorm" under the owner rulings, and the ROADMAP entry points there. N1 (the unused H2 entry) deleted.
+
+Reviewer, cycle 2: B1 (what a text match proves) fixed in check-docs' comment, WORKFLOW, FAIL-002, RULES.md and
+TASK-507's entry, and the test case renamed; checking P quotes against RULINGS.md alone declined, as it would
+re-quote two rules for precision the review already gives. W1 fixed in `reviewer.md`; W2 in WORKFLOW and AGENTS; W3
+put to the owner: H3, written into both. N1 fixed: the handoff names the paused districts question, and TASK-507's
+B6 line no longer credits TASK-506's commit. N2 fixed (ADR-006; the severe-failure examples marked engineering's).
+N3: the carry-over fixed with Codex B1; curly quotes declined, as RULES.md is written with straight ones. N4 fixed:
+the notes marker names where the idea went, and the ROADMAP entry carries no live status. Delete-list: done.
+
+Criteria: `check-docs` on the real RULES.md PASS; the docs tests PASS (4 of 4), and against the checker at
+`68dc333` the three new carry-over cases passed outright PASS; `npm run ci` PASS.
 
 ## Design conformance
 
@@ -338,10 +382,11 @@ review (RULES.md at the normal bar) and the owner's playtest come after this tab
 
 ## Handoff
 
-- **State:** on `sprint/5`: TASK-501 `a753b8f`, 503 `c43b479`, 502 `201fd8a`, 505 `6023729`, 504 `15ead79`, 506
-  `04d3e41`, and 507. G1, W1 to W3, H1 and H2 recorded.
-- **Review:** cycle 1 (both lenses, at `15ead79`) BLOCKED; TASK-507 fixes its findings. Cycle 2 reviews
-  `15ead79..HEAD`: the fixes, plus TASK-506 and the owner's notes, which no lens has seen yet.
+- **State:** on `sprint/5`: TASK-501 `a753b8f`, 503 `c43b479`, 502 `201fd8a`, 505 `6023729`, 504 `15ead79`, the
+  owner's notes `383b013`, 506 `04d3e41`, 507 `68dc333`, and 508. G1, W1 to W3 and H1 to H3 recorded.
+- **Review:** cycles 1 (at `15ead79`) and 2 (at `68dc333`) BLOCKED on both lenses; TASK-507 and 508 fix them.
+  Cycle 3, the cap, reviews `68dc333..HEAD`; new BLOCKERs there go to the owner (WORKFLOW, "Review cycles").
 - **In flight:** nothing.
+- **Open questions:** the districts brainstorm, paused at its first question, "Where do people live?".
 - **Waiting on:** the owner's playtest of slice 2 with the starting army and of the draft web.
-- **Next action:** stamp, then cycle 2 on both lenses (the `[fixes]` focus, with TASK-506 at the sprint bar).
+- **Next action:** stamp, then cycle 3 on both lenses (the `[fixes]` focus).

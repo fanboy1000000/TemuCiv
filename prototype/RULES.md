@@ -8,19 +8,19 @@ builder may not change this file, and reports any rule that can't work as writte
 An owner's mark is used only where the record it points to contains the words the rule rests on; a quote in the mark
 gives those words where they are not obvious; anything else is (eng.). Double quotes hold only the owner's words,
 each inside its mark, as in (P3: "every order costs one move"), and the names of screens and records are in italics
-(eng.); `npm run check-docs` checks each quote word for word against the ruling its mark points to (H1). The owner's
-marks: K1 to K6 (the moves budget), C2 (the economy), D1 to D3 and P1 to P12 (the first playable and slice 1's
-placeholders), all in the Sprint 2 log, with the placeholder texts as put to the owner copied into `RULINGS.md`;
-*(owner, 2026-10-15)*, the Sprint 3 log's *Production and coin* ruling; A1 to A5 and R1 in the Sprint 4 log, and G1,
-W1 to W3 and H1 in the Sprint 5 log, with the exact option text the owner chose and, for W1 and W3, the text shown
-with the question; *S1* with an entry name points to the Sprint 1 log's rulings: *S1 logistics* (logistics is a
-major feature), *S1 combat* (the owner's combat concept, still to be matured), *S1 map* (map and borders), *S1 web*
-(the progression web and its branches), *S1 progression* (*Progression, revised*) and *S1 web pricing* (*Web
-pricing*). A number is the owner's when its rule's mark says so, for example one move per order (P3) or one person
-per regiment (A4); four more were shown to the owner as examples and kept: 4 moves per turn and a cap of about 8
-(P4), a Hall's one move (P10), and attention's quarter more for five turns (P5). Every other number is a starting
-value engineering proposed, kept in `numbers.js` where the owner can change it and reload. Nodes in the web change
-some of these numbers (see *The web*).
+(eng.); `npm run check-docs` checks that each quote appears word for word in the record paragraphs it lists for the
+mark (H1), and review checks that the words are the owner's decision. The owner's marks: K1 to K6 (the moves budget),
+C2 (the economy), D1 to D3 and P1 to P12 (the first playable and slice 1's placeholders), all in the Sprint 2 log,
+with the placeholder texts as put to the owner copied into `RULINGS.md`; *(owner, 2026-10-15)*, the Sprint 3 log's
+*Production and coin* ruling; A1 to A5 and R1 in the Sprint 4 log, and G1, W1 to W3 and H1 in the Sprint 5 log, with
+the exact option text the owner chose and, for W1 and W3, the text shown with the question; *S1* with an entry name
+points to the Sprint 1 log's rulings: *S1 logistics* (logistics is a major feature), *S1 combat* (the owner's combat
+concept, still to be matured), *S1 map* (map and borders), *S1 web* (the progression web and its branches), *S1
+progression* (*Progression, revised*) and *S1 web pricing* (*Web pricing*). A number is the owner's when its rule's
+mark says so, for example one move per order (P3) or one person per regiment (A4); four more were shown to the owner
+as examples and kept: 4 moves per turn and a cap of about 8 (P4), a Hall's one move (P10), and attention's quarter
+more for five turns (P5). Every other number is a starting value engineering proposed, kept in `numbers.js` where the
+owner can change it and reload. Nodes in the web change some of these numbers (see *The web*).
 
 ## The map
 - A hex grid, 24 × 18 tiles, one landmass surrounded by water, made from a seed number: the same seed always

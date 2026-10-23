@@ -150,9 +150,11 @@ rather than paper decide which ideas stay (owner rulings D1, 2026-10-15, and the
   code is ever moved into the game, and the folder is deleted when production (M1) starts fresh in `src/`.
 - **Its rules:** the owner's rulings and the slice's placeholders, written out by the Orchestrator in
   `prototype/RULES.md`. Conforming to the design means matching that file. Its numbers sit in one file the owner
-  can edit. `check-docs` checks every quote of the owner's words in it word for word against the ruling its mark
-  points to (owner, H1, Sprint 5). For that, double quotes there hold only the owner's words, each inside its mark,
-  and slice 1's placeholder answers are copied into `prototype/RULINGS.md`, so every ruling is tracked.
+  can edit. `check-docs` checks that every quote of the owner's words in it appears word for word in the record
+  paragraphs it lists for the quote's mark (owner, H1, Sprint 5). For that, double quotes there hold only the
+  owner's words, each inside its mark, and slice 1's placeholder answers are copied into `prototype/RULINGS.md`, so
+  every ruling is tracked. A paragraph can hold several rulings and engineering's narration, so whether a quote is
+  the owner's decision, under the right mark, stays with the review of RULES.md.
 - **Relaxed:** invariants 2 to 7 (determinism, the action pipeline, multiplayer-ready state, scale, tests written
   first), the plan review, the per-task review, `shortcut:` comments, and the constraint checklist except items 1
   (scope) and 9 (no secrets; no leftover debug output, dead code or unused imports).
@@ -177,7 +179,11 @@ rather than paper decide which ideas stay (owner rulings D1, 2026-10-15, and the
 - **Every fix gets a verification review.** Cycles are counted per lens and per scope (plan, task or sprint).
 - **After a lens's first cycle, a verification cycle covers the fixes:** the diff since the commit that lens last
   reviewed, named in its prompt, and whatever those fixes change elsewhere. (Owner, H1, Sprint 5: after cycle 2,
-  the full re-reviews of Sprints 2 and 4 found mostly new slips in freshly written records.)
+  the full re-reviews of Sprints 2 and 4 found mostly new slips in freshly written records.) Work in that diff that
+  isn't a fix, such as a task added between cycles, gets its first review there, at the scope's bar (invariant 7).
+  A lens doesn't hunt outside the fixes, but reports a contradiction it happens to notice there, marked "outside the
+  fixes": one about the game or the rules is fixed, with a narrow check of that fix; a record slip waits for the
+  next sprint (owner, H3, Sprint 5).
 - **A fix task's log entry copies each finding's status** (fixed, or declined with the reason) from the review
   file, finding by finding (H1). It also quotes any change it made to a gitignored file, which no lens and no CI
   can see (FAIL-002: in Sprint 4 a log claimed a working-notes fix that hadn't been made).
@@ -305,8 +311,9 @@ This governance is a harness around AI agents. It should be the **minimum that w
   would be, what the mechanism has caught over the whole project, and what it costs. Weigh the cost against the
   risk. **Silence alone is never a reason to remove one:** a quiet guard may be working, or guarding against
   something rare. Removal needs a positive reason: the risk is gone (the architecture changed, or a newer model no
-  longer makes the mistake), or a cheaper guard covers it. A guard against a severe failure (a leaked secret,
-  unreviewed work on `main`, a broken save, a desync) can be made cheaper, but is never removed for being quiet.
+  longer makes the mistake), or a cheaper guard covers it. A guard against a severe failure (engineering's examples:
+  a leaked secret, unreviewed work on `main`, a broken save, a desync) can be made cheaper, but is never removed for
+  being quiet.
   Removing any mechanism, or relaxing a rule in CONVENTIONS.md, is the owner's decision (owner, H2, Sprint 5).
 - **When a review passes its cycle cap**, review the rulebook in that sprint's retrospective (Sprint 1 took 14
   Codex cycles before anyone stepped back).
