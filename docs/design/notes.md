@@ -36,3 +36,11 @@ yields on the tile (wood, stone, etc.), combinations of buildings and so on. The
 *(written down by the Orchestrator at the owner's request; → parking lot, S5; the paused brainstorm is in the Sprint 5
 log, "Districts brainstorm")*
 
+
+**2026-10-23: Production, population, tax and stability**
+Production determiines how fast things are produced, as decided earlier. Food gives population. Population is used
+for armies, and for tax base. You can set your tax rate, and the higher it is, the lower stability. However, a higher
+tax lets you invest in things giving stability. A higher popuation gives you a higher tax base. Trade will also still
+generate money..
+*(written down by the Orchestrator at the owner's request, in the owner's words; → the economy brainstorm, ROADMAP
+backlog)*

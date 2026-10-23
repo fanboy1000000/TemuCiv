@@ -152,6 +152,9 @@ Asked first, "Where do people live?": A, one population per city; B, residents p
 city pool with density and sanitation per district. The owner stopped before answering. Working notes:
 `.claude/refinements/REFINEMENT-districts.md`.
 
+**Owner's notes, the economy (2026-10-23, not a ruling).** Written into `docs/design/notes.md` at the owner's
+request, in the owner's words (production, population, tax, stability, trade); routed to the ROADMAP's economy item.
+
 ## Task log
 
 ### TASK-501: the starting army's rule, the phase line, the roadmap row
