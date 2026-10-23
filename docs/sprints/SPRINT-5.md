@@ -3,12 +3,12 @@
 | Field | Value |
 |---|---|
 | **Sprint** | 5 |
-| **Status** | in-progress |
-| **Dates** | 2026-10-18 → |
+| **Status** | complete |
+| **Dates** | 2026-10-18 → 2026-10-23 |
 | **Base commit** | `af51d1d` (the Sprint 4 close) |
 | **Previous close on GitHub** | run `39016931814`: success |
 | **Orchestrator model** | `claude-opus-5-5` (Claude Code 2.1.302) |
-| **CI verified** | no |
+| **CI verified** | local `npm run ci` PASS on the close state (the GitHub run is recorded by Sprint 6) |
 
 ## Playtest input
 
@@ -376,20 +376,24 @@ review (RULES.md at the normal bar) and the owner's playtest come after this tab
 
 | Lens | Cycles | Findings | Final verdict | Stamp |
 |---|---|---|---|---|
-| Codex | | | | |
-| Reviewer | | | | |
+| Codex | 3 | BLOCKERs every cycle; in cycle 3 on records only | BLOCKED, waived by the owner (`SPRINT-5-reviews-WAIVED.md`) | `23f9a42` |
+| Reviewer | 3 | a BLOCKER in cycles 1 and 2; none in cycle 3 | APPROVED-WITH-WARNINGS | `23f9a42` |
 
 ## Test summary
 
+Local `npm run ci` on the close state: 4/4 PASS (docs check, secret scan, 54 governance tests, prototype smoke game).
+
 ## Retrospective
+
+- **Went well:** the army and the web were checked against RULES.md; H1 made quote checks a test; H2 and H3 came up.
+- **To improve:** cycle 1's findings sat five days because the handoff dropped the open review, and the checker took
+  two rounds of fixes before the docs said what a text match can prove. Codex blocked every cycle.
+- **Rulebook review (cap reached):** fix-only rounds were shorter, but each fix entry is fresh text that drew the next
+  finding. Sprint 6 takes a FAIL entry for the dropped review, with a guard, and shorter fix entries (ROADMAP).
 
 ## Handoff
 
-- **State:** on `sprint/5`: TASK-501 `a753b8f`, 503 `c43b479`, 502 `201fd8a`, 505 `6023729`, 504 `15ead79`, the
-  owner's notes `383b013`, 506 `04d3e41`, 507 `68dc333`, and 508. G1, W1 to W3 and H1 to H3 recorded.
-- **Review:** cycles 1 (at `15ead79`) and 2 (at `68dc333`) BLOCKED on both lenses; TASK-507 and 508 fix them.
-  Cycle 3, the cap, reviews `68dc333..HEAD`; new BLOCKERs there go to the owner (WORKFLOW, "Review cycles").
-- **In flight:** nothing.
-- **Open questions:** the districts brainstorm, paused at its first question, "Where do people live?".
-- **Waiting on:** the owner's playtest of slice 2 with the starting army and of the draft web.
-- **Next action:** stamp, then cycle 3 on both lenses (the `[fixes]` focus).
+- **State:** closed by `S5 close` on `sprint/5`, reviews gate waived by the owner; `main` fast-forwarded and pushed.
+- **Waiting on:** the GitHub CI run for the push (Sprint 6 records it); the owner's playtest of slices 1 to 3.
+- **Open questions:** the districts brainstorm, paused at "Where do people live?"; the economy note of 2026-10-23.
+- **Next action:** Sprint 6: first Sprint 5's open review points and CLAUDE.md's phase line (ROADMAP), then slice 4.
