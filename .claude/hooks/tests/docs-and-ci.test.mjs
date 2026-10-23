@@ -61,16 +61,21 @@ test('check-docs fails on each kind of drift it guards', () => {
   }
 });
 
-test('check-docs checks every quote of the owner in prototype/RULES.md against its record', () => {
-  // The record: bold, a blockquote and a line break inside the quoted words; struck-out text is no record.
-  const RECORD = '# Sprint 1\n\n> The owner: **ships carry armies,\n> settlers and food**; ~~walls are free~~.\n' +
-    'A city builds a general the way it builds a regiment (coin and production), with no limit.\n';
-  const RULINGS = '- P8 Borders: claims that tile and the\n  tiles around it.\n';
+test('check-docs checks every quote of the owner in prototype/RULES.md against its ruling', () => {
+  // S1 map's ruling: bold, a blockquote and a line break inside the quoted words; struck-out text is no record. The
+  // next paragraph is another ruling, and P9's list item is another placeholder.
+  const MAP = '**Map and borders (2026-10-07).**';
+  const RECORD = `# Sprint 1\n\n${MAP} The owner:\n> **ships carry armies,\n> settlers and food**; ~~walls are free~~.\n` +
+    'A city builds a general the way it builds a regiment (coin and production), with no limit.\n\n' +
+    '**Victory (2026-10-05).** You win by points.\n';
+  const RULINGS = '- P8 Borders: claims that tile and the\n  tiles around it.\n- P9 Distance: costs only time.\n';
   const RULES = '# Rules\n- Ships (S1 map: "ships carry armies, settlers and food"; "settlers and food").\n' +
-    '- Borders (P8: "claims that tile and the tiles around it"; eng.). Not a mark (see "The web").\n' +
+    '- Borders (P8: "claims that tile and the tiles around it"; eng.). Not a mark (see *The web*).\n' +
     '- Generals (eng.; S1 map: "the way it builds a regiment (coin and production), with no limit").\n';
-  const planted = (rules) => (r) => {
-    write(r, 'docs/sprints/SPRINT-1.md', RECORD);
+  const planted = (rules, record = RECORD) => (r) => {
+    write(r, 'docs/sprints/INDEX.md', '| [Sprint 1](SPRINT-1.md) |\n| [Sprint 2](SPRINT-2.md) |\n');
+    write(r, 'docs/sprints/SPRINT-1.md', record);
+    write(r, 'docs/sprints/SPRINT-2.md', '# Sprint 2\n\n**Slice 1 placeholders (2026-10-15).** Sites claim land (P8).\n');
     write(r, 'prototype/RULINGS.md', RULINGS);
     write(r, 'prototype/RULES.md', rules);
   };
@@ -79,13 +84,22 @@ test('check-docs checks every quote of the owner in prototype/RULES.md against i
   const run = checkDocs(ok);
   assert.equal(run.status, 0, run.stderr);
 
+  const add = (line) => `${RULES}${line}\n`;
   const cases = [
-    ['misquoted words', RULES.replace('settlers and food"; "', 'and food"; "'), /quotes S1 map: "ships carry armies, and food", which is not word for word in docs\/sprints\/SPRINT-1\.md/],
+    ['misquoted words', RULES.replace('settlers and food"; "', 'and food"; "'), /quotes S1 map: "ships carry armies, and food", which is not word for word in S1 map's ruling \(docs\/sprints\/SPRINT-1\.md\)/],
     ['a second quote in the same mark', RULES.replace('"settlers and food"', '"settlers and gold"'), /quotes S1 map: "settlers and gold"/],
-    ['struck-out words', `${RULES}- Walls (S1 map: "walls are free").\n`, /quotes S1 map: "walls are free"/],
-    ['a placeholder not in its record', RULES.replace('the tiles around it"', 'every tile around it"'), /quotes P8: .* not word for word in docs\/sprints\/SPRINT-2\.md or prototype\/RULINGS\.md/],
-    ['an unknown mark', `${RULES}- New (Q7: "anything").\n`, /unknown mark "Q7"/],
-    ['an unclosed quote', `${RULES}- Broken (S1 map: "ships carry).\n`, /unclosed quotation mark/],
+    ['struck-out words', add('- Walls (S1 map: "walls are free").'), /quotes S1 map: "walls are free"/],
+    ['a placeholder not in its record', RULES.replace('the tiles around it"', 'every tile around it"'), /quotes P8: .* not word for word in P8's ruling \(docs\/sprints\/SPRINT-2\.md, prototype\/RULINGS\.md\)/],
+    ["another ruling's words in the same log", add('- Victory (S1 map: "You win by points").'), /quotes S1 map: "You win by points"/],
+    ["another placeholder's words", add('- Distance (P8: "costs only time").'), /quotes P8: "costs only time"/],
+    ['an unknown mark', add('- New (Q7: "anything").'), /unknown mark "Q7"/],
+    ['an unknown mark in a known family', add('- New (W9: "anything").'), /unknown mark "W9"/],
+    ['an unknown mark after a known one', add('- New (S1 map: "settlers and food"; W9: "settlers and food").'), /unknown mark "W9"/],
+    ['a quote outside a mark', add('- Loose: "settlers and food".'), /has "settlers and food" outside a mark/],
+    ['a quote in parentheses with no mark', add('- Label (see "The web").'), /has "The web" in parentheses with no mark/],
+    ['a mark after other words', add('- Late (as the owner chose, S1 map: "settlers and food").'), /has "settlers and food" in parentheses with no mark/],
+    ['an unclosed quote', add('- Broken (S1 map: "ships carry).'), /unclosed quotation mark/],
+    ['an unclosed parenthesis', add('- Broken (S1 map: "settlers and food".'), /unclosed parenthesis/],
   ];
   for (const [name, rules, message] of cases) {
     const root = project();
@@ -94,6 +108,12 @@ test('check-docs checks every quote of the owner in prototype/RULES.md against i
     assert.equal(bad.status, 1, name);
     assert.match(bad.stderr, message, name);
   }
+
+  const moved = project();
+  planted(RULES, RECORD.replace(MAP, '**Borders (2026-10-07).**'))(moved);
+  const gone = checkDocs(moved);
+  assert.equal(gone.status, 1, "a ruling's opening words missing");
+  assert.match(gone.stderr, /docs\/sprints\/SPRINT-1\.md has no "\*\*Map and borders \(2026-10-07\)\.\*\*"/);
 });
 
 test('npm run ci records a failure and exits non-zero when a step fails', () => {

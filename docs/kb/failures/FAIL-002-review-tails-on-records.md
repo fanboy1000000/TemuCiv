@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | **Found** | S4, in the sprint-end review (cycles 3 to 6, 2026-10-16 → 2026-10-17); named by the S5 harness review |
-| **Fixed** | S5, TASK-505 (2026-10-18), on the owner's ruling H1 |
+| **Fixed** | S5, TASK-505 (2026-10-18), on the owner's ruling H1; the quote check tightened by TASK-507 after the review |
 | **Areas** | governance (Orchestrator), `prototype/RULES.md`, sprint logs |
 
 ## What went wrong (plain language)
@@ -17,7 +17,8 @@ finding was about records:
 
 Each full re-review read the freshly rewritten text and found the next slip. Sprint 2 (four rounds, waived) and
 Sprint 3 (attribution in the rules "took three passes") showed the same tail. The cost was days of rounds and two
-waivers. The game itself was never wrong in those rounds.
+waivers. A few findings in those rounds did touch the game (the hunger look-ahead in cycles 3 and 4, two screen
+hints in cycle 5), but most were about records.
 
 ## Why it happened
 
@@ -30,15 +31,15 @@ waivers. The game itself was never wrong in those rounds.
 
 ## The guard
 
-- **A machine checks the quotes.** `tools/check-docs.mjs` (step 6, in `npm run ci`) finds every quote inside a
-  mark in `prototype/RULES.md`, such as (A4: "words"). It requires each quote to appear word for word in the
-  tracked record that mark points to. An unknown mark fails, and struck-out text doesn't count. Slice 1's
-  placeholder answers were copied from the working notes into `prototype/RULINGS.md`, so every record is tracked.
-  Tests in `.claude/hooks/tests/docs-and-ci.test.mjs` cover six failures. Four one-line mutations each made them
-  fail.
+- **A machine checks the quotes.** `tools/check-docs.mjs` (step 6, in `npm run ci`) checks every quote in
+  `prototype/RULES.md`, where double quotes hold only the owner's words, each inside a mark such as (A4: "words").
+  Each quote must appear word for word in the ruling its mark names: the paragraphs check-docs lists for that mark,
+  not the whole log. A quote outside a mark, an unknown mark, or a ruling whose opening words are missing fails,
+  and struck-out text doesn't count. Slice 1's placeholder answers were copied from the working notes into
+  `prototype/RULINGS.md`, so every ruling is tracked. Tests in `.claude/hooks/tests/docs-and-ci.test.mjs` cover 15
+  failures; the bypasses the Sprint 5 review found pass the checker as it was before TASK-507.
 - **Verification rounds cover the fixes.** After a lens's first round, the next ones review the diff since that
-  lens last looked, plus whatever the fixes change. A full round comes back only when a fix changes the plan or a
-  design rule (WORKFLOW, "Review cycles").
+  lens last looked, plus whatever the fixes change (WORKFLOW, "Review cycles").
 - **Fix records are copied, not retyped.** A fix task copies each finding's status from the review file and quotes
   any change to a gitignored file (WORKFLOW, "Review cycles").
 

@@ -41,7 +41,7 @@ is sent anywhere. There is no saving: reloading the page starts a new game.
 ## Armies
 
 You start with a general in your first city, leading a small army of 3 regiments; they took no one from the city.
-Its baggage is full, 3 turns of the army's food, and there is no other food for it anywhere. With the starting
+Its baggage is full, 3 turns of the army's food, and no extra food was added for it. With the starting
 numbers the capital can't feed this army for long: kept at home, the army refills its baggage from the capital's
 store, and the capital starves to size 1 at the end of turn 3, even with a farm ordered on turn 1 (the farm is
 finished too late); sent off at once, it spares the capital but lives on those 3 turns of food, and the nearest

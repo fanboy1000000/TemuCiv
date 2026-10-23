@@ -41,12 +41,14 @@ do? This is also the fifth sprint, so it carries the harness review.
 | TASK-502 | general-purpose agent (Opus, named at spawn) | `prototype/**` except `RULES.md` | A new game's general leads `start.regiments` (3) with full baggage, and the city stays size 2. With 0, the start is today's. README updated → scratch check, `node prototype/smoke.js`, `npm run ci`, screenshot | no (prototype) |
 | TASK-503 | Orchestrator | `prototype/RULES.md`, this log | The web's rules from W1 to W3 and the Sprint 1 web rulings. Every mark rests on the recorded words → sprint-end review at the normal bar | no |
 | TASK-504 | the TASK-502 agent, resumed | `prototype/**` except `RULES.md` | Plays as RULES.md's web section says. Every web number and node in `numbers.js`. The smoke check buys nodes and undoes them, and checks that experience is never negative and that undo restores it exactly. A web-locked building can't be ordered → the builder's scratch checks (expected values from RULES.md), smoke, `npm run ci`, screenshots, the owner's playtest | no (prototype) |
-| TASK-505 | Orchestrator | `docs/WORKFLOW.md`, `docs/AGENTS.md`, `ROADMAP.md`, this log | Harness review: each mechanism checked against the last five sprints. Sprint 4's three proposals decided with the owner, and the adopted ones written in → `check-docs`, sprint-end review | no |
+| TASK-505 | Orchestrator | `docs/WORKFLOW.md`, `docs/AGENTS.md`, `ROADMAP.md`, this log; widened during the task, as its entry declares: `tools/check-docs.mjs` and its test, FAIL-002 and the KB index, `prototype/RULES.md`, `prototype/RULINGS.md` (new) | Harness review: each mechanism checked against the last five sprints. Sprint 4's three proposals decided with the owner, and the adopted ones written in → `check-docs`, sprint-end review | no |
 | TASK-506 | Orchestrator | `docs/WORKFLOW.md`, `docs/kb/decisions/ADR-006-ai-studio-governance.md`, this log | H2: the harness review weighs each mechanism's cost against the failure it guards against, over the whole project. Silence alone never removes one; removal needs a positive reason and the owner → `check-docs`, sprint-end review | no |
+| TASK-507 | Orchestrator | `tools/check-docs.mjs`, `.claude/hooks/tests/docs-and-ci.test.mjs`, `prototype/RULES.md`, `prototype/README.md` (one line, small tasks exception), `docs/WORKFLOW.md`, `docs/AGENTS.md`, FAIL-002, `ROADMAP.md`, this log | Each sprint-end cycle 1 finding fixed, or declined with a reason. The quote check fails every bypass the lenses named → a test case per bypass, each seen failing against the old checker; `check-docs`, `npm run ci`; cycle 2 on the fixes | no |
 
 Waves: 501, then 502 (the starting army, delivered to the owner first) while 503 is written; 504 after 503. 505
-runs alongside. 506 was added on 2026-10-20, after 504, from the owner's H2. The builder is a generic agent with the model named, as in Sprints 3 and 4: the simulation and
-presentation definitions carry standing instructions the prototype exception sets aside.
+runs alongside. 506 was added on 2026-10-20, after 504, from the owner's H2, and 507 on 2026-10-23 for the
+sprint-end review's cycle 1 findings. The builder is a generic agent with the model named, as in Sprints 3 and 4:
+the simulation and presentation definitions carry standing instructions the prototype exception sets aside.
 
 ## Plan review (step 2)
 
@@ -170,7 +172,7 @@ was checked word for word against this log and the Sprint 1 log.
 ### TASK-504: the draft web
 
 Status complete · Agent: the TASK-502 builder, resumed · Checklist items 1 and 9 pass · Review: sprint-end ·
-Files: `prototype/numbers.js`, `game.js`, `ui.js`, `index.html`, `smoke.js`, `README.md`.
+Files: `prototype/numbers.js`, `game.js`, `ui.js`, `index.html`, `smoke.js`, `README.md`, `ROADMAP.md`.
 
 What was built:
 - `numbers.js`: a `web` section with prices, coin per point, and the four branches in ring order with their rates
@@ -185,11 +187,11 @@ Criteria:
 - The builder's scratch checks, with expected values from RULES.md PASS: 59 on experience, buying, links and locks;
   53 on the 12 bonuses and the forecast. Among them: Siege craft 3 against 3 = 39.0%, and Master builders' Granary
   8, Hall 15 and second Hall 23.
-- Smoke PASS: 17 order kinds, each at least 45 times; 16 of 16 nodes owned.
+- Smoke PASS (seed 1): 17 order kinds, the fewest "found 32" (rerun 2026-10-23); 16 of 16 nodes owned.
 - `npm run ci` PASS (Orchestrator's run); 40 seeds of smoke copies PASS.
 - Screenshots checked by the Orchestrator PASS: the opening's experience block and the locked Hall and Granary
   reasons; the web with owned, buyable and unlinked nodes and the ring.
-- The Orchestrator read `rates`, `earn` and its five call sites, `nodePrice`, `checkBuy`, `buildCost`,
+- The Orchestrator read `rates`, `earn` and its six call sites (at five steps), `nodePrice`, `checkBuy`, `buildCost`,
   `armyEatsNow` and `winChance` against RULES.md: no mismatch.
 
 Brief contradictions, settled: found was also under 10 on many seeds, so smoke now favours the least-given kind
@@ -208,11 +210,12 @@ Proposed entries declined:
 
 ### TASK-505: the harness review and the review fixes
 
-Status complete · Agent: Orchestrator · Checklist pass (self-check) · Review: sprint-end, normal bar · Files:
-`tools/check-docs.mjs`, `.claude/hooks/tests/docs-and-ci.test.mjs`, `docs/WORKFLOW.md`, `docs/AGENTS.md`,
+Status complete · Agent: Orchestrator · Checklist item 1: scope widened past the plan row (declared below); item 9
+pass (self-check) · Review: sprint-end, normal bar · Files: `tools/check-docs.mjs`,
+`.claude/hooks/tests/docs-and-ci.test.mjs`, `docs/WORKFLOW.md`, `docs/AGENTS.md`,
 `docs/kb/failures/FAIL-002-review-tails-on-records.md`, `docs/kb/INDEX.md`, `ROADMAP.md`, `prototype/RULES.md`,
 `prototype/RULINGS.md` (new), this log. Scope widened from the plan row: `tools/check-docs.mjs` and the tests
-(H1's script), `prototype/RULES.md` and the new `prototype/RULINGS.md`.
+(H1's script), FAIL-002 and the KB index, `prototype/RULES.md` and the new `prototype/RULINGS.md`.
 
 The harness review: what each mechanism caught in Sprints 1 to 5.
 
@@ -229,10 +232,10 @@ The harness review: what each mechanism caught in Sprints 1 to 5.
 | Brief challenge | wrong brief claims settled each prototype sprint (S4 `smoke.js`; S5 "build food first") | a report section | keep |
 
 Nothing caught nothing at a real cost, so nothing is removed. H1's changes:
-- **(1) and (2)** are in WORKFLOW's "Review cycles", step 7.4 and "Prototype phase", and AGENTS' Codex FOCUS
-  gains a `[fixes]` line.
-- **(3)** is `check-docs` step 6. It checks each quote inside a mark in `prototype/RULES.md` word for word against
-  the tracked record that mark points to. An unknown mark fails, and struck-out text doesn't count.
+- **(1) and (2)** are in WORKFLOW's "Review cycles" and step 7.4, and AGENTS' Codex FOCUS gains a `[fixes]` line.
+- **(3)** is `check-docs` step 6, named in WORKFLOW's "Prototype phase". It checks each quote inside a mark in
+  `prototype/RULES.md` word for word against the tracked record that mark points to. An unknown mark fails, and
+  struck-out text doesn't count (tightened by TASK-507).
 - Slice 1's placeholder answers were copied into `prototype/RULINGS.md`, identical to the working notes by diff.
 - RULES.md now keeps every owner quote inside its mark: A1's "a few rival cities far away", and the web table
   paragraph's W3 quotes.
@@ -256,6 +259,55 @@ status, earned-governance line and consequence follow. TASK-505's verdicts stand
 removed, and the quiet hooks, guards and secret scan were kept for the risk they cover, as H2 now requires.
 Criteria: the WORKFLOW bullet states all five rules (read) PASS; ADR-006 consistent with it (read) PASS;
 `check-docs` and `npm run ci` PASS.
+
+### TASK-507: the sprint-end review's cycle 1 findings
+
+Status complete · Agent: Orchestrator (the README line under the small tasks exception) · Checklist items 1 and 9
+pass (self-check) · Review: sprint-end cycle 2, on the fixes · Files: `tools/check-docs.mjs`,
+`.claude/hooks/tests/docs-and-ci.test.mjs`, `prototype/RULES.md`, `prototype/README.md`, `docs/WORKFLOW.md`,
+`docs/AGENTS.md`, `docs/kb/failures/FAIL-002-review-tails-on-records.md`, `ROADMAP.md`, this log. Refinement
+skipped: review fixes, each specified by its finding. Cycle 1 ran on 2026-10-18 at `15ead79`, and both lenses
+BLOCKED (`.claude/reviews/SPRINT-5-codex-c1.md` and `SPRINT-5-reviewer-c1.md`, gitignored). The fixes waited until
+2026-10-23: the sessions between took H2 and the districts notes, and the handoff left out the open review.
+
+In plain words: the quote checker now ties each owner mark to the exact paragraphs of its ruling, so a quote can't
+borrow a neighbouring ruling's words. It fails a quote outside a mark, an unknown mark, and a ruling whose opening
+words have moved. RULES.md keeps double quotes for the owner's words only; names of screens and records are in
+italics.
+
+Codex, cycle 1, each finding's status:
+- B1 (the checker approves wrongly attributed words): fixed. Each known mark lists its ruling's paragraphs; a quote
+  outside a mark, or in parentheses with no mark, fails; nine new test cases.
+- B2 (WORKFLOW adds to H1): fixed. The full-cycle exception is gone from WORKFLOW and FAIL-002; quoting a
+  gitignored-file change is credited to FAIL-002, not H1.
+- B3 (RULINGS.md under the light bar): fixed in WORKFLOW's "Prototype phase" and both places in AGENTS.
+- B4 (TASK-505's scope): fixed. Its plan row names the widened scope, and its entry says item 1 was widened.
+- B5 (false smoke evidence): fixed. TASK-504 quotes the run: the fewest is "found 32".
+- B6 (stale handoff): fixed in TASK-506's commit, and refreshed again here.
+- Note (the README's "no other food for it anywhere"): fixed: "no extra food was added for it".
+
+Reviewer, cycle 1, each finding's status:
+- B1 (the full-cycle exception): fixed, as Codex B2.
+- W1 (Sprint 4 misstated): fixed in WORKFLOW and FAIL-002. Its proposed rule (a fix-only round still reports what
+  it sees outside the fixes) declined: H1 limits later rounds to the fixes, and widening that is the owner's call.
+- W2 (quotes outside a mark skipped) and W3 (the whole log read): fixed, as Codex B1.
+- W4 (RULINGS.md's bar): fixed, as Codex B3.
+- N1 (H1 credited with engineering's convention): fixed in RULES.md and WORKFLOW; H1 joins RULES.md's marks list.
+- N2 (no pointer from the base numbers to the web) and N3 (undo leaves out experience): fixed in RULES.md.
+- N4 (log bookkeeping): fixed: six call sites at five steps; where (1) to (3) went; TASK-504's files gain
+  `ROADMAP.md`; TASK-505's widened scope gains FAIL-002 and the KB index.
+- N5 (smoke never checks a locked building): declined: the criterion named the builder's scratch checks, which do.
+- N6 (the harness table leaves out three mechanisms): declined: the next harness review builds H2's full table.
+- N7 (the Economy branch against Sprint 1's proposal): routed to the ROADMAP backlog as a slice 3 watch item.
+- Delete-list: "S1 web pricing" now names its own ruling, so it stays; the full-cycle exception is deleted.
+
+Criteria:
+- `check-docs` on the real RULES.md PASS. Before the italics it failed on exactly the 20 names in quotes, and on no
+  quote of the owner's words PASS.
+- The docs tests PASS (4 of 4); the quote test now has 15 failure cases.
+- Each new case can fail PASS: against the checker before TASK-507 (a throwaway checkout of `04d3e41`), 7 passed
+  outright (the bypasses) and 2 failed for the wrong reason.
+- `npm run ci` PASS.
 
 ## Design conformance
 
@@ -286,8 +338,10 @@ review (RULES.md at the normal bar) and the owner's playtest come after this tab
 
 ## Handoff
 
-- **State:** on `sprint/5`: TASK-501 `a753b8f`, 503 `c43b479`, 502 `201fd8a`, 505 `6023729`, 504 `15ead79`, and
-  506. G1, W1 to W3, H1 and H2 recorded.
+- **State:** on `sprint/5`: TASK-501 `a753b8f`, 503 `c43b479`, 502 `201fd8a`, 505 `6023729`, 504 `15ead79`, 506
+  `04d3e41`, and 507. G1, W1 to W3, H1 and H2 recorded.
+- **Review:** cycle 1 (both lenses, at `15ead79`) BLOCKED; TASK-507 fixes its findings. Cycle 2 reviews
+  `15ead79..HEAD`: the fixes, plus TASK-506 and the owner's notes, which no lens has seen yet.
 - **In flight:** nothing.
 - **Waiting on:** the owner's playtest of slice 2 with the starting army and of the draft web.
-- **Next action:** the sprint-end review: both lenses, with fix-only verification cycles after cycle 1 (H1).
+- **Next action:** stamp, then cycle 2 on both lenses (the `[fixes]` focus, with TASK-506 at the sprint bar).

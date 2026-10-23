@@ -150,9 +150,9 @@ rather than paper decide which ideas stay (owner rulings D1, 2026-10-15, and the
   code is ever moved into the game, and the folder is deleted when production (M1) starts fresh in `src/`.
 - **Its rules:** the owner's rulings and the slice's placeholders, written out by the Orchestrator in
   `prototype/RULES.md`. Conforming to the design means matching that file. Its numbers sit in one file the owner
-  can edit. Every quote of the owner's words in it sits in its mark, and `check-docs` checks each one word for word
-  against the tracked record the mark points to; slice 1's placeholder answers are copied into
-  `prototype/RULINGS.md` for that (owner, H1, Sprint 5).
+  can edit. `check-docs` checks every quote of the owner's words in it word for word against the ruling its mark
+  points to (owner, H1, Sprint 5). For that, double quotes there hold only the owner's words, each inside its mark,
+  and slice 1's placeholder answers are copied into `prototype/RULINGS.md`, so every ruling is tracked.
 - **Relaxed:** invariants 2 to 7 (determinism, the action pipeline, multiplayer-ready state, scale, tests written
   first), the plan review, the per-task review, `shortcut:` comments, and the constraint checklist except items 1
   (scope) and 9 (no secrets; no leftover debug output, dead code or unused imports).
@@ -163,7 +163,7 @@ rather than paper decide which ideas stay (owner rulings D1, 2026-10-15, and the
   personal data, a risk to the owner's computer, prototype code used from outside `prototype/`, or behavior that
   contradicts `prototype/RULES.md`; everything else is a NOTE. Changes outside `prototype/` get the normal bar, and
   so does `prototype/RULES.md`, checked against the owner's rulings: a ruling copied wrong is a design mismatch
-  (owner, 2026-10-16).
+  (owner, 2026-10-16). So does `prototype/RULINGS.md`, the record those quotes are checked against.
 - **Each slice ends with the owner's playtest;** the notes go to `docs/design/notes.md` and feed the next slice and
   the design.
 
@@ -176,12 +176,11 @@ rather than paper decide which ideas stay (owner rulings D1, 2026-10-15, and the
   nobody would plausibly hit.
 - **Every fix gets a verification review.** Cycles are counted per lens and per scope (plan, task or sprint).
 - **After a lens's first cycle, a verification cycle covers the fixes:** the diff since the commit that lens last
-  reviewed, named in its prompt, and whatever those fixes change elsewhere. A fix that changes the plan or a design
-  rule gets a full cycle again. (Owner, H1, Sprint 5: the full re-reviews of Sprints 2 and 4 found mostly new slips
-  in freshly written text, while Sprint 4's two fix-only cycles found nothing more in the game or the rules.)
+  reviewed, named in its prompt, and whatever those fixes change elsewhere. (Owner, H1, Sprint 5: after cycle 2,
+  the full re-reviews of Sprints 2 and 4 found mostly new slips in freshly written records.)
 - **A fix task's log entry copies each finding's status** (fixed, or declined with the reason) from the review
-  file, finding by finding, and quotes any change it made to a gitignored file, which no lens and no CI can see
-  (H1; in Sprint 4 a log claimed a working-notes fix that hadn't been made).
+  file, finding by finding (H1). It also quotes any change it made to a gitignored file, which no lens and no CI
+  can see (FAIL-002: in Sprint 4 a log claimed a working-notes fix that hadn't been made).
 - **A decision record for a system not yet built** records the decision. Its details (formats, thresholds, exact
   sequences) are settled by the sprint that builds the system; until then a review treats a missing detail as a
   NOTE, unless an agent would act on it in the sprint under review (owner, 2026-10-15, after Sprint 2's review

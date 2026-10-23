@@ -1,25 +1,26 @@
 # Prototype slices 1 to 3: the rules
 
-The rules the throwaway prototype follows (WORKFLOW, "Prototype phase"). Written by the Orchestrator from the
+The rules the throwaway prototype follows (WORKFLOW, *Prototype phase*). Written by the Orchestrator from the
 owner's rulings: the slice 1 placeholders P1 to P12 and the earlier rulings (Sprint 1 to 3 logs), and the slice 2
-answers A1 to A5 (Sprint 4 log), and slice 3's G1 and W1 to W3 (Sprint 5 log), all under "Owner design rulings". The
+answers A1 to A5 (Sprint 4 log), and slice 3's G1 and W1 to W3 (Sprint 5 log), all under *Owner design rulings*. The
 builder may not change this file, and reports any rule that can't work as written. Each rule ends with its source;
-"(eng.)" marks engineering's own proposal, which the owner may flag, and a rule with two parts may carry two marks.
+*(eng.)* marks engineering's own proposal, which the owner may flag, and a rule with two parts may carry two marks.
 An owner's mark is used only where the record it points to contains the words the rule rests on; a quote in the mark
-gives those words where they are not obvious; anything else is (eng.). A quote of the owner's words always sits in
-its mark, as in (P3: "every order costs one move"), and `npm run check-docs` checks each one word for word against
-the record the mark points to (owner, H1, Sprint 5 log). The owner's marks: K1 to K6 (the moves budget), C2 (the
-economy), D1 to D3 and P1 to P12 (the first playable and slice 1's placeholders), all in the Sprint 2 log, with the
-placeholder texts as put to the owner copied into `RULINGS.md`; "(owner, 2026-10-15)", the Sprint 3 log's
-"Production and coin" ruling; A1 to A5 and R1 in the Sprint 4 log, and G1 and W1 to W3 in the Sprint 5 log, with the
-exact option text the owner chose and, for W1 and W3, the text shown with the question; "S1" with an entry name
-points to the Sprint 1 log's rulings: "S1 logistics" (logistics is a major feature), "S1 combat" (the owner's combat
-concept, still to be matured), "S1 map" (map and borders), "S1 web" (the progression web and its branches), "S1
-progression" ("Progression, revised") and "S1 web pricing" ("Web pricing"). A number is the owner's when its rule's
-mark says so, for example one move per order (P3) or one person per regiment (A4); four more were shown to the owner
-as examples and kept: 4 moves per turn and a cap of about 8 (P4), a Hall's one move (P10), and attention's quarter
-more for five turns (P5). Every other number is a starting value engineering proposed, kept in `numbers.js` where
-the owner can change it and reload.
+gives those words where they are not obvious; anything else is (eng.). Double quotes hold only the owner's words,
+each inside its mark, as in (P3: "every order costs one move"), and the names of screens and records are in italics
+(eng.); `npm run check-docs` checks each quote word for word against the ruling its mark points to (H1). The owner's
+marks: K1 to K6 (the moves budget), C2 (the economy), D1 to D3 and P1 to P12 (the first playable and slice 1's
+placeholders), all in the Sprint 2 log, with the placeholder texts as put to the owner copied into `RULINGS.md`;
+*(owner, 2026-10-15)*, the Sprint 3 log's *Production and coin* ruling; A1 to A5 and R1 in the Sprint 4 log, and G1,
+W1 to W3 and H1 in the Sprint 5 log, with the exact option text the owner chose and, for W1 and W3, the text shown
+with the question; *S1* with an entry name points to the Sprint 1 log's rulings: *S1 logistics* (logistics is a
+major feature), *S1 combat* (the owner's combat concept, still to be matured), *S1 map* (map and borders), *S1 web*
+(the progression web and its branches), *S1 progression* (*Progression, revised*) and *S1 web pricing* (*Web
+pricing*). A number is the owner's when its rule's mark says so, for example one move per order (P3) or one person
+per regiment (A4); four more were shown to the owner as examples and kept: 4 moves per turn and a cap of about 8
+(P4), a Hall's one move (P10), and attention's quarter more for five turns (P5). Every other number is a starting
+value engineering proposed, kept in `numbers.js` where the owner can change it and reload. Nodes in the web change
+some of these numbers (see *The web*).
 
 ## The map
 - A hex grid, 24 × 18 tiles, one landmass surrounded by water, made from a seed number: the same seed always
@@ -34,7 +35,7 @@ the owner can change it and reload.
   to it, and one general in the city (eng.). The general leads a small army (G1: "I want the general to start with
   a small army") of 3 regiments, which take no person from the city (eng.). Its baggage is full, 3 turns of the
   army's eating, with no extra food anywhere (G1: "The army has the usual 3 turns of food and nothing else").
-- The rival starts with its cities placed as "The rival" says (A1; the placing is eng.).
+- The rival starts with its cities placed as *The rival* says (A1; the placing is eng.).
 
 ## Moves
 - You get 4 moves each turn (P4). Unused moves carry over with no limit (P11). The top bar shows the moves
@@ -46,8 +47,9 @@ the owner can change it and reload.
   anything is free (P3).
   An order you can't afford is shown disabled, with the reason (eng.).
 - Undo takes back the most recent order given this turn, and can be repeated back to the start of the turn: the
-  order's move, coin, stone and food come back, so correcting a misclick costs nothing (eng.). Changing an order
-  from an earlier turn is a new order (eng.), so it costs one move (P3: "every order costs one move").
+  order's move, coin, stone, food and experience come back, so correcting a misclick costs nothing (eng.).
+  Changing an order from an earlier turn is a new order (eng.), so it costs one move (P3: "every order costs one
+  move").
 - Anything you leave alone keeps following its last orders (K4).
 - Attention: any real order given in a city gives that city attention for 5 turns: its sites produce a quarter more
   (P5: "Any real order in a city also gives it the attention boost"; "the city's sites produce a quarter more for
@@ -76,7 +78,7 @@ the owner can change it and reload.
   purse) and stone (from that city's store) are paid when you order it (eng.). Changing the order refunds the
   coin, stone and food paid and loses the progress (eng.).
 - When a build finishes and you haven't ordered another, the city waits: its production is unused (P6, owner
-  2026-10-15) and it is listed under "Waiting for you" (eng.).
+  2026-10-15) and it is listed under *Waiting for you* (eng.).
 
 | What | Coin | Stone | Production | Other | Effect |
 |---|---|---|---|---|---|
@@ -90,8 +92,8 @@ the owner can change it and reload.
 | Market | 25 | 10 | 30 | needs its web node (W2); one per city | coin from people and arriving trade +50% (see Coin) |
 | Workshop | 20 | 15 | 30 | needs its web node (W2); one per city | production +50% (see Production) |
 
-Every cost in the table and the Hall's price growth are eng. Some nodes in the web change these numbers (see "The
-web"). The four buildings are named by P10; farms and quarries are sites (P1); settlers appear in the map and
+Every cost in the table and the Hall's price growth are eng. Some nodes in the web change these numbers (see *The
+web*). The four buildings are named by P10; farms and quarries are sites (P1); settlers appear in the map and
 borders ruling (S1 map: "ships carry armies, settlers and food"), and their rules are eng.; the general and the
 regiment are A2 to A4, as marked; everything else in the table not marked is eng.
 
@@ -102,7 +104,7 @@ regiment are A2 to A4, as marked; everything else in the table not marked is eng
   the tiles around it"), except tiles another city already holds (eng.). Sites are the only way borders grow
   (eng.).
 - A site is worked by the city's people (P1). The city fills its sites on its own: farms first, then quarries,
-  nearest first (eng.). A site without enough people stands idle and is listed under "Waiting for you" (eng.).
+  nearest first (eng.). A site without enough people stands idle and is listed under *Waiting for you* (eng.).
 - A working site's output travels to its city on its own (P2): it arrives after 1 turn per 3 tiles of distance
   (counted in hexes from the site to the city), rounded up, at least 1 turn (eng.). Nothing is lost on the way
   (P9).
@@ -296,13 +298,13 @@ regiment at 5, people's coin at 6, a battle and its plunder at 9 (eng.).
   attention left. Orders are buttons that show their cost (eng.).
 - A general's panel: regiments, baggage (food and turns left), its supply city and the food on its way,
   destination, and the win chance next to a rival city. Orders are buttons that show their cost (eng.).
-- "Waiting for you": cities with nothing to build, idle sites, settlers without orders, cities whose food store is
+- *Waiting for you*: cities with nothing to build, idle sites, settlers without orders, cities whose food store is
   falling, generals without orders outside your cities, and armies that will go hungry at one of the next two ends
   of turn if you give no more orders and win every battle you can win. The screen finds them by playing those two
   ends of turn on a copy of the game in which every battle an army with regiments fights is won without dice (an
   army with no regiments loses, as always), so the warning follows the same rules as the turn itself but never
-  reveals how a battle will go; an army whose hunger would come after a battle is listed as going hungry "if it
-  wins" (eng.).
+  reveals how a battle will go; an army whose hunger would come after a battle is listed as going hungry *if it
+  wins* (eng.).
 - A turn log: what happened this turn (a city grew, a build finished, a site stood idle, a city starved, a battle
   and its result, a city taken, an army went hungry) (eng.).
 - Hover over an underlined number to see what it is made of (eng.).

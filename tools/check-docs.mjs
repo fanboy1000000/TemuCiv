@@ -121,48 +121,81 @@ for (const p of files.filter((f) => f.endsWith('.md'))) {
 }
 
 // --- 6. The owner's quoted words -----------------------------------------------------------------
-// prototype/RULES.md cites the owner's rulings as marks such as (A4: "words"; "more words"). Each quote in a mark
-// must appear word for word in the tracked record the mark points to (owner, H1, Sprint 5 log). Add a line here
-// when a sprint records a new set of rulings; an unknown mark with a quote fails. Struck-out text is not a record.
-// Remove this check with the prototype/ folder when production starts (M1).
-const QUOTE_RECORDS = [
-  [/^S1 (logistics|combat|map|web|progression|web pricing)$/, ['docs/sprints/SPRINT-1.md']],
-  [/^(K\d|C2|D\d)$/, ['docs/sprints/SPRINT-2.md']],
-  [/^P\d{1,2}$/, ['docs/sprints/SPRINT-2.md', 'prototype/RULINGS.md']],
-  [/^owner, 2026-10-15$/, ['docs/sprints/SPRINT-3.md']],
-  [/^(A\d|R1)$/, ['docs/sprints/SPRINT-4.md']],
-  [/^(G1|W\d|H1)$/, ['docs/sprints/SPRINT-5.md']],
-];
-const MARK = /^\s*(S1 web pricing|S1 [a-z]+|owner, \d{4}-\d{2}-\d{2}|[A-Z]\d{1,2})\b/;
+// In prototype/RULES.md, double quotes hold only the owner's words, each inside a mark such as (A4: "words"; "more
+// words"); other quoted names there are in italics. Each quote must appear word for word in the ruling its mark
+// names: the paragraphs listed below, each running from its opening words to the next blank line (for a list item,
+// to the next item). A quote outside a mark, under a mark not listed here, or whose ruling's opening words are
+// missing, fails. Struck-out text is not a record. The check is the owner's H1 (Sprint 5 log); add the marks here
+// when a sprint records new rulings. Remove it with the prototype/ folder when production starts (M1).
+const S1 = 'docs/sprints/SPRINT-1.md', S2 = 'docs/sprints/SPRINT-2.md', S4 = 'docs/sprints/SPRINT-4.md';
+const S5 = 'docs/sprints/SPRINT-5.md';
+const RULINGS = {
+  'S1 web': [[S1, '- **Progression is a Path of Exile-style web**']],
+  'S1 logistics': [[S1, '- **Logistics is a major feature.**']],
+  'S1 combat': [[S1, "The owner's combat concept, still to be matured:"]],
+  'S1 map': [[S1, '**Map and borders (2026-10-07).**']],
+  'S1 progression': [[S1, '**Progression, revised (2026-10-07).**']],
+  'S1 web pricing': [[S1, '**Web pricing (2026-10-07).**']],
+  C2: [[S2, '**Economy (2026-10-15).**']],
+  'owner, 2026-10-15': [['docs/sprints/SPRINT-3.md', '**Production and coin (2026-10-15).**']],
+  R1: [[S4, '**R1,']],
+  G1: [[S5, '**G1,']],
+  W1: [[S5, '**W1,'], [S5, "Shown with W1's question"]],
+  W2: [[S5, '**W2,']],
+  W3: [[S5, '**W3,'], [S5, '> **Shape:**'], [S5, 'Asked "Go with this draft node list']],
+  H1: [[S5, '**H1,']],
+  H2: [[S5, '**H2,'], [S5, '> Keep a regular check'], [S5, 'Asked "Should I go with A?"']],
+};
+const K = [[S2, '**Ruling a large empire'], [S2, '**Challenges, round one (2026-10-13).**'], [S2, '**Challenges, round one, continued']];
+for (let n = 1; n <= 6; n++) RULINGS[`K${n}`] = K;
+for (let n = 1; n <= 3; n++) RULINGS[`D${n}`] = [[S2, '**A first playable prototype (2026-10-15).**']];
+for (let n = 1; n <= 5; n++) RULINGS[`A${n}`] = [[S4, `**A${n},`]];
+for (let n = 1; n <= 12; n++) RULINGS[`P${n}`] = [[S2, '**Slice 1 placeholders (2026-10-15).**'], ['prototype/RULINGS.md', `- P${n} `]];
+// A known mark, longest first so "S1 web pricing" beats "S1 web"; failing that, anything shaped like a mark.
+const MARK = new RegExp(`^\\s*(${Object.keys(RULINGS).sort((a, b) => b.length - a.length).join('|')})(?![\\w-])`);
+const MARK_SHAPED = /^\s*([A-Z]\d{1,2}|S1 [a-z]+|owner, \d{4}-\d{2}-\d{2})(?![\w-])/;
 const plain = (text) => text.replace(/~~[\s\S]*?~~/g, ' ').replace(/^\s*>\s?/gm, '').replace(/\*\*/g, '').replace(/\s+/g, ' ');
+const section = (p, opening) => {
+  const text = existsSync(join(root, p)) ? read(p) : '';
+  const at = text.indexOf(opening);
+  if (at < 0) return null;
+  const end = text.slice(at + 1).search(opening.startsWith('- ') ? /\n\s*\n|\n- / : /\n\s*\n/);
+  return plain(text.slice(at, end < 0 ? undefined : at + 1 + end));
+};
 const QUOTED = 'prototype/RULES.md';
 if (existsSync(join(root, QUOTED))) {
   const text = read(QUOTED).replace(/\s+/g, ' ');
   // Top-level parentheses, split at semicolons; quotes are opaque, so a quote may hold parentheses or semicolons.
   const groups = [];
-  let depth = 0, inQuote = false, segment = '';
+  let depth = 0, inQuote = false, segment = '', outside = '';
   for (const c of text) {
     if (c === '"') inQuote = !inQuote;
-    if (!inQuote && c === ')' && depth === 1) groups.at(-1).push(segment);
     if (!inQuote && c === '(' && depth++ === 0) { groups.push([]); segment = ''; continue; }
-    if (!inQuote && c === ')' && depth > 0) { depth--; continue; }
-    if (depth === 0) continue;
+    if (!inQuote && c === ')' && depth > 0 && --depth === 0) { groups.at(-1).push(segment); continue; }
+    if (depth === 0) { outside += c; continue; }
     if (!inQuote && c === ';' && depth === 1) { groups.at(-1).push(segment); segment = ''; continue; }
     segment += c;
   }
   if (inQuote) errors.push(`quotes: ${QUOTED} has an unclosed quotation mark`);
-  const records = {};
-  const record = (p) => (records[p] ??= existsSync(join(root, p)) ? plain(read(p)) : '');
+  if (depth > 0) errors.push(`quotes: ${QUOTED} has an unclosed parenthesis`);
+  for (const [, quote] of outside.matchAll(/"([^"]+)"/g)) {
+    errors.push(`quotes: ${QUOTED} has "${quote}" outside a mark; the owner's words sit in a mark, other names in italics`);
+  }
   for (const segments of groups) {
     let mark = null;
     for (const seg of segments) {
-      mark = seg.match(MARK)?.[1] ?? mark;
+      mark = seg.match(MARK)?.[1] ?? seg.match(MARK_SHAPED)?.[1] ?? mark;
       for (const [, quote] of seg.matchAll(/"([^"]+)"/g)) {
-        if (!mark) continue;
-        const sources = QUOTE_RECORDS.find(([rx]) => rx.test(mark))?.[1];
-        if (!sources) errors.push(`quotes: ${QUOTED} quotes an unknown mark "${mark}"; add its record to check-docs`);
-        else if (!sources.some((p) => record(p).includes(plain(quote)))) {
-          errors.push(`quotes: ${QUOTED} quotes ${mark}: "${quote}", which is not word for word in ${sources.join(' or ')}`);
+        if (!mark) errors.push(`quotes: ${QUOTED} has "${quote}" in parentheses with no mark before it`);
+        else if (!RULINGS[mark]) errors.push(`quotes: ${QUOTED} quotes an unknown mark "${mark}"; add its ruling to check-docs`);
+        else {
+          const parts = RULINGS[mark].map(([p, opening]) => [p, opening, section(p, opening)]);
+          for (const [p, opening] of parts.filter(([, , s]) => s === null)) {
+            errors.push(`quotes: ${p} has no "${opening}", where ${mark}'s ruling should start; fix check-docs or the record`);
+          }
+          if (parts.every(([, , s]) => s !== null) && !parts.some(([, , s]) => s.includes(plain(quote)))) {
+            errors.push(`quotes: ${QUOTED} quotes ${mark}: "${quote}", which is not word for word in ${mark}'s ruling (${[...new Set(parts.map(([p]) => p))].join(', ')})`);
+          }
         }
       }
     }
